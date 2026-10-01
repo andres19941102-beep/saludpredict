@@ -1,1 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+    <title>SaludPredict</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header class="header">
+
+        <div class="logo">
+            Salud<span>Predict</span>
+        </div>
+
+        <button class="menu-btn" id="menuBtn">
+            ☰
+        </button>
+
+    </header>
+
+
+    <aside class="sidebar" id="sidebar">
+
+        <nav>
+
+            <a href="#" class="active">
+                🏠 Dashboard
+            </a>
+
+            <a href="#">
+                👥 Pacientes
+            </a>
+
+            <a href="#">
+                🏥 Servicios
+            </a>
+
+            <a href="#">
+                💊 Inventario
+            </a>
+
+            <a href="#">
+                💰 Presupuesto
+            </a>
+
+            <a href="#">
+                📊 Análisis
+            </a>
+
+            <a href="#">
+                🔮 Predicciones
+            </a>
+
+            <a href="#">
+                🚨 Alertas
+            </a>
+
+            <a href="#">
+                📑 Reportes
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main">
+
+        <div class="page-title">
+
+            <div>
+                <h1>Dashboard</h1>
+
+                <p>
+                    Resumen general de la institución
+                </p>
+            </div>
+
+        </div>
+
+
+        <section class="cards">
+
+            <div class="card">
+
+                <div class="card-icon">
+                    👥
+                </div>
+
+                <div>
+                    <p>Pacientes</p>
+                    <h2>823</h2>
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-icon">
+                    🏥
+                </div>
+
+                <div>
+                    <p>Atenciones</p>
+                    <h2>4.520</h2>
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-icon">
+                    💊
+                </div>
+
+                <div>
+                    <p>Inventario</p>
+                    <h2>96%</h2>
+                </div>
+
+            </div>
+
+
+            <div class="card">
+
+                <div class="card-icon">
+                    💰
+                </div>
+
+                <div>
+                    <p>Presupuesto</p>
+                    <h2>72%</h2>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="dashboard-grid">
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <h2>Demanda de servicios</h2>
+
+                    <select id="serviceSelect">
+
+                        <option>Todos</option>
+                        <option>Urgencias</option>
+                        <option>Consulta externa</option>
+                        <option>Hospitalización</option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="chart">
+
+                    <div class="bar" style="height:40%">
+                        <span>40</span>
+                    </div>
+
+                    <div class="bar" style="height:55%">
+                        <span>55</span>
+                    </div>
+
+                    <div class="bar" style="height:65%">
+                        <span>65</span>
+                    </div>
+
+                    <div class="bar" style="height:50%">
+                        <span>50</span>
+                    </div>
+
+                    <div class="bar" style="height:75%">
+                        <span>75</span>
+                    </div>
+
+                    <div class="bar" style="height:85%">
+                        <span>85</span>
+                    </div>
+
+                    <div class="bar" style="height:95%">
+                        <span>95</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="panel">
+
+                <div class="panel-header">
+
+                    <h2>Alertas</h2>
+
+                    <span class="badge">
+                        3
+                    </span>
+
+                </div>
+
+
+                <div class="alert warning">
+
+                    <strong>
+                        ⚠ Inventario bajo
+                    </strong>
+
+                    <p>
+                        Medicamento X está por debajo del stock mínimo.
+                    </p>
+
+                </div>
+
+
+                <div class="alert danger">
+
+                    <strong>
+                        🔴 Vencimiento próximo
+                    </strong>
+
+                    <p>
+                        120 unidades vencen próximamente.
+                    </p>
+
+                </div>
+
+
+                <div class="alert info">
+
+                    <strong>
+                        🔵 Demanda elevada
+                    </strong>
+
+                    <p>
+                        Se detectó aumento de demanda.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel budget">
+
+            <div class="panel-header">
+
+                <h2>Ejecución presupuestal</h2>
+
+                <strong>
+                    72%
+                </strong>
+
+            </div>
+
+
+            <div class="progress">
+
+                <div class="progress-bar" id="progressBar"></div>
+
+            </div>
+
+
+            <div class="budget-info">
+
+                <span>
+                    Ejecutado: $360.000.000
+                </span>
+
+                <span>
+                    Disponible: $140.000.000
+                </span>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+</html>
