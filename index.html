@@ -1592,7 +1592,308 @@
         </div>
 
     </div>
+<!-- =========================
+     MODAL INVENTARIO
+========================== -->
 
+<div id="inventoryModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2 id="inventoryModalTitle">
+                    Nuevo producto
+                </h2>
+
+                <p>
+                    Registre la información del producto o insumo
+                </p>
+
+            </div>
+
+            <button
+                id="closeInventoryModal"
+                class="close-btn"
+                type="button"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="inventoryForm">
+
+            <input
+                type="hidden"
+                id="inventoryId"
+            >
+
+
+            <div class="form-grid">
+
+
+                <!-- CÓDIGO -->
+
+                <div class="form-group">
+
+                    <label for="inventoryCode">
+                        Código
+                    </label>
+
+                    <input
+                        type="text"
+                        id="inventoryCode"
+                        required
+                        placeholder="Ej: MED-001"
+                    >
+
+                </div>
+
+
+                <!-- PRODUCTO -->
+
+                <div class="form-group">
+
+                    <label for="inventoryName">
+                        Producto / insumo
+                    </label>
+
+                    <input
+                        type="text"
+                        id="inventoryName"
+                        required
+                        placeholder="Ej: Acetaminofén 500 mg"
+                    >
+
+                </div>
+
+
+                <!-- CATEGORÍA -->
+
+                <div class="form-group">
+
+                    <label for="inventoryCategory">
+                        Categoría
+                    </label>
+
+                    <select
+                        id="inventoryCategory"
+                        required
+                    >
+
+                        <option value="">
+                            Seleccione...
+                        </option>
+
+                        <option value="Medicamentos">
+                            Medicamentos
+                        </option>
+
+                        <option value="Insumos médicos">
+                            Insumos médicos
+                        </option>
+
+                        <option value="Material quirúrgico">
+                            Material quirúrgico
+                        </option>
+
+                        <option value="Laboratorio">
+                            Laboratorio
+                        </option>
+
+                        <option value="Bioseguridad">
+                            Bioseguridad
+                        </option>
+
+                        <option value="Aseo">
+                            Aseo
+                        </option>
+
+                        <option value="Otros">
+                            Otros
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- UNIDAD -->
+
+                <div class="form-group">
+
+                    <label for="inventoryUnit">
+                        Unidad
+                    </label>
+
+                    <select
+                        id="inventoryUnit"
+                        required
+                    >
+
+                        <option value="">
+                            Seleccione...
+                        </option>
+
+                        <option value="Unidad">
+                            Unidad
+                        </option>
+
+                        <option value="Caja">
+                            Caja
+                        </option>
+
+                        <option value="Frasco">
+                            Frasco
+                        </option>
+
+                        <option value="Paquete">
+                            Paquete
+                        </option>
+
+                        <option value="Litro">
+                            Litro
+                        </option>
+
+                        <option value="Kilogramo">
+                            Kilogramo
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- STOCK -->
+
+                <div class="form-group">
+
+                    <label for="inventoryStock">
+                        Existencia actual
+                    </label>
+
+                    <input
+                        type="number"
+                        id="inventoryStock"
+                        min="0"
+                        required
+                        placeholder="0"
+                    >
+
+                </div>
+
+
+                <!-- STOCK MÍNIMO -->
+
+                <div class="form-group">
+
+                    <label for="inventoryMinStock">
+                        Stock mínimo
+                    </label>
+
+                    <input
+                        type="number"
+                        id="inventoryMinStock"
+                        min="0"
+                        required
+                        placeholder="0"
+                    >
+
+                </div>
+
+
+                <!-- VENCIMIENTO -->
+
+                <div class="form-group">
+
+                    <label for="inventoryExpiry">
+                        Fecha de vencimiento
+                    </label>
+
+                    <input
+                        type="date"
+                        id="inventoryExpiry"
+                    >
+
+                </div>
+
+
+                <!-- PRECIO -->
+
+                <div class="form-group">
+
+                    <label for="inventoryPrice">
+                        Precio unitario
+                    </label>
+
+                    <input
+                        type="number"
+                        id="inventoryPrice"
+                        min="0"
+                        step="100"
+                        required
+                        placeholder="0"
+                    >
+
+                </div>
+
+
+                <!-- ESTADO -->
+
+                <div class="form-group">
+
+                    <label for="inventoryStatus">
+                        Estado
+                    </label>
+
+                    <select
+                        id="inventoryStatus"
+                        required
+                    >
+
+                        <option value="Activo">
+                            Activo
+                        </option>
+
+                        <option value="Inactivo">
+                            Inactivo
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    id="cancelInventoryModal"
+                    class="secondary-btn"
+                >
+                    Cancelar
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Guardar producto
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
 
     <script src="script.js"></script>
 
