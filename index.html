@@ -109,179 +109,171 @@
     <main class="main-content">
 
 
-        <!-- =========================
-             DASHBOARD
-        ========================== -->
+      <!-- =========================
+     DASHBOARD
+========================== -->
 
-        <section id="dashboard" class="section active-section">
+<section id="dashboard" class="section active-section">
 
-            <div class="page-header">
+    <div class="page-header">
+
+        <div>
+
+            <h2>Dashboard</h2>
+
+            <p>
+                Resumen general de la institución
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         INDICADORES PRINCIPALES
+    ========================== -->
+
+    <div class="cards-grid">
+
+
+        <!-- PACIENTES -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon blue">
+                👥
+            </div>
+
+            <div>
+
+                <span>Pacientes</span>
+
+                <strong id="dashboardPatients">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- SERVICIOS -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon green">
+                🏥
+            </div>
+
+            <div>
+
+                <span>Servicios activos</span>
+
+                <strong id="dashboardServices">
+                    0
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- INVENTARIO -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon orange">
+                📦
+            </div>
+
+            <div>
+
+                <span>Inventario disponible</span>
+
+                <strong id="dashboardInventory">
+                    0%
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRESUPUESTO -->
+
+        <div class="stat-card">
+
+            <div class="stat-icon purple">
+                💰
+            </div>
+
+            <div>
+
+                <span>Ejecución presupuestal</span>
+
+                <strong id="dashboardBudget">
+                    0%
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         INFORMACIÓN GENERAL
+    ========================== -->
+
+    <div class="dashboard-grid">
+
+
+        <!-- ALERTAS -->
+
+        <div class="panel">
+
+            <div class="panel-header">
 
                 <div>
-                    <h2>Dashboard</h2>
-                    <p>Resumen general de la institución</p>
+
+                    <h3>
+                        Alertas recientes
+                    </h3>
+
+                    <p>
+                        Situaciones que requieren atención
+                    </p>
+
                 </div>
+
+                <span id="dashboardAlertCount">
+                    0
+                </span>
 
             </div>
 
 
-            <!-- TARJETAS -->
+            <div
+                class="alert-list"
+                id="dashboardAlerts"
+            >
 
-            <div class="cards-grid">
+                <div class="alert-item info">
 
-                <div class="stat-card">
-
-                    <div class="stat-icon blue">
-                        👥
-                    </div>
-
-                    <div>
-                        <span>Pacientes</span>
-                        <strong id="dashboardPatients">823</strong>
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-icon green">
-                        🏥
-                    </div>
+                    <span>ℹ️</span>
 
                     <div>
-                        <span>Atenciones</span>
-                        <strong>4.520</strong>
-                    </div>
 
-                </div>
+                        <strong>
+                            Sistema funcionando
+                        </strong>
 
-
-                <div class="stat-card">
-
-                    <div class="stat-icon orange">
-                        📦
-                    </div>
-
-                    <div>
-                        <span>Inventario</span>
-                        <strong>96%</strong>
-                    </div>
-
-                </div>
-
-
-                <div class="stat-card">
-
-                    <div class="stat-icon purple">
-                        💰
-                    </div>
-
-                    <div>
-                        <span>Presupuesto</span>
-                        <strong>72%</strong>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- GRÁFICO -->
-
-            <div class="dashboard-grid">
-
-                <div class="panel">
-
-                    <div class="panel-header">
-
-                        <div>
-                            <h3>Demanda de servicios</h3>
-                            <p>Comportamiento mensual</p>
-                        </div>
-
-                    </div>
-
-                    <div class="chart">
-
-                        <div class="chart-column">
-                            <div class="bar" style="height:45%"></div>
-                            <span>Ene</span>
-                        </div>
-
-                        <div class="chart-column">
-                            <div class="bar" style="height:60%"></div>
-                            <span>Feb</span>
-                        </div>
-
-                        <div class="chart-column">
-                            <div class="bar" style="height:52%"></div>
-                            <span>Mar</span>
-                        </div>
-
-                        <div class="chart-column">
-                            <div class="bar" style="height:70%"></div>
-                            <span>Abr</span>
-                        </div>
-
-                        <div class="chart-column">
-                            <div class="bar" style="height:80%"></div>
-                            <span>May</span>
-                        </div>
-
-                        <div class="chart-column">
-                            <div class="bar" style="height:68%"></div>
-                            <span>Jun</span>
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- ALERTAS -->
-
-                <div class="panel">
-
-                    <div class="panel-header">
-
-                        <div>
-                            <h3>Alertas recientes</h3>
-                            <p>Situaciones que requieren atención</p>
-                        </div>
-
-                    </div>
-
-                    <div class="alert-list">
-
-                        <div class="alert-item warning">
-                            <span>⚠️</span>
-
-                            <div>
-                                <strong>Inventario bajo</strong>
-                                <p>Medicamento con stock mínimo.</p>
-                            </div>
-                        </div>
-
-
-                        <div class="alert-item danger">
-                            <span>🚨</span>
-
-                            <div>
-                                <strong>Próximo vencimiento</strong>
-                                <p>Existen productos próximos a vencer.</p>
-                            </div>
-                        </div>
-
-
-                        <div class="alert-item info">
-                            <span>ℹ️</span>
-
-                            <div>
-                                <strong>Demanda elevada</strong>
-                                <p>Aumento de consultas este mes.</p>
-                            </div>
-                        </div>
+                        <p>
+                            Las alertas se actualizarán
+                            automáticamente.
+                        </p>
 
                     </div>
 
@@ -289,41 +281,179 @@
 
             </div>
 
+        </div>
 
-            <!-- PRESUPUESTO -->
 
-            <div class="panel budget-panel">
+        <!-- RESUMEN DEL SISTEMA -->
 
-                <div class="panel-header">
+        <div class="panel">
 
-                    <div>
-                        <h3>Ejecución presupuestal</h3>
-                        <p>Estado general del presupuesto</p>
-                    </div>
+            <div class="panel-header">
 
-                    <strong>72%</strong>
+                <div>
 
-                </div>
+                    <h3>
+                        Resumen institucional
+                    </h3>
 
-                <div class="progress">
-                    <div class="progress-bar" style="width:72%"></div>
-                </div>
-
-                <div class="budget-info">
-
-                    <span>
-                        Ejecutado: $720.000.000
-                    </span>
-
-                    <span>
-                        Presupuesto: $1.000.000.000
-                    </span>
+                    <p>
+                        Estado actual de SALUDPREDICT
+                    </p>
 
                 </div>
 
             </div>
 
-        </section>
+
+            <div
+                id="dashboardSystemSummary"
+            >
+
+                <p>
+                    Cargando información...
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         DEMANDA DE SERVICIOS
+    ========================== -->
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h3>
+                    Distribución de pacientes
+                </h3>
+
+                <p>
+                    Pacientes registrados por servicio
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="dashboardServiceDemand"
+            class="chart"
+        >
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         PRESUPUESTO
+    ========================== -->
+
+    <div class="panel budget-panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h3>
+                    Ejecución presupuestal
+                </h3>
+
+                <p>
+                    Estado actual del presupuesto
+                </p>
+
+            </div>
+
+
+            <strong id="dashboardBudgetPercentage">
+                0%
+            </strong>
+
+        </div>
+
+
+        <div class="progress">
+
+            <div
+                id="dashboardBudgetBar"
+                class="progress-bar"
+                style="width:0%"
+            ></div>
+
+        </div>
+
+
+        <div class="budget-info">
+
+            <span>
+
+                Ejecutado:
+                <strong id="dashboardBudgetExecuted">
+                    $0
+                </strong>
+
+            </span>
+
+
+            <span>
+
+                Presupuesto:
+                <strong id="dashboardBudgetTotal">
+                    $0
+                </strong>
+
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         ESTADO DEL INVENTARIO
+    ========================== -->
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h3>
+                    Estado del inventario
+                </h3>
+
+                <p>
+                    Existencias y productos que requieren atención
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="dashboardInventorySummary"
+        >
+
+            <p>
+                Cargando información...
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
 
 
 
