@@ -1,17 +1,290 @@
-/* =====================================
+/* =========================================================
    SALUDPREDICT
-   JAVASCRIPT PRINCIPAL
-===================================== */
+   SCRIPT PRINCIPAL
+   Dashboard + Pacientes + Servicios + Inventario
+========================================================= */
 
 
-/* =====================================
-   DATOS INICIALES
-===================================== */
+/* =========================================================
+   CONFIGURACIÓN GENERAL
+========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    iniciarNavegacion();
+    iniciarPacientes();
+    iniciarServicios();
+    iniciarInventario();
+
+    actualizarDashboard();
+
+});
+
+
+/* =========================================================
+   FUNCIONES GENERALES
+========================================================= */
+
+function obtenerDatos(key, datosPorDefecto) {
+
+    try {
+
+        const datos = localStorage.getItem(key);
+
+        if (datos) {
+            return JSON.parse(datos);
+        }
+
+    } catch (error) {
+
+        console.error(
+            `Error leyendo ${key}:`,
+            error
+        );
+
+    }
+
+    localStorage.setItem(
+        key,
+        JSON.stringify(datosPorDefecto)
+    );
+
+    return datosPorDefecto;
+}
+
+
+function guardarDatos(key, datos) {
+
+    localStorage.setItem(
+        key,
+        JSON.stringify(datos)
+    );
+}
+
+
+function generarId(prefijo) {
+
+    return (
+        prefijo +
+        "-" +
+        Date.now() +
+        "-" +
+        Math.floor(Math.random() * 1000)
+    );
+}
+
+
+function escaparHTML(valor) {
+
+    if (valor === null || valor === undefined) {
+        return "";
+    }
+
+    return String(valor)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
+
+function iniciarNavegacion() {
+
+    const navItems =
+        document.querySelectorAll(".nav-item");
+
+    const sections =
+        document.querySelectorAll(".section");
+
+    const menuBtn =
+        document.getElementById("menuBtn");
+
+    const sidebar =
+        document.getElementById("sidebar");
+
+
+    navItems.forEach(item => {
+
+        item.addEventListener("click", () => {
+
+            const sectionId =
+                item.dataset.section;
+
+            if (!sectionId) {
+                return;
+            }
+
+
+            navItems.forEach(nav => {
+
+                nav.classList.remove("active");
+
+            });
+
+
+            item.classList.add("active");
+
+
+            sections.forEach(section => {
+
+                section.classList.remove(
+                    "active-section"
+                );
+
+            });
+
+
+            const section =
+                document.getElementById(sectionId);
+
+            if (section) {
+
+                section.classList.add(
+                    "active-section"
+                );
+
+            }
+
+
+            if (sidebar) {
+
+                sidebar.classList.remove("show");
+
+            }
+
+        });
+
+    });
+
+
+    if (menuBtn && sidebar) {
+
+        menuBtn.addEventListener("click", () => {
+
+            sidebar.classList.toggle("show");
+
+        });
+
+    }
+
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+function actualizarDashboard() {
+
+    const pacientes =
+        obtenerDatos(
+            "saludpredict_patients",
+            []
+        );
+
+    const servicios =
+        obtenerDatos(
+            "saludpredict_services",
+            []
+        );
+
+    const inventario =
+        obtenerDatos(
+            "saludpredict_inventory",
+            []
+        );
+
+
+    const dashboardPatients =
+        document.getElementById(
+            "dashboardPatients"
+        );
+
+    if (dashboardPatients) {
+
+        dashboardPatients.textContent =
+            pacientes.length.toLocaleString(
+                "es-CO"
+            );
+
+    }
+
+
+    const inventarioActivo =
+        inventario.filter(
+            item => item.status === "Activo"
+        );
+
+
+    const totalStock =
+        inventarioActivo.reduce(
+            (total, item) =>
+                total + Number(item.stock || 0),
+            0
+        );
+
+
+    const stockBajo =
+        inventarioActivo.filter(
+            item =>
+                Number(item.stock || 0) <=
+                Number(item.minStock || 0)
+        ).length;
+
+
+    let porcentajeInventario = 100;
+
+
+    if (inventarioActivo.length > 0) {
+
+        porcentajeInventario =
+            Math.round(
+                (
+                    (inventarioActivo.length -
+                        stockBajo) /
+                    inventarioActivo.length
+                ) * 100
+            );
+
+    }
+
+
+    const inventoryDashboard =
+        document.querySelector(
+            ".stat-card:nth-child(3) strong"
+        );
+
+
+    if (inventoryDashboard) {
+
+        inventoryDashboard.textContent =
+            `${porcentajeInventario}%`;
+
+    }
+
+
+    /* Evitar advertencias si todavía no
+       utilizamos servicios */
+
+    void servicios;
+    void totalStock;
+
+}
+
+
+/* =========================================================
+   PACIENTES
+========================================================= */
 
 const defaultPatients = [
 
     {
-        id: 1,
+        id: "pac-001",
         document: "10234567",
         name: "Juan Pérez",
         age: 42,
@@ -20,7 +293,7 @@ const defaultPatients = [
     },
 
     {
-        id: 2,
+        id: "pac-002",
         document: "52345678",
         name: "María Gómez",
         age: 35,
@@ -29,7 +302,7 @@ const defaultPatients = [
     },
 
     {
-        id: 3,
+        id: "pac-003",
         document: "80123456",
         name: "Carlos Rodríguez",
         age: 58,
@@ -38,7 +311,7 @@ const defaultPatients = [
     },
 
     {
-        id: 4,
+        id: "pac-004",
         document: "107890123",
         name: "Laura Martínez",
         age: 29,
@@ -49,214 +322,159 @@ const defaultPatients = [
 ];
 
 
-/* =====================================
-   CARGAR PACIENTES
-===================================== */
-
-let patients = JSON.parse(
-    localStorage.getItem("saludpredict_patients")
-);
-
-if (!patients || !Array.isArray(patients)) {
-
-    patients = defaultPatients;
-
-    savePatients();
-
-}
-
-
-/* =====================================
-   GUARDAR PACIENTES
-===================================== */
-
-function savePatients() {
-
-    localStorage.setItem(
+let patients =
+    obtenerDatos(
         "saludpredict_patients",
-        JSON.stringify(patients)
+        defaultPatients
     );
 
+
+function iniciarPacientes() {
+
+    renderPatients();
+    updatePatientStatistics();
+
+
+    const search =
+        document.getElementById(
+            "patientSearch"
+        );
+
+    if (search) {
+
+        search.addEventListener(
+            "input",
+            () => {
+
+                renderPatients(
+                    search.value
+                );
+
+            }
+        );
+
+    }
+
+
+    const newButton =
+        document.getElementById(
+            "newPatientBtn"
+        );
+
+    if (newButton) {
+
+        newButton.addEventListener(
+            "click",
+            openNewPatientModal
+        );
+
+    }
+
+
+    const patientForm =
+        document.getElementById(
+            "patientForm"
+        );
+
+    if (patientForm) {
+
+        patientForm.addEventListener(
+            "submit",
+            savePatient
+        );
+
+    }
+
+
+    const closeButton =
+        document.getElementById(
+            "closeModal"
+        );
+
+    const cancelButton =
+        document.getElementById(
+            "cancelModal"
+        );
+
+
+    if (closeButton) {
+
+        closeButton.addEventListener(
+            "click",
+            closePatientModal
+        );
+
+    }
+
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+            "click",
+            closePatientModal
+        );
+
+    }
+
+
+    const modal =
+        document.getElementById(
+            "patientModal"
+        );
+
+
+    if (modal) {
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closePatientModal();
+
+                }
+
+            }
+        );
+
+    }
+
 }
 
 
-/* =====================================
-   ELEMENTOS DEL DOM
-===================================== */
-
-const navItems =
-    document.querySelectorAll(".nav-item");
-
-const sections =
-    document.querySelectorAll(".section");
-
-const sidebar =
-    document.getElementById("sidebar");
-
-const menuBtn =
-    document.getElementById("menuBtn");
-
-
-/* =====================================
-   NAVEGACIÓN
-===================================== */
-
-navItems.forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        const sectionId =
-            button.dataset.section;
-
-
-        /* Quitar activo de todos */
-
-        navItems.forEach(item => {
-
-            item.classList.remove("active");
-
-        });
-
-
-        /* Activar botón */
-
-        button.classList.add("active");
-
-
-        /* Ocultar secciones */
-
-        sections.forEach(section => {
-
-            section.classList.remove(
-                "active-section"
-            );
-
-        });
-
-
-        /* Mostrar sección seleccionada */
-
-        const selectedSection =
-            document.getElementById(sectionId);
-
-
-        if (selectedSection) {
-
-            selectedSection.classList.add(
-                "active-section"
-            );
-
-        }
-
-
-        /* Cerrar menú móvil */
-
-        sidebar.classList.remove("show");
-
-    });
-
-});
-
-
-/* =====================================
-   MENÚ MÓVIL
-===================================== */
-
-if (menuBtn) {
-
-    menuBtn.addEventListener("click", () => {
-
-        sidebar.classList.toggle("show");
-
-    });
-
-}
-
-
-/* =====================================
-   ELEMENTOS DEL MÓDULO PACIENTES
-===================================== */
-
-const patientsTable =
-    document.getElementById("patientsTable");
-
-const patientSearch =
-    document.getElementById("patientSearch");
-
-const totalPatients =
-    document.getElementById("totalPatients");
-
-const activePatients =
-    document.getElementById("activePatients");
-
-const newPatients =
-    document.getElementById("newPatients");
-
-const dashboardPatients =
-    document.getElementById("dashboardPatients");
-
-
-const patientModal =
-    document.getElementById("patientModal");
-
-const newPatientBtn =
-    document.getElementById("newPatientBtn");
-
-const closeModal =
-    document.getElementById("closeModal");
-
-const cancelModal =
-    document.getElementById("cancelModal");
-
-const patientForm =
-    document.getElementById("patientForm");
-
-const modalTitle =
-    document.getElementById("modalTitle");
-
-
-/* =====================================
-   CAMPOS DEL FORMULARIO
-===================================== */
-
-const patientId =
-    document.getElementById("patientId");
-
-const documentInput =
-    document.getElementById("document");
-
-const nameInput =
-    document.getElementById("name");
-
-const ageInput =
-    document.getElementById("age");
-
-const serviceInput =
-    document.getElementById("service");
-
-const statusInput =
-    document.getElementById("status");
-
-
-/* =====================================
-   MOSTRAR PACIENTES
-===================================== */
+/* =========================================================
+   RENDER PACIENTES
+========================================================= */
 
 function renderPatients(searchTerm = "") {
 
-    patientsTable.innerHTML = "";
+    const table =
+        document.getElementById(
+            "patientsTable"
+        );
+
+    if (!table) {
+        return;
+    }
 
 
     const term =
-        searchTerm.toLowerCase().trim();
+        searchTerm
+            .toLowerCase()
+            .trim();
 
 
-    const filteredPatients =
+    const filtered =
         patients.filter(patient => {
 
             return (
 
-                patient.document
+                String(
+                    patient.document
+                )
                     .toLowerCase()
                     .includes(term)
 
@@ -277,21 +495,15 @@ function renderPatients(searchTerm = "") {
         });
 
 
-    if (filteredPatients.length === 0) {
+    if (filtered.length === 0) {
 
-        patientsTable.innerHTML = `
-
+        table.innerHTML = `
             <tr>
-
                 <td colspan="6"
-                    style="text-align:center;padding:30px;color:#6b7280;">
-
+                    style="text-align:center;padding:30px;">
                     No se encontraron pacientes.
-
                 </td>
-
             </tr>
-
         `;
 
         return;
@@ -299,292 +511,284 @@ function renderPatients(searchTerm = "") {
     }
 
 
-    filteredPatients.forEach(patient => {
+    table.innerHTML =
+        filtered.map(patient => `
 
-        const row =
-            document.createElement("tr");
+            <tr>
+
+                <td>
+                    ${escaparHTML(
+                        patient.document
+                    )}
+                </td>
+
+                <td>
+                    ${escaparHTML(
+                        patient.name
+                    )}
+                </td>
+
+                <td>
+                    ${escaparHTML(
+                        patient.age
+                    )}
+                </td>
+
+                <td>
+                    ${escaparHTML(
+                        patient.service
+                    )}
+                </td>
+
+                <td>
+                    <span class="status ${
+                        patient.status === "Activo"
+                            ? "active"
+                            : "inactive"
+                    }">
+                        ${escaparHTML(
+                            patient.status
+                        )}
+                    </span>
+                </td>
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="action-btn edit-btn"
+                            onclick="editPatient('${patient.id}')">
+                            Editar
+                        </button>
+
+                        <button
+                            class="action-btn delete-btn"
+                            onclick="deletePatient('${patient.id}')">
+                            Eliminar
+                        </button>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `).join("");
+
+}
 
 
-        const statusClass =
-            patient.status === "Activo"
-                ? "active"
-                : "inactive";
+/* =========================================================
+   ESTADÍSTICAS PACIENTES
+========================================================= */
+
+function updatePatientStatistics() {
+
+    const total =
+        document.getElementById(
+            "totalPatients"
+        );
+
+    const active =
+        document.getElementById(
+            "activePatients"
+        );
+
+    const newPatients =
+        document.getElementById(
+            "newPatients"
+        );
 
 
-        row.innerHTML = `
-
-            <td>
-                ${patient.document}
-            </td>
-
-            <td>
-                <strong>
-                    ${patient.name}
-                </strong>
-            </td>
-
-            <td>
-                ${patient.age}
-            </td>
-
-            <td>
-                ${patient.service}
-            </td>
-
-            <td>
-
-                <span class="status ${statusClass}">
-                    ${patient.status}
-                </span>
-
-            </td>
-
-            <td>
-
-                <div class="action-buttons">
-
-                    <button
-                        class="action-btn edit-btn"
-                        onclick="editPatient(${patient.id})"
-                    >
-                        ✏️ Editar
-                    </button>
-
-                    <button
-                        class="action-btn delete-btn"
-                        onclick="deletePatient(${patient.id})"
-                    >
-                        🗑️
-                    </button>
-
-                </div>
-
-            </td>
-
-        `;
+    const activeCount =
+        patients.filter(
+            patient =>
+                patient.status === "Activo"
+        ).length;
 
 
-        patientsTable.appendChild(row);
+    if (total) {
+
+        total.textContent =
+            patients.length;
+
+    }
+
+
+    if (active) {
+
+        active.textContent =
+            activeCount;
+
+    }
+
+
+    if (newPatients) {
+
+        newPatients.textContent =
+            patients.length;
+
+    }
+
+
+    const dashboardPatients =
+        document.getElementById(
+            "dashboardPatients"
+        );
+
+
+    if (dashboardPatients) {
+
+        dashboardPatients.textContent =
+            patients.length.toLocaleString(
+                "es-CO"
+            );
+
+    }
+
+}
+
+
+/* =========================================================
+   OPCIONES DE SERVICIOS PARA PACIENTES
+========================================================= */
+
+function updatePatientServiceOptions(
+    currentService = ""
+) {
+
+    const select =
+        document.getElementById(
+            "service"
+        );
+
+    if (!select) {
+        return;
+    }
+
+
+    const activeServices =
+        services.filter(
+            service =>
+                service.status === "Activo"
+        );
+
+
+    select.innerHTML = `
+        <option value="">
+            Seleccione un servicio
+        </option>
+    `;
+
+
+    activeServices.forEach(service => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            service.name;
+
+        option.textContent =
+            service.name;
+
+        select.appendChild(option);
 
     });
 
 
-    updateStatistics();
+    if (
+        currentService &&
+        !activeServices.some(
+            service =>
+                service.name === currentService
+        )
+    ) {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            currentService;
+
+        option.textContent =
+            `${currentService} (actual)`;
+
+        select.appendChild(option);
+
+    }
+
+
+    if (currentService) {
+
+        select.value =
+            currentService;
+
+    }
 
 }
 
 
-/* =====================================
-   ACTUALIZAR ESTADÍSTICAS
-===================================== */
-
-function updateStatistics() {
-
-    const total =
-        patients.length;
-
-
-    const active =
-        patients.filter(
-            patient => patient.status === "Activo"
-        ).length;
-
-
-    totalPatients.textContent =
-        total;
-
-
-    activePatients.textContent =
-        active;
-
-
-    newPatients.textContent =
-        total;
-
-
-    dashboardPatients.textContent =
-        total;
-
-}
-
-
-/* =====================================
-   ABRIR MODAL NUEVO PACIENTE
-===================================== */
+/* =========================================================
+   MODAL NUEVO PACIENTE
+========================================================= */
 
 function openNewPatientModal() {
 
-    patientForm.reset();
-
-    patientId.value = "";
-
-    modalTitle.textContent =
-        "Nuevo paciente";
-
-    patientModal.classList.add("show");
-
-}
-
-
-/* =====================================
-   CERRAR MODAL
-===================================== */
-
-function closePatientModal() {
-
-    patientModal.classList.remove("show");
-
-    patientForm.reset();
-
-    patientId.value = "";
-
-}
-
-
-/* =====================================
-   BOTÓN NUEVO PACIENTE
-===================================== */
-
-newPatientBtn.addEventListener(
-    "click",
-    openNewPatientModal
-);
-
-
-/* =====================================
-   BOTONES CERRAR
-===================================== */
-
-closeModal.addEventListener(
-    "click",
-    closePatientModal
-);
-
-
-cancelModal.addEventListener(
-    "click",
-    closePatientModal
-);
-
-
-/* =====================================
-   CERRAR MODAL AL HACER CLIC AFUERA
-===================================== */
-
-patientModal.addEventListener(
-    "click",
-    event => {
-
-        if (event.target === patientModal) {
-
-            closePatientModal();
-
-        }
-
-    }
-);
-
-
-/* =====================================
-   GUARDAR PACIENTE
-===================================== */
-
-patientForm.addEventListener(
-    "submit",
-    event => {
-
-        event.preventDefault();
-
-
-        const id =
-            patientId.value;
-
-
-        const newPatient = {
-
-            id: id
-                ? Number(id)
-                : Date.now(),
-
-            document:
-                documentInput.value.trim(),
-
-            name:
-                nameInput.value.trim(),
-
-            age:
-                Number(ageInput.value),
-
-            service:
-                serviceInput.value,
-
-            status:
-                statusInput.value
-
-        };
-
-
-        /* Validar documento */
-
-        if (!newPatient.document) {
-
-            alert(
-                "Por favor ingrese el documento."
-            );
-
-            return;
-
-        }
-
-
-        /* EDITAR */
-
-        if (id) {
-
-            const index =
-                patients.findIndex(
-                    patient =>
-                        patient.id === Number(id)
-                );
-
-
-            if (index !== -1) {
-
-                patients[index] =
-                    newPatient;
-
-            }
-
-        }
-
-
-        /* CREAR */
-
-        else {
-
-            patients.push(newPatient);
-
-        }
-
-
-        savePatients();
-
-        renderPatients();
-
-        closePatientModal();
-
-
-        alert(
-            "Paciente guardado correctamente."
+    const modal =
+        document.getElementById(
+            "patientModal"
         );
 
+    const form =
+        document.getElementById(
+            "patientForm"
+        );
+
+    const title =
+        document.getElementById(
+            "modalTitle"
+        );
+
+
+    if (!modal || !form) {
+        return;
     }
-);
 
 
-/* =====================================
+    form.reset();
+
+
+    const id =
+        document.getElementById(
+            "patientId"
+        );
+
+    if (id) {
+        id.value = "";
+    }
+
+
+    if (title) {
+
+        title.textContent =
+            "Nuevo paciente";
+
+    }
+
+
+    updatePatientServiceOptions();
+
+
+    modal.classList.add("show");
+
+}
+
+
+/* =========================================================
    EDITAR PACIENTE
-===================================== */
+========================================================= */
 
 function editPatient(id) {
 
@@ -595,43 +799,220 @@ function editPatient(id) {
 
 
     if (!patient) {
+        return;
+    }
+
+
+    const modal =
+        document.getElementById(
+            "patientModal"
+        );
+
+    const title =
+        document.getElementById(
+            "modalTitle"
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    document.getElementById(
+        "patientId"
+    ).value = patient.id;
+
+
+    document.getElementById(
+        "document"
+    ).value = patient.document;
+
+
+    document.getElementById(
+        "name"
+    ).value = patient.name;
+
+
+    document.getElementById(
+        "age"
+    ).value = patient.age;
+
+
+    document.getElementById(
+        "status"
+    ).value = patient.status;
+
+
+    updatePatientServiceOptions(
+        patient.service
+    );
+
+
+    if (title) {
+
+        title.textContent =
+            "Editar paciente";
+
+    }
+
+
+    modal.classList.add("show");
+
+}
+
+
+/* =========================================================
+   GUARDAR PACIENTE
+========================================================= */
+
+function savePatient(event) {
+
+    event.preventDefault();
+
+
+    const id =
+        document.getElementById(
+            "patientId"
+        ).value.trim();
+
+
+    const documentNumber =
+        document.getElementById(
+            "document"
+        ).value.trim();
+
+
+    const name =
+        document.getElementById(
+            "name"
+        ).value.trim();
+
+
+    const age =
+        document.getElementById(
+            "age"
+        ).value;
+
+
+    const service =
+        document.getElementById(
+            "service"
+        ).value;
+
+
+    const status =
+        document.getElementById(
+            "status"
+        ).value;
+
+
+    if (
+        !documentNumber ||
+        !name ||
+        !age ||
+        !service ||
+        !status
+    ) {
+
+        alert(
+            "Por favor complete todos los campos."
+        );
 
         return;
 
     }
 
 
-    patientId.value =
-        patient.id;
-
-    documentInput.value =
-        patient.document;
-
-    nameInput.value =
-        patient.name;
-
-    ageInput.value =
-        patient.age;
-
-    serviceInput.value =
-        patient.service;
-
-    statusInput.value =
-        patient.status;
+    const duplicate =
+        patients.find(
+            patient =>
+                patient.document ===
+                    documentNumber &&
+                patient.id !== id
+        );
 
 
-    modalTitle.textContent =
-        "Editar paciente";
+    if (duplicate) {
+
+        alert(
+            "Ya existe un paciente con ese documento."
+        );
+
+        return;
+
+    }
 
 
-    patientModal.classList.add("show");
+    const patientData = {
+
+        id:
+            id ||
+            generarId("pac"),
+
+        document:
+            documentNumber,
+
+        name:
+            name,
+
+        age:
+            Number(age),
+
+        service:
+            service,
+
+        status:
+            status
+
+    };
+
+
+    if (id) {
+
+        const index =
+            patients.findIndex(
+                patient =>
+                    patient.id === id
+            );
+
+
+        if (index !== -1) {
+
+            patients[index] =
+                patientData;
+
+        }
+
+    } else {
+
+        patients.push(
+            patientData
+        );
+
+    }
+
+
+    guardarDatos(
+        "saludpredict_patients",
+        patients
+    );
+
+
+    renderPatients();
+
+    updatePatientStatistics();
+
+    actualizarDashboard();
+
+    closePatientModal();
 
 }
 
 
-/* =====================================
+/* =========================================================
    ELIMINAR PACIENTE
-===================================== */
+========================================================= */
 
 function deletePatient(id) {
 
@@ -642,22 +1023,18 @@ function deletePatient(id) {
 
 
     if (!patient) {
-
         return;
-
     }
 
 
-    const confirmation =
+    const confirmDelete =
         confirm(
-            `¿Está seguro de eliminar al paciente ${patient.name}?`
+            `¿Desea eliminar al paciente ${patient.name}?`
         );
 
 
-    if (!confirmation) {
-
+    if (!confirmDelete) {
         return;
-
     }
 
 
@@ -667,55 +1044,52 @@ function deletePatient(id) {
         );
 
 
-    savePatients();
+    guardarDatos(
+        "saludpredict_patients",
+        patients
+    );
+
 
     renderPatients();
 
+    updatePatientStatistics();
 
-    alert(
-        "Paciente eliminado correctamente."
-    );
+    actualizarDashboard();
 
 }
 
 
-/* =====================================
-   BUSCADOR
-===================================== */
+/* =========================================================
+   CERRAR MODAL PACIENTES
+========================================================= */
 
-patientSearch.addEventListener(
-    "input",
-    () => {
+function closePatientModal() {
 
-        renderPatients(
-            patientSearch.value
+    const modal =
+        document.getElementById(
+            "patientModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "show"
         );
 
     }
-);
+
+}
 
 
-/* =====================================
-   INICIALIZAR
-===================================== */
-
-renderPatients();
-
-updateStatistics();
-/* =====================================
-   SALUDPREDICT
-   MÓDULO DE SERVICIOS
-===================================== */
-
-
-/* =====================================
-   SERVICIOS INICIALES
-===================================== */
+/* =========================================================
+   SERVICIOS
+========================================================= */
 
 const defaultServices = [
 
     {
-        id: 1,
+        id: "ser-001",
         code: "SER-001",
         name: "Medicina general",
         category: "Consulta",
@@ -725,7 +1099,7 @@ const defaultServices = [
     },
 
     {
-        id: 2,
+        id: "ser-002",
         code: "SER-002",
         name: "Consulta externa",
         category: "Consulta",
@@ -735,7 +1109,7 @@ const defaultServices = [
     },
 
     {
-        id: 3,
+        id: "ser-003",
         code: "SER-003",
         name: "Atención de urgencias",
         category: "Urgencias",
@@ -745,7 +1119,7 @@ const defaultServices = [
     },
 
     {
-        id: 4,
+        id: "ser-004",
         code: "SER-004",
         name: "Hospitalización",
         category: "Hospitalización",
@@ -755,7 +1129,7 @@ const defaultServices = [
     },
 
     {
-        id: 5,
+        id: "ser-005",
         code: "SER-005",
         name: "Odontología general",
         category: "Odontología",
@@ -765,7 +1139,7 @@ const defaultServices = [
     },
 
     {
-        id: 6,
+        id: "ser-006",
         code: "SER-006",
         name: "Laboratorio clínico",
         category: "Diagnóstico",
@@ -777,139 +1151,164 @@ const defaultServices = [
 ];
 
 
-/* =====================================
-   CARGAR SERVICIOS
-===================================== */
-
-let services = JSON.parse(
-    localStorage.getItem("saludpredict_services")
-);
-
-
-if (!services || !Array.isArray(services)) {
-
-    services = defaultServices;
-
-    saveServices();
-
-}
-
-
-/* =====================================
-   GUARDAR SERVICIOS
-===================================== */
-
-function saveServices() {
-
-    localStorage.setItem(
+let services =
+    obtenerDatos(
         "saludpredict_services",
-        JSON.stringify(services)
+        defaultServices
     );
 
+
+/* =========================================================
+   INICIAR SERVICIOS
+========================================================= */
+
+function iniciarServicios() {
+
+    renderServices();
+
+    updateServiceStatistics();
+
+
+    const search =
+        document.getElementById(
+            "serviceSearch"
+        );
+
+
+    if (search) {
+
+        search.addEventListener(
+            "input",
+            () => {
+
+                renderServices(
+                    search.value
+                );
+
+            }
+        );
+
+    }
+
+
+    const newButton =
+        document.getElementById(
+            "newServiceBtn"
+        );
+
+
+    if (newButton) {
+
+        newButton.addEventListener(
+            "click",
+            openNewServiceModal
+        );
+
+    }
+
+
+    const form =
+        document.getElementById(
+            "serviceForm"
+        );
+
+
+    if (form) {
+
+        form.addEventListener(
+            "submit",
+            saveService
+        );
+
+    }
+
+
+    const closeButton =
+        document.getElementById(
+            "closeServiceModal"
+        );
+
+
+    const cancelButton =
+        document.getElementById(
+            "cancelServiceBtn"
+        );
+
+
+    if (closeButton) {
+
+        closeButton.addEventListener(
+            "click",
+            closeServiceModal
+        );
+
+    }
+
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+            "click",
+            closeServiceModal
+        );
+
+    }
+
+
+    const modal =
+        document.getElementById(
+            "serviceModal"
+        );
+
+
+    if (modal) {
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeServiceModal();
+
+                }
+
+            }
+        );
+
+    }
+
 }
 
 
-/* =====================================
-   ELEMENTOS DEL DOM
-===================================== */
+/* =========================================================
+   RENDER SERVICIOS
+========================================================= */
 
-const servicesTable =
-    document.getElementById("servicesTable");
+function renderServices(
+    searchTerm = ""
+) {
 
-const serviceSearch =
-    document.getElementById("serviceSearch");
-
-const totalServices =
-    document.getElementById("totalServices");
-
-const activeServices =
-    document.getElementById("activeServices");
-
-const averageServicePrice =
-    document.getElementById("averageServicePrice");
-
-const serviceModal =
-    document.getElementById("serviceModal");
-
-const newServiceBtn =
-    document.getElementById("newServiceBtn");
-
-const closeServiceModal =
-    document.getElementById("closeServiceModal");
-
-const cancelServiceBtn =
-    document.getElementById("cancelServiceBtn");
-
-const serviceForm =
-    document.getElementById("serviceForm");
-
-const serviceModalTitle =
-    document.getElementById("serviceModalTitle");
+    const table =
+        document.getElementById(
+            "servicesTable"
+        );
 
 
-/* =====================================
-   CAMPOS DEL FORMULARIO
-===================================== */
-
-const serviceId =
-    document.getElementById("serviceId");
-
-const serviceCode =
-    document.getElementById("serviceCode");
-
-const serviceName =
-    document.getElementById("serviceName");
-
-const serviceCategory =
-    document.getElementById("serviceCategory");
-
-const serviceDuration =
-    document.getElementById("serviceDuration");
-
-const servicePrice =
-    document.getElementById("servicePrice");
-
-const serviceStatus =
-    document.getElementById("serviceStatus");
-
-
-/* =====================================
-   FORMATO MONEDA
-===================================== */
-
-function formatCurrency(value) {
-
-    return new Intl.NumberFormat(
-        "es-CO",
-        {
-            style: "currency",
-            currency: "COP",
-            maximumFractionDigits: 0
-        }
-    ).format(value);
-
-}
-
-
-/* =====================================
-   MOSTRAR SERVICIOS
-===================================== */
-
-function renderServices(searchTerm = "") {
-
-    if (!servicesTable) {
+    if (!table) {
         return;
     }
 
 
-    servicesTable.innerHTML = "";
-
-
     const term =
-        searchTerm.toLowerCase().trim();
+        searchTerm
+            .toLowerCase()
+            .trim();
 
 
-    const filteredServices =
+    const filtered =
         services.filter(service => {
 
             return (
@@ -935,201 +1334,252 @@ function renderServices(searchTerm = "") {
         });
 
 
-    if (filteredServices.length === 0) {
+    if (filtered.length === 0) {
 
-        servicesTable.innerHTML = `
+        table.innerHTML = `
+            <tr>
+                <td colspan="7"
+                    style="text-align:center;padding:30px;">
+                    No se encontraron servicios.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        filtered.map(service => `
 
             <tr>
 
-                <td
-                    colspan="7"
-                    style="
-                        text-align:center;
-                        padding:30px;
-                        color:#6b7280;
-                    "
-                >
+                <td>
+                    ${escaparHTML(
+                        service.code
+                    )}
+                </td>
 
-                    No se encontraron servicios.
+                <td>
+                    ${escaparHTML(
+                        service.name
+                    )}
+                </td>
+
+                <td>
+                    ${escaparHTML(
+                        service.category
+                    )}
+                </td>
+
+                <td>
+                    ${escaparHTML(
+                        service.duration
+                    )}
+                </td>
+
+                <td>
+                    ${formatCurrency(
+                        service.price
+                    )}
+                </td>
+
+                <td>
+
+                    <span class="status ${
+                        service.status === "Activo"
+                            ? "active"
+                            : "inactive"
+                    }">
+
+                        ${escaparHTML(
+                            service.status
+                        )}
+
+                    </span>
+
+                </td>
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="action-btn edit-btn"
+                            onclick="editService('${service.id}')">
+                            Editar
+                        </button>
+
+                        <button
+                            class="action-btn delete-btn"
+                            onclick="deleteService('${service.id}')">
+                            Eliminar
+                        </button>
+
+                    </div>
 
                 </td>
 
             </tr>
 
-        `;
-
-        return;
-
-    }
-
-
-    filteredServices.forEach(service => {
-
-        const row =
-            document.createElement("tr");
-
-
-        const statusClass =
-            service.status === "Activo"
-                ? "active"
-                : "inactive";
-
-
-        row.innerHTML = `
-
-            <td>
-                <strong>
-                    ${service.code}
-                </strong>
-            </td>
-
-            <td>
-                ${service.name}
-            </td>
-
-            <td>
-                ${service.category}
-            </td>
-
-            <td>
-                ${service.duration}
-            </td>
-
-            <td>
-                ${formatCurrency(service.price)}
-            </td>
-
-            <td>
-
-                <span class="status ${statusClass}">
-                    ${service.status}
-                </span>
-
-            </td>
-
-            <td>
-
-                <div class="action-buttons">
-
-                    <button
-                        class="action-btn edit-btn"
-                        onclick="editService(${service.id})"
-                    >
-                        ✏️ Editar
-                    </button>
-
-                    <button
-                        class="action-btn delete-btn"
-                        onclick="deleteService(${service.id})"
-                    >
-                        🗑️
-                    </button>
-
-                </div>
-
-            </td>
-
-        `;
-
-
-        servicesTable.appendChild(row);
-
-    });
-
-
-    updateServiceStatistics();
+        `).join("");
 
 }
 
 
-/* =====================================
-   ESTADÍSTICAS
-===================================== */
+/* =========================================================
+   FORMATO MONEDA
+========================================================= */
+
+function formatCurrency(value) {
+
+    return new Intl.NumberFormat(
+        "es-CO",
+        {
+            style: "currency",
+            currency: "COP",
+            maximumFractionDigits: 0
+        }
+    ).format(
+        Number(value || 0)
+    );
+
+}
+
+
+/* =========================================================
+   ESTADÍSTICAS SERVICIOS
+========================================================= */
 
 function updateServiceStatistics() {
 
-    if (!totalServices) {
-        return;
-    }
-
-
     const total =
-        services.length;
+        document.getElementById(
+            "totalServices"
+        );
 
 
     const active =
-        services.filter(
-            service => service.status === "Activo"
-        ).length;
-
-
-    const totalPrice =
-        services.reduce(
-            (sum, service) =>
-                sum + Number(service.price || 0),
-            0
+        document.getElementById(
+            "activeServices"
         );
 
 
     const average =
-        total > 0
-            ? totalPrice / total
-            : 0;
+        document.getElementById(
+            "averageServicePrice"
+        );
 
 
-    totalServices.textContent =
-        total;
+    const activeServices =
+        services.filter(
+            service =>
+                service.status === "Activo"
+        );
 
 
-    activeServices.textContent =
-        active;
+    const averagePrice =
+        activeServices.length > 0
+
+            ?
+
+            activeServices.reduce(
+                (sum, service) =>
+                    sum +
+                    Number(
+                        service.price || 0
+                    ),
+                0
+            ) /
+            activeServices.length
+
+            :
+
+            0;
 
 
-    averageServicePrice.textContent =
-        formatCurrency(average);
+    if (total) {
+
+        total.textContent =
+            services.length;
+
+    }
+
+
+    if (active) {
+
+        active.textContent =
+            activeServices.length;
+
+    }
+
+
+    if (average) {
+
+        average.textContent =
+            formatCurrency(
+                averagePrice
+            );
+
+    }
 
 }
 
 
-/* =====================================
-   ABRIR NUEVO SERVICIO
-===================================== */
+/* =========================================================
+   NUEVO SERVICIO
+========================================================= */
 
 function openNewServiceModal() {
 
-    serviceForm.reset();
+    const modal =
+        document.getElementById(
+            "serviceModal"
+        );
 
-    serviceId.value = "";
 
-    serviceModalTitle.textContent =
-        "Nuevo servicio";
+    const form =
+        document.getElementById(
+            "serviceForm"
+        );
 
-    serviceStatus.value =
-        "Activo";
 
-    serviceModal.classList.add("show");
+    const title =
+        document.getElementById(
+            "serviceModalTitle"
+        );
+
+
+    if (!modal || !form) {
+        return;
+    }
+
+
+    form.reset();
+
+
+    document.getElementById(
+        "serviceId"
+    ).value = "";
+
+
+    if (title) {
+
+        title.textContent =
+            "Nuevo servicio";
+
+    }
+
+
+    modal.classList.add("show");
 
 }
 
 
-/* =====================================
-   CERRAR MODAL
-===================================== */
-
-function closeServiceFormModal() {
-
-    serviceModal.classList.remove("show");
-
-    serviceForm.reset();
-
-    serviceId.value = "";
-
-}
-
-
-/* =====================================
+/* =========================================================
    EDITAR SERVICIO
-===================================== */
+========================================================= */
 
 function editService(id) {
 
@@ -1144,40 +1594,244 @@ function editService(id) {
     }
 
 
-    serviceId.value =
+    document.getElementById(
+        "serviceId"
+    ).value =
         service.id;
 
-    serviceCode.value =
+
+    document.getElementById(
+        "serviceCode"
+    ).value =
         service.code;
 
-    serviceName.value =
+
+    document.getElementById(
+        "serviceName"
+    ).value =
         service.name;
 
-    serviceCategory.value =
+
+    document.getElementById(
+        "serviceCategory"
+    ).value =
         service.category;
 
-    serviceDuration.value =
+
+    document.getElementById(
+        "serviceDuration"
+    ).value =
         service.duration;
 
-    servicePrice.value =
+
+    document.getElementById(
+        "servicePrice"
+    ).value =
         service.price;
 
-    serviceStatus.value =
+
+    document.getElementById(
+        "serviceStatus"
+    ).value =
         service.status;
 
 
-    serviceModalTitle.textContent =
-        "Editar servicio";
+    const title =
+        document.getElementById(
+            "serviceModalTitle"
+        );
 
 
-    serviceModal.classList.add("show");
+    if (title) {
+
+        title.textContent =
+            "Editar servicio";
+
+    }
+
+
+    const modal =
+        document.getElementById(
+            "serviceModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.add("show");
+
+    }
 
 }
 
 
-/* =====================================
+/* =========================================================
+   GUARDAR SERVICIO
+========================================================= */
+
+function saveService(event) {
+
+    event.preventDefault();
+
+
+    const id =
+        document.getElementById(
+            "serviceId"
+        ).value.trim();
+
+
+    const code =
+        document.getElementById(
+            "serviceCode"
+        ).value.trim()
+        .toUpperCase();
+
+
+    const name =
+        document.getElementById(
+            "serviceName"
+        ).value.trim();
+
+
+    const category =
+        document.getElementById(
+            "serviceCategory"
+        ).value;
+
+
+    const duration =
+        document.getElementById(
+            "serviceDuration"
+        ).value.trim();
+
+
+    const price =
+        Number(
+            document.getElementById(
+                "servicePrice"
+            ).value
+        );
+
+
+    const status =
+        document.getElementById(
+            "serviceStatus"
+        ).value;
+
+
+    if (
+        !code ||
+        !name ||
+        !category ||
+        !duration ||
+        !price ||
+        price < 0 ||
+        !status
+    ) {
+
+        alert(
+            "Por favor complete correctamente todos los campos."
+        );
+
+        return;
+
+    }
+
+
+    const duplicate =
+        services.find(
+            service =>
+                service.code.toUpperCase() ===
+                    code &&
+                service.id !== id
+        );
+
+
+    if (duplicate) {
+
+        alert(
+            "Ya existe un servicio con ese código."
+        );
+
+        return;
+
+    }
+
+
+    const serviceData = {
+
+        id:
+            id ||
+            generarId("ser"),
+
+        code:
+            code,
+
+        name:
+            name,
+
+        category:
+            category,
+
+        duration:
+            duration,
+
+        price:
+            price,
+
+        status:
+            status
+
+    };
+
+
+    if (id) {
+
+        const index =
+            services.findIndex(
+                service =>
+                    service.id === id
+            );
+
+
+        if (index !== -1) {
+
+            services[index] =
+                serviceData;
+
+        }
+
+    } else {
+
+        services.push(
+            serviceData
+        );
+
+    }
+
+
+    guardarDatos(
+        "saludpredict_services",
+        services
+    );
+
+
+    renderServices();
+
+    updateServiceStatistics();
+
+    updatePatientServiceOptions();
+
+    actualizarDashboard();
+
+    closeServiceModal();
+
+}
+
+
+/* =========================================================
    ELIMINAR SERVICIO
-===================================== */
+========================================================= */
 
 function deleteService(id) {
 
@@ -1192,427 +1846,81 @@ function deleteService(id) {
     }
 
 
-    const confirmation =
-        confirm(
-            `¿Está seguro de eliminar el servicio "${service.name}"?`
+    const patientsUsingService =
+        patients.filter(
+            patient =>
+                patient.service ===
+                service.name
         );
 
 
-    if (!confirmation) {
+    let message =
+        `¿Desea eliminar el servicio "${service.name}"?`;
+
+
+    if (patientsUsingService.length > 0) {
+
+        message +=
+            `\n\nHay ${patientsUsingService.length} paciente(s) asociados a este servicio.`;
+
+    }
+
+
+    if (!confirm(message)) {
         return;
     }
 
 
     services =
         services.filter(
-            item => item.id !== id
+            item =>
+                item.id !== id
         );
 
 
-    saveServices();
-
-    renderServices();
-
-
-    alert(
-        "Servicio eliminado correctamente."
+    guardarDatos(
+        "saludpredict_services",
+        services
     );
 
-}
-
-
-/* =====================================
-   GUARDAR SERVICIO
-===================================== */
-
-if (serviceForm) {
-
-    serviceForm.addEventListener(
-        "submit",
-        function(event) {
-
-            event.preventDefault();
-
-
-            const id =
-                serviceId.value;
-
-
-            const code =
-                serviceCode.value
-                    .trim()
-                    .toUpperCase();
-
-
-            const name =
-                serviceName.value
-                    .trim();
-
-
-            const category =
-                serviceCategory.value;
-
-
-            const duration =
-                serviceDuration.value
-                    .trim();
-
-
-            const price =
-                Number(servicePrice.value);
-
-
-            const status =
-                serviceStatus.value;
-
-
-            if (
-                !code ||
-                !name ||
-                !category ||
-                !duration ||
-                price < 0
-            ) {
-
-                alert(
-                    "Por favor complete todos los campos."
-                );
-
-                return;
-
-            }
-
-
-            const duplicated =
-                services.find(
-                    service =>
-                        service.code.toUpperCase() === code
-                        &&
-                        String(service.id) !== String(id)
-                );
-
-
-            if (duplicated) {
-
-                alert(
-                    "Ya existe un servicio con ese código."
-                );
-
-                return;
-
-            }
-
-
-            if (id) {
-
-                const index =
-                    services.findIndex(
-                        service =>
-                            String(service.id) === String(id)
-                    );
-
-
-                if (index !== -1) {
-
-                    services[index] = {
-
-                        ...services[index],
-
-                        code,
-                        name,
-                        category,
-                        duration,
-                        price,
-                        status
-
-                    };
-
-                }
-
-            } else {
-
-                const newId =
-                    services.length > 0
-                        ? Math.max(
-                            ...services.map(
-                                service => Number(service.id)
-                            )
-                        ) + 1
-                        : 1;
-
-
-                services.push({
-
-                    id: newId,
-                    code,
-                    name,
-                    category,
-                    duration,
-                    price,
-                    status
-
-                });
-
-            }
-
-
-            saveServices();
-
-            renderServices();
-
-            closeServiceFormModal();
-
-
-            alert(
-                id
-                    ? "Servicio actualizado correctamente."
-                    : "Servicio creado correctamente."
-            );
-
-        }
-    );
-
-}
-
-
-/* =====================================
-   BOTÓN NUEVO SERVICIO
-===================================== */
-
-if (newServiceBtn) {
-
-    newServiceBtn.addEventListener(
-        "click",
-        openNewServiceModal
-    );
-
-}
-
-
-/* =====================================
-   BOTONES CERRAR / CANCELAR
-===================================== */
-
-if (closeServiceModal) {
-
-    closeServiceModal.addEventListener(
-        "click",
-        closeServiceFormModal
-    );
-
-}
-
-
-if (cancelServiceBtn) {
-
-    cancelServiceBtn.addEventListener(
-        "click",
-        closeServiceFormModal
-    );
-
-}
-
-
-/* =====================================
-   CERRAR AL HACER CLIC AFUERA
-===================================== */
-
-if (serviceModal) {
-
-    serviceModal.addEventListener(
-        "click",
-        function(event) {
-
-            if (event.target === serviceModal) {
-
-                closeServiceFormModal();
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =====================================
-   BUSCADOR DE SERVICIOS
-===================================== */
-
-if (serviceSearch) {
-
-    serviceSearch.addEventListener(
-        "input",
-        function() {
-
-            renderServices(
-                serviceSearch.value
-            );
-
-        }
-    );
-
-}
-
-
-/* =====================================
-   INICIALIZAR SERVICIOS
-===================================== */
-
-renderServices();
-
-updateServiceStatistics();
-/* =====================================
-   CONECTAR SERVICIOS CON PACIENTES
-===================================== */
-
-function updatePatientServiceOptions(currentService = "") {
-
-    if (!serviceInput) {
-        return;
-    }
-
-    serviceInput.innerHTML = `
-        <option value="">
-            Seleccione un servicio...
-        </option>
-    `;
-
-    /*
-       Obtener servicios activos
-    */
-
-    const activeServices = services.filter(
-        service => service.status === "Activo"
-    );
-
-    /*
-       Crear las opciones
-    */
-
-    activeServices.forEach(service => {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            service.name;
-
-        option.textContent =
-            service.name;
-
-        serviceInput.appendChild(option);
-
-    });
-
-    /*
-       Si estamos editando un paciente
-       cuyo servicio ya no está activo,
-       conservamos temporalmente su servicio.
-    */
-
-    if (
-        currentService &&
-        !activeServices.some(
-            service =>
-                service.name === currentService
-        )
-    ) {
-
-        const oldOption =
-            document.createElement("option");
-
-        oldOption.value =
-            currentService;
-
-        oldOption.textContent =
-            currentService +
-            " (servicio anterior)";
-
-        serviceInput.appendChild(oldOption);
-
-    }
-
-    /*
-       Seleccionar el servicio actual
-    */
-
-    if (currentService) {
-
-        serviceInput.value =
-            currentService;
-
-    }
-
-}
-
-
-/* =====================================
-   ACTUALIZAR SERVICIOS AL ABRIR PACIENTES
-===================================== */
-
-const originalOpenNewPatientModal =
-    openNewPatientModal;
-
-openNewPatientModal = function () {
-
-    updatePatientServiceOptions();
-
-    originalOpenNewPatientModal();
-
-};
-
-
-/* =====================================
-   ACTUALIZAR SERVICIOS AL EDITAR
-===================================== */
-
-const originalEditPatient =
-    editPatient;
-
-editPatient = function (id) {
-
-    const patient =
-        patients.find(
-            item => item.id === id
-        );
-
-    if (!patient) {
-        return;
-    }
-
-    updatePatientServiceOptions(
-        patient.service
-    );
-
-    originalEditPatient(id);
-
-};
-
-
-/* =====================================
-   ACTUALIZAR SERVICIOS DESPUÉS DE
-   CAMBIOS EN EL MÓDULO SERVICIOS
-===================================== */
-
-if (typeof renderServices === "function") {
 
     renderServices();
 
     updateServiceStatistics();
 
+    updatePatientServiceOptions();
+
+    actualizarDashboard();
+
 }
 
 
-/* =====================================
-   INICIALIZAR SELECTOR DE SERVICIOS
-===================================== */
+/* =========================================================
+   CERRAR MODAL SERVICIOS
+========================================================= */
 
-updatePatientServiceOptions();
-/* =========================================
+function closeServiceModal() {
+
+    const modal =
+        document.getElementById(
+            "serviceModal"
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            "show"
+        );
+
+    }
+
+}
+
+
+/* =========================================================
    INVENTARIO
-========================================= */
-
+========================================================= */
 
 const defaultInventory = [
 
@@ -1621,10 +1929,11 @@ const defaultInventory = [
         code: "MED-001",
         name: "Acetaminofén 500 mg",
         category: "Medicamentos",
+        unit: "Tableta",
         stock: 250,
         minStock: 50,
-        unitCost: 850,
         expiry: "2027-06-30",
+        price: 850,
         status: "Activo"
     },
 
@@ -1633,10 +1942,11 @@ const defaultInventory = [
         code: "MED-002",
         name: "Ibuprofeno 400 mg",
         category: "Medicamentos",
+        unit: "Tableta",
         stock: 120,
         minStock: 30,
-        unitCost: 1200,
         expiry: "2027-03-15",
+        price: 1200,
         status: "Activo"
     },
 
@@ -1645,10 +1955,11 @@ const defaultInventory = [
         code: "INS-001",
         name: "Guantes de nitrilo",
         category: "Insumos médicos",
+        unit: "Caja",
         stock: 500,
         minStock: 100,
-        unitCost: 450,
         expiry: "",
+        price: 450,
         status: "Activo"
     },
 
@@ -1657,10 +1968,11 @@ const defaultInventory = [
         code: "INS-002",
         name: "Jeringas 5 ml",
         category: "Insumos médicos",
+        unit: "Unidad",
         stock: 35,
         minStock: 50,
-        unitCost: 700,
         expiry: "2028-01-20",
+        price: 700,
         status: "Activo"
     },
 
@@ -1669,10 +1981,11 @@ const defaultInventory = [
         code: "LAB-001",
         name: "Tubos de ensayo",
         category: "Laboratorio",
+        unit: "Caja",
         stock: 180,
         minStock: 40,
-        unitCost: 950,
         expiry: "",
+        price: 950,
         status: "Activo"
     },
 
@@ -1681,40 +1994,356 @@ const defaultInventory = [
         code: "MAT-001",
         name: "Gasas estériles",
         category: "Material quirúrgico",
+        unit: "Paquete",
         stock: 25,
         minStock: 30,
-        unitCost: 600,
         expiry: "2027-08-10",
+        price: 600,
         status: "Activo"
     }
 
 ];
 
 
-let inventory = JSON.parse(
-    localStorage.getItem("saludpredict_inventory")
-) || defaultInventory;
-
-
-/* =========================================
-   GUARDAR INVENTARIO
-========================================= */
-
-function saveInventory() {
-
-    localStorage.setItem(
+let inventory =
+    obtenerDatos(
         "saludpredict_inventory",
-        JSON.stringify(inventory)
+        defaultInventory
     );
+
+
+/* =========================================================
+   INICIAR INVENTARIO
+========================================================= */
+
+function iniciarInventario() {
+
+    renderInventory();
+
+    updateInventoryStatistics();
+
+
+    const search =
+        document.getElementById(
+            "inventorySearch"
+        );
+
+
+    if (search) {
+
+        search.addEventListener(
+            "input",
+            () => {
+
+                renderInventory(
+                    search.value
+                );
+
+            }
+        );
+
+    }
+
+
+    const newButton =
+        document.getElementById(
+            "newInventoryBtn"
+        );
+
+
+    if (newButton) {
+
+        newButton.addEventListener(
+            "click",
+            openNewInventoryModal
+        );
+
+    }
+
+
+    const form =
+        document.getElementById(
+            "inventoryForm"
+        );
+
+
+    if (form) {
+
+        form.addEventListener(
+            "submit",
+            saveInventoryItem
+        );
+
+    }
+
+
+    const closeButton =
+        document.getElementById(
+            "closeInventoryModal"
+        );
+
+
+    const cancelButton =
+        document.getElementById(
+            "cancelInventoryModal"
+        );
+
+
+    if (closeButton) {
+
+        closeButton.addEventListener(
+            "click",
+            closeInventoryModal
+        );
+
+    }
+
+
+    if (cancelButton) {
+
+        cancelButton.addEventListener(
+            "click",
+            closeInventoryModal
+        );
+
+    }
+
+
+    const modal =
+        document.getElementById(
+            "inventoryModal"
+        );
+
+
+    if (modal) {
+
+        modal.addEventListener(
+            "click",
+            event => {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeInventoryModal();
+
+                }
+
+            }
+        );
+
+    }
 
 }
 
 
-/* =========================================
-   FORMATO MONEDA
-========================================= */
+/* =========================================================
+   RENDER INVENTARIO
+========================================================= */
 
-function formatInventoryCurrency(value) {
+function renderInventory(
+    searchTerm = ""
+) {
+
+    const table =
+        document.getElementById(
+            "inventoryTable"
+        );
+
+
+    if (!table) {
+        return;
+    }
+
+
+    const term =
+        searchTerm
+            .toLowerCase()
+            .trim();
+
+
+    const filtered =
+        inventory.filter(item => {
+
+            return (
+
+                item.code
+                    .toLowerCase()
+                    .includes(term)
+
+                ||
+
+                item.name
+                    .toLowerCase()
+                    .includes(term)
+
+                ||
+
+                item.category
+                    .toLowerCase()
+                    .includes(term)
+
+            );
+
+        });
+
+
+    if (filtered.length === 0) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="10"
+                    style="text-align:center;padding:30px;">
+                    No se encontraron productos.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML =
+        filtered.map(item => `
+
+            <tr>
+
+                <!-- Código -->
+
+                <td>
+                    ${escaparHTML(
+                        item.code
+                    )}
+                </td>
+
+
+                <!-- Producto -->
+
+                <td>
+                    ${escaparHTML(
+                        item.name
+                    )}
+                </td>
+
+
+                <!-- Categoría -->
+
+                <td>
+                    ${escaparHTML(
+                        item.category
+                    )}
+                </td>
+
+
+                <!-- Unidad -->
+
+                <td>
+                    ${escaparHTML(
+                        item.unit || "-"
+                    )}
+                </td>
+
+
+                <!-- Stock -->
+
+                <td>
+                    ${Number(
+                        item.stock || 0
+                    ).toLocaleString(
+                        "es-CO"
+                    )}
+                </td>
+
+
+                <!-- Mínimo -->
+
+                <td>
+                    ${Number(
+                        item.minStock || 0
+                    ).toLocaleString(
+                        "es-CO"
+                    )}
+                </td>
+
+
+                <!-- Vencimiento -->
+
+                <td>
+                    ${
+                        item.expiry
+                            ? formatInventoryDate(
+                                item.expiry
+                            )
+                            : "Sin fecha"
+                    }
+                </td>
+
+
+                <!-- Precio -->
+
+                <td>
+                    ${formatInventoryCurrency(
+                        item.price
+                    )}
+                </td>
+
+
+                <!-- Estado -->
+
+                <td>
+
+                    <span class="status ${
+                        item.status === "Activo"
+                            ? "active"
+                            : "inactive"
+                    }">
+
+                        ${escaparHTML(
+                            item.status
+                        )}
+
+                    </span>
+
+                </td>
+
+
+                <!-- Acciones -->
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="action-btn edit-btn"
+                            onclick="editInventory('${item.id}')">
+                            Editar
+                        </button>
+
+                        <button
+                            class="action-btn delete-btn"
+                            onclick="deleteInventory('${item.id}')">
+                            Eliminar
+                        </button>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+        `).join("");
+
+}
+
+
+/* =========================================================
+   MONEDA INVENTARIO
+========================================================= */
+
+function formatInventoryCurrency(
+    value
+) {
 
     return new Intl.NumberFormat(
         "es-CO",
@@ -1723,314 +2352,185 @@ function formatInventoryCurrency(value) {
             currency: "COP",
             maximumFractionDigits: 0
         }
-    ).format(value);
+    ).format(
+        Number(value || 0)
+    );
 
 }
 
 
-/* =========================================
-   FECHA
-========================================= */
+/* =========================================================
+   FECHA INVENTARIO
+========================================================= */
 
-function formatInventoryDate(date) {
+function formatInventoryDate(
+    date
+) {
 
     if (!date) {
         return "Sin fecha";
     }
 
-    const parts = date.split("-");
+
+    const parts =
+        date.split("-");
+
 
     if (parts.length !== 3) {
         return date;
     }
+
 
     return `${parts[2]}/${parts[1]}/${parts[0]}`;
 
 }
 
 
-/* =========================================
-   PRODUCTO PRÓXIMO A VENCER
-========================================= */
+/* =========================================================
+   PRODUCTOS PRÓXIMOS A VENCER
+   30 DÍAS
+========================================================= */
 
-function isInventoryExpiringSoon(date) {
+function isInventoryExpiringSoon(
+    date
+) {
 
     if (!date) {
         return false;
     }
 
-    const expiry = new Date(date + "T00:00:00");
-    const today = new Date();
+
+    const expiryDate =
+        new Date(
+            `${date}T00:00:00`
+        );
+
+
+    const today =
+        new Date();
+
+
+    today.setHours(
+        0,
+        0,
+        0,
+        0
+    );
+
 
     const difference =
-        expiry.getTime() - today.getTime();
+        expiryDate.getTime() -
+        today.getTime();
+
 
     const days =
-        difference / (1000 * 60 * 60 * 24);
-
-    return days >= 0 && days <= 30;
-
-}
-
-
-/* =========================================
-   RENDER INVENTARIO
-========================================= */
-
-function renderInventory() {
-
-    const table =
-        document.getElementById("inventoryTable");
-
-    if (!table) {
-        return;
-    }
+        difference /
+        (
+            1000 *
+            60 *
+            60 *
+            24
+        );
 
 
-    const searchInput =
-        document.getElementById("inventorySearch");
-
-    const search =
-        searchInput
-            ? searchInput.value.toLowerCase().trim()
-            : "";
-
-
-    const filteredInventory =
-        inventory.filter(item => {
-
-            return (
-                item.code.toLowerCase().includes(search) ||
-                item.name.toLowerCase().includes(search) ||
-                item.category.toLowerCase().includes(search)
-            );
-
-        });
-
-
-    if (filteredInventory.length === 0) {
-
-        table.innerHTML = `
-            <tr>
-                <td colspan="9" style="text-align:center;">
-                    No se encontraron productos.
-                </td>
-            </tr>
-        `;
-
-        return;
-    }
-
-
-    table.innerHTML =
-        filteredInventory.map(item => {
-
-
-            const lowStock =
-                Number(item.stock) <= Number(item.minStock);
-
-
-            const expiring =
-                isInventoryExpiringSoon(item.expiry);
-
-
-            let stockHTML =
-                `<span>${item.stock}</span>`;
-
-
-            if (lowStock) {
-
-                stockHTML = `
-                    <span
-                        class="status inactive"
-                        title="Stock bajo"
-                    >
-                        ⚠️ ${item.stock}
-                    </span>
-                `;
-
-            }
-
-
-            let expiryHTML =
-                formatInventoryDate(item.expiry);
-
-
-            if (expiring) {
-
-                expiryHTML = `
-                    <span
-                        class="status inactive"
-                        title="Próximo a vencer"
-                    >
-                        🚨 ${formatInventoryDate(item.expiry)}
-                    </span>
-                `;
-
-            }
-
-
-            const statusClass =
-                item.status === "Activo"
-                    ? "active"
-                    : "inactive";
-
-
-            return `
-
-                <tr>
-
-                    <td>
-                        <strong>${item.code}</strong>
-                    </td>
-
-                    <td>
-                        ${item.name}
-                    </td>
-
-                    <td>
-                        ${item.category}
-                    </td>
-
-                    <td>
-                        ${stockHTML}
-                    </td>
-
-                    <td>
-                        ${item.minStock}
-                    </td>
-
-                    <td>
-                        ${formatInventoryCurrency(item.unitCost)}
-                    </td>
-
-                    <td>
-                        ${expiryHTML}
-                    </td>
-
-                    <td>
-                        <span class="status ${statusClass}">
-                            ${item.status}
-                        </span>
-                    </td>
-
-                    <td>
-
-                        <div class="action-buttons">
-
-                            <button
-                                class="action-btn edit-btn"
-                                onclick="editInventory('${item.id}')"
-                            >
-                                Editar
-                            </button>
-
-                            <button
-                                class="action-btn delete-btn"
-                                onclick="deleteInventory('${item.id}')"
-                            >
-                                Eliminar
-                            </button>
-
-                        </div>
-
-                    </td>
-
-                </tr>
-
-            `;
-
-        }).join("");
+    return (
+        days >= 0 &&
+        days <= 30
+    );
 
 }
 
 
-/* =========================================
-   ESTADÍSTICAS
-========================================= */
+/* =========================================================
+   ESTADÍSTICAS INVENTARIO
+========================================================= */
 
 function updateInventoryStatistics() {
 
     const total =
-        inventory.length;
-
-
-    const totalStock =
-        inventory.reduce(
-            (sum, item) =>
-                sum + Number(item.stock || 0),
-            0
+        document.getElementById(
+            "totalInventory"
         );
 
 
     const lowStock =
-        inventory.filter(
-            item =>
-                Number(item.stock) <=
-                Number(item.minStock)
-        ).length;
-
-
-    const totalValue =
-        inventory.reduce(
-            (sum, item) =>
-                sum +
-                (
-                    Number(item.stock || 0) *
-                    Number(item.unitCost || 0)
-                ),
-            0
+        document.getElementById(
+            "lowStockInventory"
         );
 
 
-    const totalElement =
-        document.getElementById("totalInventory");
-
-    const stockElement =
-        document.getElementById("totalStock");
-
-    const lowElement =
-        document.getElementById("lowStock");
-
-    const valueElement =
-        document.getElementById("inventoryValue");
+    const expiring =
+        document.getElementById(
+            "expiringInventory"
+        );
 
 
-    if (totalElement) {
-        totalElement.textContent = total;
+    const activeInventory =
+        inventory.filter(
+            item =>
+                item.status === "Activo"
+        );
+
+
+    const lowStockItems =
+        activeInventory.filter(
+            item =>
+                Number(item.stock || 0) <=
+                Number(item.minStock || 0)
+        );
+
+
+    const expiringItems =
+        activeInventory.filter(
+            item =>
+                isInventoryExpiringSoon(
+                    item.expiry
+                )
+        );
+
+
+    if (total) {
+
+        total.textContent =
+            activeInventory.length;
+
     }
 
 
-    if (stockElement) {
-        stockElement.textContent =
-            totalStock.toLocaleString("es-CO");
+    if (lowStock) {
+
+        lowStock.textContent =
+            lowStockItems.length;
+
     }
 
 
-    if (lowElement) {
-        lowElement.textContent = lowStock;
-    }
+    if (expiring) {
 
+        expiring.textContent =
+            expiringItems.length;
 
-    if (valueElement) {
-        valueElement.textContent =
-            formatInventoryCurrency(totalValue);
     }
 
 }
 
 
-/* =========================================
-   ABRIR NUEVO PRODUCTO
-========================================= */
+/* =========================================================
+   NUEVO PRODUCTO INVENTARIO
+========================================================= */
 
 function openNewInventoryModal() {
 
     const modal =
-        document.getElementById("inventoryModal");
+        document.getElementById(
+            "inventoryModal"
+        );
+
 
     const form =
-        document.getElementById("inventoryForm");
+        document.getElementById(
+            "inventoryForm"
+        );
 
 
     if (!modal || !form) {
@@ -2046,41 +2546,23 @@ function openNewInventoryModal() {
     ).value = "";
 
 
-    document.getElementById(
-        "inventoryModalTitle"
-    ).textContent = "Nuevo producto";
-
-
-    modal.style.display = "flex";
+    modal.classList.add(
+        "show"
+    );
 
 }
 
 
-/* =========================================
-   CERRAR MODAL
-========================================= */
-
-function closeInventoryModal() {
-
-    const modal =
-        document.getElementById("inventoryModal");
-
-    if (modal) {
-        modal.style.display = "none";
-    }
-
-}
-
-
-/* =========================================
-   EDITAR PRODUCTO
-========================================= */
+/* =========================================================
+   EDITAR INVENTARIO
+========================================================= */
 
 function editInventory(id) {
 
     const item =
         inventory.find(
-            product => product.id === id
+            product =>
+                product.id === id
         );
 
 
@@ -2091,70 +2573,285 @@ function editInventory(id) {
 
     document.getElementById(
         "inventoryId"
-    ).value = item.id;
+    ).value =
+        item.id;
 
 
     document.getElementById(
         "inventoryCode"
-    ).value = item.code;
+    ).value =
+        item.code;
 
 
     document.getElementById(
         "inventoryName"
-    ).value = item.name;
+    ).value =
+        item.name;
 
 
     document.getElementById(
         "inventoryCategory"
-    ).value = item.category;
+    ).value =
+        item.category;
+
+
+    document.getElementById(
+        "inventoryUnit"
+    ).value =
+        item.unit || "";
 
 
     document.getElementById(
         "inventoryStock"
-    ).value = item.stock;
+    ).value =
+        item.stock;
 
 
     document.getElementById(
         "inventoryMinStock"
-    ).value = item.minStock;
-
-
-    document.getElementById(
-        "inventoryUnitCost"
-    ).value = item.unitCost;
+    ).value =
+        item.minStock;
 
 
     document.getElementById(
         "inventoryExpiry"
-    ).value = item.expiry;
+    ).value =
+        item.expiry || "";
+
+
+    document.getElementById(
+        "inventoryPrice"
+    ).value =
+        item.price;
 
 
     document.getElementById(
         "inventoryStatus"
-    ).value = item.status;
+    ).value =
+        item.status;
 
 
-    document.getElementById(
-        "inventoryModalTitle"
-    ).textContent = "Editar producto";
+    const modal =
+        document.getElementById(
+            "inventoryModal"
+        );
 
 
-    document.getElementById(
-        "inventoryModal"
-    ).style.display = "flex";
+    if (modal) {
+
+        modal.classList.add(
+            "show"
+        );
+
+    }
 
 }
 
 
-/* =========================================
-   ELIMINAR PRODUCTO
-========================================= */
+/* =========================================================
+   GUARDAR INVENTARIO
+========================================================= */
+
+function saveInventoryItem(event) {
+
+    event.preventDefault();
+
+
+    const id =
+        document.getElementById(
+            "inventoryId"
+        ).value.trim();
+
+
+    const code =
+        document.getElementById(
+            "inventoryCode"
+        ).value.trim()
+        .toUpperCase();
+
+
+    const name =
+        document.getElementById(
+            "inventoryName"
+        ).value.trim();
+
+
+    const category =
+        document.getElementById(
+            "inventoryCategory"
+        ).value;
+
+
+    const unit =
+        document.getElementById(
+            "inventoryUnit"
+        ).value.trim();
+
+
+    const stock =
+        Number(
+            document.getElementById(
+                "inventoryStock"
+            ).value
+        );
+
+
+    const minStock =
+        Number(
+            document.getElementById(
+                "inventoryMinStock"
+            ).value
+        );
+
+
+    const expiry =
+        document.getElementById(
+            "inventoryExpiry"
+        ).value;
+
+
+    const price =
+        Number(
+            document.getElementById(
+                "inventoryPrice"
+            ).value
+        );
+
+
+    const status =
+        document.getElementById(
+            "inventoryStatus"
+        ).value;
+
+
+    if (
+        !code ||
+        !name ||
+        !category ||
+        !unit ||
+        stock < 0 ||
+        minStock < 0 ||
+        price < 0 ||
+        !status
+    ) {
+
+        alert(
+            "Por favor complete correctamente todos los campos."
+        );
+
+        return;
+
+    }
+
+
+    const duplicate =
+        inventory.find(
+            item =>
+                item.code.toUpperCase() ===
+                    code &&
+                item.id !== id
+        );
+
+
+    if (duplicate) {
+
+        alert(
+            "Ya existe un producto con ese código."
+        );
+
+        return;
+
+    }
+
+
+    const inventoryData = {
+
+        id:
+            id ||
+            generarId("inv"),
+
+        code:
+            code,
+
+        name:
+            name,
+
+        category:
+            category,
+
+        unit:
+            unit,
+
+        stock:
+            stock,
+
+        minStock:
+            minStock,
+
+        expiry:
+            expiry,
+
+        price:
+            price,
+
+        status:
+            status
+
+    };
+
+
+    if (id) {
+
+        const index =
+            inventory.findIndex(
+                item =>
+                    item.id === id
+            );
+
+
+        if (index !== -1) {
+
+            inventory[index] =
+                inventoryData;
+
+        }
+
+    } else {
+
+        inventory.push(
+            inventoryData
+        );
+
+    }
+
+
+    guardarDatos(
+        "saludpredict_inventory",
+        inventory
+    );
+
+
+    renderInventory();
+
+    updateInventoryStatistics();
+
+    actualizarDashboard();
+
+    closeInventoryModal();
+
+}
+
+
+/* =========================================================
+   ELIMINAR PRODUCTO INVENTARIO
+========================================================= */
 
 function deleteInventory(id) {
 
     const item =
         inventory.find(
-            product => product.id === id
+            product =>
+                product.id === id
         );
 
 
@@ -2176,307 +2873,69 @@ function deleteInventory(id) {
 
     inventory =
         inventory.filter(
-            product => product.id !== id
+            product =>
+                product.id !== id
         );
 
 
-    saveInventory();
+    guardarDatos(
+        "saludpredict_inventory",
+        inventory
+    );
+
 
     renderInventory();
 
     updateInventoryStatistics();
 
-
-    alert("Producto eliminado correctamente.");
+    actualizarDashboard();
 
 }
 
 
-/* =========================================
-   GUARDAR PRODUCTO
-========================================= */
+/* =========================================================
+   CERRAR MODAL INVENTARIO
+========================================================= */
 
-const inventoryForm =
-    document.getElementById("inventoryForm");
+function closeInventoryModal() {
 
-
-if (inventoryForm) {
-
-    inventoryForm.addEventListener(
-        "submit",
-        function(event) {
-
-            event.preventDefault();
+    const modal =
+        document.getElementById(
+            "inventoryModal"
+        );
 
 
-            const id =
-                document.getElementById(
-                    "inventoryId"
-                ).value;
+    if (modal) {
+
+        modal.classList.remove(
+            "show"
+        );
+
+    }
+
+}
 
 
-            const code =
-                document.getElementById(
-                    "inventoryCode"
-                ).value.trim();
+/* =========================================================
+   CERRAR MODALES CON ESC
+========================================================= */
 
+document.addEventListener(
+    "keydown",
+    event => {
 
-            const name =
-                document.getElementById(
-                    "inventoryName"
-                ).value.trim();
-
-
-            const category =
-                document.getElementById(
-                    "inventoryCategory"
-                ).value;
-
-
-            const stock =
-                Number(
-                    document.getElementById(
-                        "inventoryStock"
-                    ).value
-                );
-
-
-            const minStock =
-                Number(
-                    document.getElementById(
-                        "inventoryMinStock"
-                    ).value
-                );
-
-
-            const unitCost =
-                Number(
-                    document.getElementById(
-                        "inventoryUnitCost"
-                    ).value
-                );
-
-
-            const expiry =
-                document.getElementById(
-                    "inventoryExpiry"
-                ).value;
-
-
-            const status =
-                document.getElementById(
-                    "inventoryStatus"
-                ).value;
-
-
-            /* VALIDAR CÓDIGO DUPLICADO */
-
-            const duplicate =
-                inventory.some(item =>
-                    item.code.toLowerCase() ===
-                    code.toLowerCase() &&
-                    item.id !== id
-                );
-
-
-            if (duplicate) {
-
-                alert(
-                    "Ya existe un producto con ese código."
-                );
-
-                return;
-
-            }
-
-
-            /* EDITAR */
-
-            if (id) {
-
-                const index =
-                    inventory.findIndex(
-                        item => item.id === id
-                    );
-
-
-                if (index !== -1) {
-
-                    inventory[index] = {
-
-                        ...inventory[index],
-
-                        code,
-                        name,
-                        category,
-                        stock,
-                        minStock,
-                        unitCost,
-                        expiry,
-                        status
-
-                    };
-
-                }
-
-            }
-
-            /* NUEVO */
-
-            else {
-
-                inventory.push({
-
-                    id:
-                        "inv-" +
-                        Date.now(),
-
-                    code,
-                    name,
-                    category,
-                    stock,
-                    minStock,
-                    unitCost,
-                    expiry,
-                    status
-
-                });
-
-            }
-
-
-            saveInventory();
-
-            renderInventory();
-
-            updateInventoryStatistics();
-
-            closeInventoryModal();
-
-
-            alert(
-                id
-                    ? "Producto actualizado correctamente."
-                    : "Producto agregado correctamente."
-            );
-
+        if (
+            event.key !== "Escape"
+        ) {
+            return;
         }
-    );
-
-}
 
 
-/* =========================================
-   BUSCADOR
-========================================= */
+        closePatientModal();
 
-const inventorySearch =
-    document.getElementById(
-        "inventorySearch"
-    );
+        closeServiceModal();
 
+        closeInventoryModal();
 
-if (inventorySearch) {
-
-    inventorySearch.addEventListener(
-        "input",
-        renderInventory
-    );
-
-}
-
-
-/* =========================================
-   BOTÓN NUEVO
-========================================= */
-
-const newInventoryBtn =
-    document.getElementById(
-        "newInventoryBtn"
-    );
-
-
-if (newInventoryBtn) {
-
-    newInventoryBtn.addEventListener(
-        "click",
-        openNewInventoryModal
-    );
-
-}
-
-
-/* =========================================
-   BOTONES CERRAR / CANCELAR
-========================================= */
-
-const closeInventoryButton =
-    document.getElementById(
-        "closeInventoryModal"
-    );
-
-
-const cancelInventoryButton =
-    document.getElementById(
-        "cancelInventoryModal"
-    );
-
-
-if (closeInventoryButton) {
-
-    closeInventoryButton.addEventListener(
-        "click",
-        closeInventoryModal
-    );
-
-}
-
-
-if (cancelInventoryButton) {
-
-    cancelInventoryButton.addEventListener(
-        "click",
-        closeInventoryModal
-    );
-
-}
-
-
-/* =========================================
-   CERRAR AL HACER CLICK AFUERA
-========================================= */
-
-const inventoryModal =
-    document.getElementById(
-        "inventoryModal"
-    );
-
-
-if (inventoryModal) {
-
-    inventoryModal.addEventListener(
-        "click",
-        function(event) {
-
-            if (
-                event.target ===
-                inventoryModal
-            ) {
-
-                closeInventoryModal();
-
-            }
-
-        }
-    );
-
-}
-
-
-/* =========================================
-   INICIALIZAR INVENTARIO
-========================================= */
-
-renderInventory();
-
-updateInventoryStatistics();
+    }
+);
