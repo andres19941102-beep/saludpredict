@@ -1,7 +1,6 @@
 /* =========================================================
    SALUDPREDICT
-   SCRIPT PRINCIPAL
-   Dashboard + Pacientes + Servicios + Inventario
+   Sistema de gestión inteligente en salud
 ========================================================= */
 
 
@@ -9,282 +8,132 @@
    CONFIGURACIÓN GENERAL
 ========================================================= */
 
-document.addEventListener("DOMContentLoaded", () => {
+const STORAGE = {
+    patients: "saludpredict_patients",
+    services: "saludpredict_services",
+    inventory: "saludpredict_inventory",
+    budget: "saludpredict_budget"
+};
 
-    iniciarNavegacion();
-    iniciarPacientes();
-    iniciarServicios();
-    iniciarInventario();
 
-    actualizarDashboard();
-
-});
+const BUDGET_APPROVED_VALUE = 1000000000;
 
 
 /* =========================================================
    FUNCIONES GENERALES
 ========================================================= */
 
-function obtenerDatos(key, datosPorDefecto) {
+function getData(key, fallback = []) {
 
     try {
 
-        const datos = localStorage.getItem(key);
+        const data = localStorage.getItem(key);
 
-        if (datos) {
-            return JSON.parse(datos);
+        if (!data) {
+            return fallback;
         }
+
+        return JSON.parse(data);
 
     } catch (error) {
 
-        console.error(
-            `Error leyendo ${key}:`,
-            error
-        );
+        console.error("Error leyendo localStorage:", error);
 
+        return fallback;
     }
-
-    localStorage.setItem(
-        key,
-        JSON.stringify(datosPorDefecto)
-    );
-
-    return datosPorDefecto;
 }
 
 
-function guardarDatos(key, datos) {
+function saveData(key, data) {
 
     localStorage.setItem(
         key,
-        JSON.stringify(datos)
+        JSON.stringify(data)
     );
 }
 
 
-function generarId(prefijo) {
+function createId(prefix = "id") {
 
     return (
-        prefijo +
-        "-" +
+        prefix +
+        "_" +
         Date.now() +
-        "-" +
-        Math.floor(Math.random() * 1000)
+        "_" +
+        Math.random()
+            .toString(36)
+            .substring(2, 8)
     );
 }
 
 
-function escaparHTML(valor) {
+function formatCurrency(value) {
 
-    if (valor === null || valor === undefined) {
-        return "";
+    return new Intl.NumberFormat(
+        "es-CO",
+        {
+            style: "currency",
+            currency: "COP",
+            maximumFractionDigits: 0
+        }
+    ).format(Number(value) || 0);
+}
+
+
+function formatNumber(value) {
+
+    return new Intl.NumberFormat(
+        "es-CO"
+    ).format(Number(value) || 0);
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+function todayString() {
+
+    const date = new Date();
+
+    return date.toISOString().split("T")[0];
+}
+
+
+function daysUntil(dateString) {
+
+    if (!dateString) {
+        return Infinity;
     }
 
-    return String(valor)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    const today = new Date();
+    const target = new Date(dateString);
+
+    today.setHours(0, 0, 0, 0);
+    target.setHours(0, 0, 0, 0);
+
+    return Math.ceil(
+        (target - today) /
+        (1000 * 60 * 60 * 24)
+    );
 }
 
 
 /* =========================================================
-   NAVEGACIÓN
+   DATOS INICIALES
 ========================================================= */
 
-function iniciarNavegacion() {
-
-    const navItems =
-        document.querySelectorAll(".nav-item");
-
-    const sections =
-        document.querySelectorAll(".section");
-
-    const menuBtn =
-        document.getElementById("menuBtn");
-
-    const sidebar =
-        document.getElementById("sidebar");
-
-
-    navItems.forEach(item => {
-
-        item.addEventListener("click", () => {
-
-            const sectionId =
-                item.dataset.section;
-
-            if (!sectionId) {
-                return;
-            }
-
-
-            navItems.forEach(nav => {
-
-                nav.classList.remove("active");
-
-            });
-
-
-            item.classList.add("active");
-
-
-            sections.forEach(section => {
-
-                section.classList.remove(
-                    "active-section"
-                );
-
-            });
-
-
-            const section =
-                document.getElementById(sectionId);
-
-            if (section) {
-
-                section.classList.add(
-                    "active-section"
-                );
-
-            }
-
-
-            if (sidebar) {
-
-                sidebar.classList.remove("show");
-
-            }
-
-        });
-
-    });
-
-
-    if (menuBtn && sidebar) {
-
-        menuBtn.addEventListener("click", () => {
-
-            sidebar.classList.toggle("show");
-
-        });
-
-    }
-
-}
-
-
-/* =========================================================
-   DASHBOARD
-========================================================= */
-
-function actualizarDashboard() {
-
-    const pacientes =
-        obtenerDatos(
-            "saludpredict_patients",
-            []
-        );
-
-    const servicios =
-        obtenerDatos(
-            "saludpredict_services",
-            []
-        );
-
-    const inventario =
-        obtenerDatos(
-            "saludpredict_inventory",
-            []
-        );
-
-
-    const dashboardPatients =
-        document.getElementById(
-            "dashboardPatients"
-        );
-
-    if (dashboardPatients) {
-
-        dashboardPatients.textContent =
-            pacientes.length.toLocaleString(
-                "es-CO"
-            );
-
-    }
-
-
-    const inventarioActivo =
-        inventario.filter(
-            item => item.status === "Activo"
-        );
-
-
-    const totalStock =
-        inventarioActivo.reduce(
-            (total, item) =>
-                total + Number(item.stock || 0),
-            0
-        );
-
-
-    const stockBajo =
-        inventarioActivo.filter(
-            item =>
-                Number(item.stock || 0) <=
-                Number(item.minStock || 0)
-        ).length;
-
-
-    let porcentajeInventario = 100;
-
-
-    if (inventarioActivo.length > 0) {
-
-        porcentajeInventario =
-            Math.round(
-                (
-                    (inventarioActivo.length -
-                        stockBajo) /
-                    inventarioActivo.length
-                ) * 100
-            );
-
-    }
-
-
-    const inventoryDashboard =
-        document.querySelector(
-            ".stat-card:nth-child(3) strong"
-        );
-
-
-    if (inventoryDashboard) {
-
-        inventoryDashboard.textContent =
-            `${porcentajeInventario}%`;
-
-    }
-
-
-    /* Evitar advertencias si todavía no
-       utilizamos servicios */
-
-    void servicios;
-    void totalStock;
-
-}
-
-
-/* =========================================================
-   PACIENTES
-========================================================= */
-
-const defaultPatients = [
+const DEFAULT_PATIENTS = [
 
     {
-        id: "pac-001",
+        id: "pat-001",
         document: "10234567",
         name: "Juan Pérez",
         age: 42,
@@ -293,7 +142,7 @@ const defaultPatients = [
     },
 
     {
-        id: "pac-002",
+        id: "pat-002",
         document: "52345678",
         name: "María Gómez",
         age: 35,
@@ -302,7 +151,7 @@ const defaultPatients = [
     },
 
     {
-        id: "pac-003",
+        id: "pat-003",
         document: "80123456",
         name: "Carlos Rodríguez",
         age: 58,
@@ -311,7 +160,7 @@ const defaultPatients = [
     },
 
     {
-        id: "pac-004",
+        id: "pat-004",
         document: "107890123",
         name: "Laura Martínez",
         age: 29,
@@ -322,771 +171,7 @@ const defaultPatients = [
 ];
 
 
-let patients =
-    obtenerDatos(
-        "saludpredict_patients",
-        defaultPatients
-    );
-
-
-function iniciarPacientes() {
-
-    renderPatients();
-    updatePatientStatistics();
-
-
-    const search =
-        document.getElementById(
-            "patientSearch"
-        );
-
-    if (search) {
-
-        search.addEventListener(
-            "input",
-            () => {
-
-                renderPatients(
-                    search.value
-                );
-
-            }
-        );
-
-    }
-
-
-    const newButton =
-        document.getElementById(
-            "newPatientBtn"
-        );
-
-    if (newButton) {
-
-        newButton.addEventListener(
-            "click",
-            openNewPatientModal
-        );
-
-    }
-
-
-    const patientForm =
-        document.getElementById(
-            "patientForm"
-        );
-
-    if (patientForm) {
-
-        patientForm.addEventListener(
-            "submit",
-            savePatient
-        );
-
-    }
-
-
-    const closeButton =
-        document.getElementById(
-            "closeModal"
-        );
-
-    const cancelButton =
-        document.getElementById(
-            "cancelModal"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            closePatientModal
-        );
-
-    }
-
-
-    if (cancelButton) {
-
-        cancelButton.addEventListener(
-            "click",
-            closePatientModal
-        );
-
-    }
-
-
-    const modal =
-        document.getElementById(
-            "patientModal"
-        );
-
-
-    if (modal) {
-
-        modal.addEventListener(
-            "click",
-            event => {
-
-                if (
-                    event.target === modal
-                ) {
-
-                    closePatientModal();
-
-                }
-
-            }
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   RENDER PACIENTES
-========================================================= */
-
-function renderPatients(searchTerm = "") {
-
-    const table =
-        document.getElementById(
-            "patientsTable"
-        );
-
-    if (!table) {
-        return;
-    }
-
-
-    const term =
-        searchTerm
-            .toLowerCase()
-            .trim();
-
-
-    const filtered =
-        patients.filter(patient => {
-
-            return (
-
-                String(
-                    patient.document
-                )
-                    .toLowerCase()
-                    .includes(term)
-
-                ||
-
-                patient.name
-                    .toLowerCase()
-                    .includes(term)
-
-                ||
-
-                patient.service
-                    .toLowerCase()
-                    .includes(term)
-
-            );
-
-        });
-
-
-    if (filtered.length === 0) {
-
-        table.innerHTML = `
-            <tr>
-                <td colspan="6"
-                    style="text-align:center;padding:30px;">
-                    No se encontraron pacientes.
-                </td>
-            </tr>
-        `;
-
-        return;
-
-    }
-
-
-    table.innerHTML =
-        filtered.map(patient => `
-
-            <tr>
-
-                <td>
-                    ${escaparHTML(
-                        patient.document
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        patient.name
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        patient.age
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        patient.service
-                    )}
-                </td>
-
-                <td>
-                    <span class="status ${
-                        patient.status === "Activo"
-                            ? "active"
-                            : "inactive"
-                    }">
-                        ${escaparHTML(
-                            patient.status
-                        )}
-                    </span>
-                </td>
-
-                <td>
-
-                    <div class="action-buttons">
-
-                        <button
-                            class="action-btn edit-btn"
-                            onclick="editPatient('${patient.id}')">
-                            Editar
-                        </button>
-
-                        <button
-                            class="action-btn delete-btn"
-                            onclick="deletePatient('${patient.id}')">
-                            Eliminar
-                        </button>
-
-                    </div>
-
-                </td>
-
-            </tr>
-
-        `).join("");
-
-}
-
-
-/* =========================================================
-   ESTADÍSTICAS PACIENTES
-========================================================= */
-
-function updatePatientStatistics() {
-
-    const total =
-        document.getElementById(
-            "totalPatients"
-        );
-
-    const active =
-        document.getElementById(
-            "activePatients"
-        );
-
-    const newPatients =
-        document.getElementById(
-            "newPatients"
-        );
-
-
-    const activeCount =
-        patients.filter(
-            patient =>
-                patient.status === "Activo"
-        ).length;
-
-
-    if (total) {
-
-        total.textContent =
-            patients.length;
-
-    }
-
-
-    if (active) {
-
-        active.textContent =
-            activeCount;
-
-    }
-
-
-    if (newPatients) {
-
-        newPatients.textContent =
-            patients.length;
-
-    }
-
-
-    const dashboardPatients =
-        document.getElementById(
-            "dashboardPatients"
-        );
-
-
-    if (dashboardPatients) {
-
-        dashboardPatients.textContent =
-            patients.length.toLocaleString(
-                "es-CO"
-            );
-
-    }
-
-}
-
-
-/* =========================================================
-   OPCIONES DE SERVICIOS PARA PACIENTES
-========================================================= */
-
-function updatePatientServiceOptions(
-    currentService = ""
-) {
-
-    const select =
-        document.getElementById(
-            "service"
-        );
-
-    if (!select) {
-        return;
-    }
-
-
-    const activeServices =
-        services.filter(
-            service =>
-                service.status === "Activo"
-        );
-
-
-    select.innerHTML = `
-        <option value="">
-            Seleccione un servicio
-        </option>
-    `;
-
-
-    activeServices.forEach(service => {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            service.name;
-
-        option.textContent =
-            service.name;
-
-        select.appendChild(option);
-
-    });
-
-
-    if (
-        currentService &&
-        !activeServices.some(
-            service =>
-                service.name === currentService
-        )
-    ) {
-
-        const option =
-            document.createElement("option");
-
-        option.value =
-            currentService;
-
-        option.textContent =
-            `${currentService} (actual)`;
-
-        select.appendChild(option);
-
-    }
-
-
-    if (currentService) {
-
-        select.value =
-            currentService;
-
-    }
-
-}
-
-
-/* =========================================================
-   MODAL NUEVO PACIENTE
-========================================================= */
-
-function openNewPatientModal() {
-
-    const modal =
-        document.getElementById(
-            "patientModal"
-        );
-
-    const form =
-        document.getElementById(
-            "patientForm"
-        );
-
-    const title =
-        document.getElementById(
-            "modalTitle"
-        );
-
-
-    if (!modal || !form) {
-        return;
-    }
-
-
-    form.reset();
-
-
-    const id =
-        document.getElementById(
-            "patientId"
-        );
-
-    if (id) {
-        id.value = "";
-    }
-
-
-    if (title) {
-
-        title.textContent =
-            "Nuevo paciente";
-
-    }
-
-
-    updatePatientServiceOptions();
-
-
-    modal.classList.add("show");
-
-}
-
-
-/* =========================================================
-   EDITAR PACIENTE
-========================================================= */
-
-function editPatient(id) {
-
-    const patient =
-        patients.find(
-            item => item.id === id
-        );
-
-
-    if (!patient) {
-        return;
-    }
-
-
-    const modal =
-        document.getElementById(
-            "patientModal"
-        );
-
-    const title =
-        document.getElementById(
-            "modalTitle"
-        );
-
-
-    if (!modal) {
-        return;
-    }
-
-
-    document.getElementById(
-        "patientId"
-    ).value = patient.id;
-
-
-    document.getElementById(
-        "document"
-    ).value = patient.document;
-
-
-    document.getElementById(
-        "name"
-    ).value = patient.name;
-
-
-    document.getElementById(
-        "age"
-    ).value = patient.age;
-
-
-    document.getElementById(
-        "status"
-    ).value = patient.status;
-
-
-    updatePatientServiceOptions(
-        patient.service
-    );
-
-
-    if (title) {
-
-        title.textContent =
-            "Editar paciente";
-
-    }
-
-
-    modal.classList.add("show");
-
-}
-
-
-/* =========================================================
-   GUARDAR PACIENTE
-========================================================= */
-
-function savePatient(event) {
-
-    event.preventDefault();
-
-
-    const id =
-        document.getElementById(
-            "patientId"
-        ).value.trim();
-
-
-    const documentNumber =
-        document.getElementById(
-            "document"
-        ).value.trim();
-
-
-    const name =
-        document.getElementById(
-            "name"
-        ).value.trim();
-
-
-    const age =
-        document.getElementById(
-            "age"
-        ).value;
-
-
-    const service =
-        document.getElementById(
-            "service"
-        ).value;
-
-
-    const status =
-        document.getElementById(
-            "status"
-        ).value;
-
-
-    if (
-        !documentNumber ||
-        !name ||
-        !age ||
-        !service ||
-        !status
-    ) {
-
-        alert(
-            "Por favor complete todos los campos."
-        );
-
-        return;
-
-    }
-
-
-    const duplicate =
-        patients.find(
-            patient =>
-                patient.document ===
-                    documentNumber &&
-                patient.id !== id
-        );
-
-
-    if (duplicate) {
-
-        alert(
-            "Ya existe un paciente con ese documento."
-        );
-
-        return;
-
-    }
-
-
-    const patientData = {
-
-        id:
-            id ||
-            generarId("pac"),
-
-        document:
-            documentNumber,
-
-        name:
-            name,
-
-        age:
-            Number(age),
-
-        service:
-            service,
-
-        status:
-            status
-
-    };
-
-
-    if (id) {
-
-        const index =
-            patients.findIndex(
-                patient =>
-                    patient.id === id
-            );
-
-
-        if (index !== -1) {
-
-            patients[index] =
-                patientData;
-
-        }
-
-    } else {
-
-        patients.push(
-            patientData
-        );
-
-    }
-
-
-    guardarDatos(
-        "saludpredict_patients",
-        patients
-    );
-
-
-    renderPatients();
-
-    updatePatientStatistics();
-
-    actualizarDashboard();
-
-    closePatientModal();
-
-}
-
-
-/* =========================================================
-   ELIMINAR PACIENTE
-========================================================= */
-
-function deletePatient(id) {
-
-    const patient =
-        patients.find(
-            item => item.id === id
-        );
-
-
-    if (!patient) {
-        return;
-    }
-
-
-    const confirmDelete =
-        confirm(
-            `¿Desea eliminar al paciente ${patient.name}?`
-        );
-
-
-    if (!confirmDelete) {
-        return;
-    }
-
-
-    patients =
-        patients.filter(
-            item => item.id !== id
-        );
-
-
-    guardarDatos(
-        "saludpredict_patients",
-        patients
-    );
-
-
-    renderPatients();
-
-    updatePatientStatistics();
-
-    actualizarDashboard();
-
-}
-
-
-/* =========================================================
-   CERRAR MODAL PACIENTES
-========================================================= */
-
-function closePatientModal() {
-
-    const modal =
-        document.getElementById(
-            "patientModal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.remove(
-            "show"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   SERVICIOS
-========================================================= */
-
-const defaultServices = [
+const DEFAULT_SERVICES = [
 
     {
         id: "ser-001",
@@ -1151,785 +236,14 @@ const defaultServices = [
 ];
 
 
-let services =
-    obtenerDatos(
-        "saludpredict_services",
-        defaultServices
-    );
-
-
-/* =========================================================
-   INICIAR SERVICIOS
-========================================================= */
-
-function iniciarServicios() {
-
-    renderServices();
-
-    updateServiceStatistics();
-
-
-    const search =
-        document.getElementById(
-            "serviceSearch"
-        );
-
-
-    if (search) {
-
-        search.addEventListener(
-            "input",
-            () => {
-
-                renderServices(
-                    search.value
-                );
-
-            }
-        );
-
-    }
-
-
-    const newButton =
-        document.getElementById(
-            "newServiceBtn"
-        );
-
-
-    if (newButton) {
-
-        newButton.addEventListener(
-            "click",
-            openNewServiceModal
-        );
-
-    }
-
-
-    const form =
-        document.getElementById(
-            "serviceForm"
-        );
-
-
-    if (form) {
-
-        form.addEventListener(
-            "submit",
-            saveService
-        );
-
-    }
-
-
-    const closeButton =
-        document.getElementById(
-            "closeServiceModal"
-        );
-
-
-    const cancelButton =
-        document.getElementById(
-            "cancelServiceBtn"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            closeServiceModal
-        );
-
-    }
-
-
-    if (cancelButton) {
-
-        cancelButton.addEventListener(
-            "click",
-            closeServiceModal
-        );
-
-    }
-
-
-    const modal =
-        document.getElementById(
-            "serviceModal"
-        );
-
-
-    if (modal) {
-
-        modal.addEventListener(
-            "click",
-            event => {
-
-                if (
-                    event.target === modal
-                ) {
-
-                    closeServiceModal();
-
-                }
-
-            }
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   RENDER SERVICIOS
-========================================================= */
-
-function renderServices(
-    searchTerm = ""
-) {
-
-    const table =
-        document.getElementById(
-            "servicesTable"
-        );
-
-
-    if (!table) {
-        return;
-    }
-
-
-    const term =
-        searchTerm
-            .toLowerCase()
-            .trim();
-
-
-    const filtered =
-        services.filter(service => {
-
-            return (
-
-                service.code
-                    .toLowerCase()
-                    .includes(term)
-
-                ||
-
-                service.name
-                    .toLowerCase()
-                    .includes(term)
-
-                ||
-
-                service.category
-                    .toLowerCase()
-                    .includes(term)
-
-            );
-
-        });
-
-
-    if (filtered.length === 0) {
-
-        table.innerHTML = `
-            <tr>
-                <td colspan="7"
-                    style="text-align:center;padding:30px;">
-                    No se encontraron servicios.
-                </td>
-            </tr>
-        `;
-
-        return;
-
-    }
-
-
-    table.innerHTML =
-        filtered.map(service => `
-
-            <tr>
-
-                <td>
-                    ${escaparHTML(
-                        service.code
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        service.name
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        service.category
-                    )}
-                </td>
-
-                <td>
-                    ${escaparHTML(
-                        service.duration
-                    )}
-                </td>
-
-                <td>
-                    ${formatCurrency(
-                        service.price
-                    )}
-                </td>
-
-                <td>
-
-                    <span class="status ${
-                        service.status === "Activo"
-                            ? "active"
-                            : "inactive"
-                    }">
-
-                        ${escaparHTML(
-                            service.status
-                        )}
-
-                    </span>
-
-                </td>
-
-                <td>
-
-                    <div class="action-buttons">
-
-                        <button
-                            class="action-btn edit-btn"
-                            onclick="editService('${service.id}')">
-                            Editar
-                        </button>
-
-                        <button
-                            class="action-btn delete-btn"
-                            onclick="deleteService('${service.id}')">
-                            Eliminar
-                        </button>
-
-                    </div>
-
-                </td>
-
-            </tr>
-
-        `).join("");
-
-}
-
-
-/* =========================================================
-   FORMATO MONEDA
-========================================================= */
-
-function formatCurrency(value) {
-
-    return new Intl.NumberFormat(
-        "es-CO",
-        {
-            style: "currency",
-            currency: "COP",
-            maximumFractionDigits: 0
-        }
-    ).format(
-        Number(value || 0)
-    );
-
-}
-
-
-/* =========================================================
-   ESTADÍSTICAS SERVICIOS
-========================================================= */
-
-function updateServiceStatistics() {
-
-    const total =
-        document.getElementById(
-            "totalServices"
-        );
-
-
-    const active =
-        document.getElementById(
-            "activeServices"
-        );
-
-
-    const average =
-        document.getElementById(
-            "averageServicePrice"
-        );
-
-
-    const activeServices =
-        services.filter(
-            service =>
-                service.status === "Activo"
-        );
-
-
-    const averagePrice =
-        activeServices.length > 0
-
-            ?
-
-            activeServices.reduce(
-                (sum, service) =>
-                    sum +
-                    Number(
-                        service.price || 0
-                    ),
-                0
-            ) /
-            activeServices.length
-
-            :
-
-            0;
-
-
-    if (total) {
-
-        total.textContent =
-            services.length;
-
-    }
-
-
-    if (active) {
-
-        active.textContent =
-            activeServices.length;
-
-    }
-
-
-    if (average) {
-
-        average.textContent =
-            formatCurrency(
-                averagePrice
-            );
-
-    }
-
-}
-
-
-/* =========================================================
-   NUEVO SERVICIO
-========================================================= */
-
-function openNewServiceModal() {
-
-    const modal =
-        document.getElementById(
-            "serviceModal"
-        );
-
-
-    const form =
-        document.getElementById(
-            "serviceForm"
-        );
-
-
-    const title =
-        document.getElementById(
-            "serviceModalTitle"
-        );
-
-
-    if (!modal || !form) {
-        return;
-    }
-
-
-    form.reset();
-
-
-    document.getElementById(
-        "serviceId"
-    ).value = "";
-
-
-    if (title) {
-
-        title.textContent =
-            "Nuevo servicio";
-
-    }
-
-
-    modal.classList.add("show");
-
-}
-
-
-/* =========================================================
-   EDITAR SERVICIO
-========================================================= */
-
-function editService(id) {
-
-    const service =
-        services.find(
-            item => item.id === id
-        );
-
-
-    if (!service) {
-        return;
-    }
-
-
-    document.getElementById(
-        "serviceId"
-    ).value =
-        service.id;
-
-
-    document.getElementById(
-        "serviceCode"
-    ).value =
-        service.code;
-
-
-    document.getElementById(
-        "serviceName"
-    ).value =
-        service.name;
-
-
-    document.getElementById(
-        "serviceCategory"
-    ).value =
-        service.category;
-
-
-    document.getElementById(
-        "serviceDuration"
-    ).value =
-        service.duration;
-
-
-    document.getElementById(
-        "servicePrice"
-    ).value =
-        service.price;
-
-
-    document.getElementById(
-        "serviceStatus"
-    ).value =
-        service.status;
-
-
-    const title =
-        document.getElementById(
-            "serviceModalTitle"
-        );
-
-
-    if (title) {
-
-        title.textContent =
-            "Editar servicio";
-
-    }
-
-
-    const modal =
-        document.getElementById(
-            "serviceModal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.add("show");
-
-    }
-
-}
-
-
-/* =========================================================
-   GUARDAR SERVICIO
-========================================================= */
-
-function saveService(event) {
-
-    event.preventDefault();
-
-
-    const id =
-        document.getElementById(
-            "serviceId"
-        ).value.trim();
-
-
-    const code =
-        document.getElementById(
-            "serviceCode"
-        ).value.trim()
-        .toUpperCase();
-
-
-    const name =
-        document.getElementById(
-            "serviceName"
-        ).value.trim();
-
-
-    const category =
-        document.getElementById(
-            "serviceCategory"
-        ).value;
-
-
-    const duration =
-        document.getElementById(
-            "serviceDuration"
-        ).value.trim();
-
-
-    const price =
-        Number(
-            document.getElementById(
-                "servicePrice"
-            ).value
-        );
-
-
-    const status =
-        document.getElementById(
-            "serviceStatus"
-        ).value;
-
-
-    if (
-        !code ||
-        !name ||
-        !category ||
-        !duration ||
-        !price ||
-        price < 0 ||
-        !status
-    ) {
-
-        alert(
-            "Por favor complete correctamente todos los campos."
-        );
-
-        return;
-
-    }
-
-
-    const duplicate =
-        services.find(
-            service =>
-                service.code.toUpperCase() ===
-                    code &&
-                service.id !== id
-        );
-
-
-    if (duplicate) {
-
-        alert(
-            "Ya existe un servicio con ese código."
-        );
-
-        return;
-
-    }
-
-
-    const serviceData = {
-
-        id:
-            id ||
-            generarId("ser"),
-
-        code:
-            code,
-
-        name:
-            name,
-
-        category:
-            category,
-
-        duration:
-            duration,
-
-        price:
-            price,
-
-        status:
-            status
-
-    };
-
-
-    if (id) {
-
-        const index =
-            services.findIndex(
-                service =>
-                    service.id === id
-            );
-
-
-        if (index !== -1) {
-
-            services[index] =
-                serviceData;
-
-        }
-
-    } else {
-
-        services.push(
-            serviceData
-        );
-
-    }
-
-
-    guardarDatos(
-        "saludpredict_services",
-        services
-    );
-
-
-    renderServices();
-
-    updateServiceStatistics();
-
-    updatePatientServiceOptions();
-
-    actualizarDashboard();
-
-    closeServiceModal();
-
-}
-
-
-/* =========================================================
-   ELIMINAR SERVICIO
-========================================================= */
-
-function deleteService(id) {
-
-    const service =
-        services.find(
-            item => item.id === id
-        );
-
-
-    if (!service) {
-        return;
-    }
-
-
-    const patientsUsingService =
-        patients.filter(
-            patient =>
-                patient.service ===
-                service.name
-        );
-
-
-    let message =
-        `¿Desea eliminar el servicio "${service.name}"?`;
-
-
-    if (patientsUsingService.length > 0) {
-
-        message +=
-            `\n\nHay ${patientsUsingService.length} paciente(s) asociados a este servicio.`;
-
-    }
-
-
-    if (!confirm(message)) {
-        return;
-    }
-
-
-    services =
-        services.filter(
-            item =>
-                item.id !== id
-        );
-
-
-    guardarDatos(
-        "saludpredict_services",
-        services
-    );
-
-
-    renderServices();
-
-    updateServiceStatistics();
-
-    updatePatientServiceOptions();
-
-    actualizarDashboard();
-
-}
-
-
-/* =========================================================
-   CERRAR MODAL SERVICIOS
-========================================================= */
-
-function closeServiceModal() {
-
-    const modal =
-        document.getElementById(
-            "serviceModal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.remove(
-            "show"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   INVENTARIO
-========================================================= */
-
-const defaultInventory = [
+const DEFAULT_INVENTORY = [
 
     {
         id: "inv-001",
         code: "MED-001",
         name: "Acetaminofén 500 mg",
         category: "Medicamentos",
-        unit: "Tableta",
+        unit: "Unidades",
         stock: 250,
         minStock: 50,
         expiry: "2027-06-30",
@@ -1942,7 +256,7 @@ const defaultInventory = [
         code: "MED-002",
         name: "Ibuprofeno 400 mg",
         category: "Medicamentos",
-        unit: "Tableta",
+        unit: "Unidades",
         stock: 120,
         minStock: 30,
         expiry: "2027-03-15",
@@ -1955,7 +269,7 @@ const defaultInventory = [
         code: "INS-001",
         name: "Guantes de nitrilo",
         category: "Insumos médicos",
-        unit: "Caja",
+        unit: "Cajas",
         stock: 500,
         minStock: 100,
         expiry: "",
@@ -1968,7 +282,7 @@ const defaultInventory = [
         code: "INS-002",
         name: "Jeringas 5 ml",
         category: "Insumos médicos",
-        unit: "Unidad",
+        unit: "Unidades",
         stock: 35,
         minStock: 50,
         expiry: "2028-01-20",
@@ -1981,7 +295,7 @@ const defaultInventory = [
         code: "LAB-001",
         name: "Tubos de ensayo",
         category: "Laboratorio",
-        unit: "Caja",
+        unit: "Unidades",
         stock: 180,
         minStock: 40,
         expiry: "",
@@ -1994,7 +308,7 @@ const defaultInventory = [
         code: "MAT-001",
         name: "Gasas estériles",
         category: "Material quirúrgico",
-        unit: "Paquete",
+        unit: "Paquetes",
         stock: 25,
         minStock: 30,
         expiry: "2027-08-10",
@@ -2005,532 +319,570 @@ const defaultInventory = [
 ];
 
 
-let inventory =
-    obtenerDatos(
-        "saludpredict_inventory",
-        defaultInventory
-    );
+const DEFAULT_BUDGET = [
+
+    {
+        id: "bud-001",
+        concept: "Personal",
+        category: "Personal",
+        amount: 280000000,
+        date: "2026-01-15",
+        status: "Ejecutado"
+    },
+
+    {
+        id: "bud-002",
+        concept: "Medicamentos",
+        category: "Medicamentos",
+        amount: 95000000,
+        date: "2026-02-10",
+        status: "Ejecutado"
+    },
+
+    {
+        id: "bud-003",
+        concept: "Insumos médicos",
+        category: "Insumos",
+        amount: 75000000,
+        date: "2026-03-05",
+        status: "Ejecutado"
+    },
+
+    {
+        id: "bud-004",
+        concept: "Mantenimiento",
+        category: "Mantenimiento",
+        amount: 45000000,
+        date: "2026-04-12",
+        status: "Ejecutado"
+    },
+
+    {
+        id: "bud-005",
+        concept: "Tecnología",
+        category: "Tecnología",
+        amount: 35000000,
+        date: "2026-05-20",
+        status: "Ejecutado"
+    }
+
+];
 
 
 /* =========================================================
-   INICIAR INVENTARIO
+   INICIALIZAR DATOS
 ========================================================= */
 
-function iniciarInventario() {
+function initializeStorage() {
 
-    renderInventory();
+    if (!localStorage.getItem(STORAGE.patients)) {
 
-    updateInventoryStatistics();
-
-
-    const search =
-        document.getElementById(
-            "inventorySearch"
-        );
-
-
-    if (search) {
-
-        search.addEventListener(
-            "input",
-            () => {
-
-                renderInventory(
-                    search.value
-                );
-
-            }
+        saveData(
+            STORAGE.patients,
+            DEFAULT_PATIENTS
         );
 
     }
 
 
-    const newButton =
-        document.getElementById(
-            "newInventoryBtn"
-        );
+    if (!localStorage.getItem(STORAGE.services)) {
 
-
-    if (newButton) {
-
-        newButton.addEventListener(
-            "click",
-            openNewInventoryModal
+        saveData(
+            STORAGE.services,
+            DEFAULT_SERVICES
         );
 
     }
 
 
-    const form =
-        document.getElementById(
-            "inventoryForm"
-        );
+    if (!localStorage.getItem(STORAGE.inventory)) {
 
-
-    if (form) {
-
-        form.addEventListener(
-            "submit",
-            saveInventoryItem
+        saveData(
+            STORAGE.inventory,
+            DEFAULT_INVENTORY
         );
 
     }
 
 
-    const closeButton =
-        document.getElementById(
-            "closeInventoryModal"
-        );
+    if (!localStorage.getItem(STORAGE.budget)) {
 
-
-    const cancelButton =
-        document.getElementById(
-            "cancelInventoryModal"
-        );
-
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-            "click",
-            closeInventoryModal
+        saveData(
+            STORAGE.budget,
+            DEFAULT_BUDGET
         );
 
     }
 
 
-    if (cancelButton) {
-
-        cancelButton.addEventListener(
-            "click",
-            closeInventoryModal
-        );
-
-    }
+    normalizeInventoryData();
+}
 
 
-    const modal =
-        document.getElementById(
-            "inventoryModal"
-        );
+function normalizeInventoryData() {
+
+    const inventory = getData(
+        STORAGE.inventory,
+        []
+    );
 
 
-    if (modal) {
+    const normalized = inventory.map(item => {
 
-        modal.addEventListener(
-            "click",
-            event => {
+        return {
 
-                if (
-                    event.target === modal
-                ) {
+            id: item.id || createId("inv"),
 
-                    closeInventoryModal();
+            code: item.code || "",
 
-                }
+            name: item.name || "",
 
-            }
-        );
+            category: item.category || "Otros",
 
-    }
+            unit: item.unit || "Unidades",
 
+            stock: Number(item.stock) || 0,
+
+            minStock: Number(item.minStock) || 0,
+
+            expiry: item.expiry || "",
+
+            price: Number(
+                item.price ??
+                item.unitCost ??
+                0
+            ),
+
+            status: item.status || "Activo"
+
+        };
+
+    });
+
+
+    saveData(
+        STORAGE.inventory,
+        normalized
+    );
 }
 
 
 /* =========================================================
-   RENDER INVENTARIO
+   NAVEGACIÓN
 ========================================================= */
 
-function renderInventory(
-    searchTerm = ""
-) {
+function showSection(sectionId) {
 
-    const table =
-        document.getElementById(
-            "inventoryTable"
-        );
+    document.querySelectorAll(".section")
+        .forEach(section => {
+
+            section.classList.remove("active");
+
+        });
 
 
-    if (!table) {
-        return;
+    const section = document.getElementById(
+        sectionId
+    );
+
+
+    if (section) {
+
+        section.classList.add("active");
+
     }
 
 
-    const term =
-        searchTerm
-            .toLowerCase()
-            .trim();
+    document.querySelectorAll(".nav-item")
+        .forEach(button => {
 
-
-    const filtered =
-        inventory.filter(item => {
-
-            return (
-
-                item.code
-                    .toLowerCase()
-                    .includes(term)
-
-                ||
-
-                item.name
-                    .toLowerCase()
-                    .includes(term)
-
-                ||
-
-                item.category
-                    .toLowerCase()
-                    .includes(term)
-
+            button.classList.toggle(
+                "active",
+                button.dataset.section === sectionId
             );
 
         });
 
 
-    if (filtered.length === 0) {
+    const sidebar = document.getElementById("sidebar");
 
-        table.innerHTML = `
+    if (sidebar) {
+        sidebar.classList.remove("show");
+    }
+
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+
+    if (sectionId === "dashboard") {
+        updateDashboard();
+    }
+
+
+    if (sectionId === "analisis") {
+        updateAnalysis();
+    }
+
+
+    if (sectionId === "predicciones") {
+        populatePredictionServices();
+    }
+
+
+    if (sectionId === "alertas") {
+        generateAlerts();
+    }
+}
+
+
+function initializeNavigation() {
+
+    document.querySelectorAll(".nav-item")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    showSection(
+                        button.dataset.section
+                    );
+
+                }
+            );
+
+        });
+
+
+    document.querySelectorAll("[data-go]")
+        .forEach(button => {
+
+            button.addEventListener(
+                "click",
+                () => {
+
+                    showSection(
+                        button.dataset.go
+                    );
+
+                }
+            );
+
+        });
+
+
+    const menuBtn =
+        document.getElementById("menuBtn");
+
+
+    const sidebar =
+        document.getElementById("sidebar");
+
+
+    if (menuBtn && sidebar) {
+
+        menuBtn.addEventListener(
+            "click",
+            () => {
+
+                sidebar.classList.toggle("show");
+
+            }
+        );
+
+    }
+
+}
+
+
+/* =========================================================
+   PACIENTES
+========================================================= */
+
+function getPatients() {
+
+    return getData(
+        STORAGE.patients,
+        []
+    );
+}
+
+
+function updatePatientStats() {
+
+    const patients = getPatients();
+
+
+    const total = patients.length;
+
+
+    const active = patients.filter(
+        patient => patient.status === "Activo"
+    ).length;
+
+
+    const newPatients = patients.filter(
+        patient => {
+
+            return String(patient.id)
+                .includes("pat-");
+
+        }
+    ).length;
+
+
+    const totalElement =
+        document.getElementById("totalPatients");
+
+    const activeElement =
+        document.getElementById("activePatients");
+
+    const newElement =
+        document.getElementById("newPatients");
+
+
+    if (totalElement) {
+        totalElement.textContent = total;
+    }
+
+
+    if (activeElement) {
+        activeElement.textContent = active;
+    }
+
+
+    if (newElement) {
+        newElement.textContent = newPatients;
+    }
+}
+
+
+function populatePatientServices() {
+
+    const select =
+        document.getElementById("service");
+
+
+    if (!select) {
+        return;
+    }
+
+
+    const services = getData(
+        STORAGE.services,
+        []
+    );
+
+
+    const currentValue =
+        select.value;
+
+
+    select.innerHTML = "";
+
+
+    services.forEach(service => {
+
+        if (service.status !== "Activo") {
+            return;
+        }
+
+
+        const option =
+            document.createElement("option");
+
+        option.value = service.name;
+
+        option.textContent = service.name;
+
+        select.appendChild(option);
+
+    });
+
+
+    if (currentValue) {
+        select.value = currentValue;
+    }
+}
+
+
+function renderPatients(filter = "") {
+
+    const tbody =
+        document.getElementById("patientsTable");
+
+
+    if (!tbody) {
+        return;
+    }
+
+
+    const patients = getPatients();
+
+
+    const search =
+        filter.trim().toLowerCase();
+
+
+    const filtered =
+        patients.filter(patient => {
+
+            const text = [
+
+                patient.document,
+
+                patient.name,
+
+                patient.service,
+
+                patient.status
+
+            ]
+                .join(" ")
+                .toLowerCase();
+
+
+            return text.includes(search);
+
+        });
+
+
+    tbody.innerHTML = "";
+
+
+    if (!filtered.length) {
+
+        tbody.innerHTML = `
             <tr>
-                <td colspan="10"
-                    style="text-align:center;padding:30px;">
-                    No se encontraron productos.
+                <td colspan="6" class="empty-table">
+                    No se encontraron pacientes.
                 </td>
             </tr>
         `;
 
         return;
-
     }
 
 
-    table.innerHTML =
-        filtered.map(item => `
+    filtered.forEach(patient => {
 
-            <tr>
-
-                <!-- Código -->
-
-                <td>
-                    ${escaparHTML(
-                        item.code
-                    )}
-                </td>
+        const tr =
+            document.createElement("tr");
 
 
-                <!-- Producto -->
+        tr.innerHTML = `
 
-                <td>
-                    ${escaparHTML(
-                        item.name
-                    )}
-                </td>
+            <td>
+                ${escapeHtml(patient.document)}
+            </td>
 
+            <td>
+                <strong>
+                    ${escapeHtml(patient.name)}
+                </strong>
+            </td>
 
-                <!-- Categoría -->
+            <td>
+                ${escapeHtml(patient.age)}
+            </td>
 
-                <td>
-                    ${escaparHTML(
-                        item.category
-                    )}
-                </td>
+            <td>
+                ${escapeHtml(patient.service)}
+            </td>
 
+            <td>
 
-                <!-- Unidad -->
+                <span class="status ${
+                    patient.status === "Activo"
+                        ? "active"
+                        : "inactive"
+                }">
 
-                <td>
-                    ${escaparHTML(
-                        item.unit || "-"
-                    )}
-                </td>
+                    ${escapeHtml(patient.status)}
 
+                </span>
 
-                <!-- Stock -->
+            </td>
 
-                <td>
-                    ${Number(
-                        item.stock || 0
-                    ).toLocaleString(
-                        "es-CO"
-                    )}
-                </td>
+            <td>
 
+                <div class="action-buttons">
 
-                <!-- Mínimo -->
+                    <button
+                        class="action-btn edit-btn"
+                        data-edit-patient="${patient.id}"
+                    >
+                        Editar
+                    </button>
 
-                <td>
-                    ${Number(
-                        item.minStock || 0
-                    ).toLocaleString(
-                        "es-CO"
-                    )}
-                </td>
+                    <button
+                        class="action-btn delete-btn"
+                        data-delete-patient="${patient.id}"
+                    >
+                        Eliminar
+                    </button>
 
+                </div>
 
-                <!-- Vencimiento -->
-
-                <td>
-                    ${
-                        item.expiry
-                            ? formatInventoryDate(
-                                item.expiry
-                            )
-                            : "Sin fecha"
-                    }
-                </td>
+            </td>
+        `;
 
 
-                <!-- Precio -->
+        tbody.appendChild(tr);
 
-                <td>
-                    ${formatInventoryCurrency(
-                        item.price
-                    )}
-                </td>
+    });
 
 
-                <!-- Estado -->
+    tbody.querySelectorAll(
+        "[data-edit-patient]"
+    ).forEach(button => {
 
-                <td>
+        button.addEventListener(
+            "click",
+            () => {
 
-                    <span class="status ${
-                        item.status === "Activo"
-                            ? "active"
-                            : "inactive"
-                    }">
+                editPatient(
+                    button.dataset.editPatient
+                );
 
-                        ${escaparHTML(
-                            item.status
-                        )}
+            }
+        );
 
-                    </span>
-
-                </td>
+    });
 
 
-                <!-- Acciones -->
+    tbody.querySelectorAll(
+        "[data-delete-patient]"
+    ).forEach(button => {
 
-                <td>
+        button.addEventListener(
+            "click",
+            () => {
 
-                    <div class="action-buttons">
+                deletePatient(
+                    button.dataset.deletePatient
+                );
 
-                        <button
-                            class="action-btn edit-btn"
-                            onclick="editInventory('${item.id}')">
-                            Editar
-                        </button>
+            }
+        );
 
-                        <button
-                            class="action-btn delete-btn"
-                            onclick="deleteInventory('${item.id}')">
-                            Eliminar
-                        </button>
-
-                    </div>
-
-                </td>
-
-            </tr>
-
-        `).join("");
-
+    });
 }
 
 
-/* =========================================================
-   MONEDA INVENTARIO
-========================================================= */
-
-function formatInventoryCurrency(
-    value
-) {
-
-    return new Intl.NumberFormat(
-        "es-CO",
-        {
-            style: "currency",
-            currency: "COP",
-            maximumFractionDigits: 0
-        }
-    ).format(
-        Number(value || 0)
-    );
-
-}
-
-
-/* =========================================================
-   FECHA INVENTARIO
-========================================================= */
-
-function formatInventoryDate(
-    date
-) {
-
-    if (!date) {
-        return "Sin fecha";
-    }
-
-
-    const parts =
-        date.split("-");
-
-
-    if (parts.length !== 3) {
-        return date;
-    }
-
-
-    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-
-}
-
-
-/* =========================================================
-   PRODUCTOS PRÓXIMOS A VENCER
-   30 DÍAS
-========================================================= */
-
-function isInventoryExpiringSoon(
-    date
-) {
-
-    if (!date) {
-        return false;
-    }
-
-
-    const expiryDate =
-        new Date(
-            `${date}T00:00:00`
-        );
-
-
-    const today =
-        new Date();
-
-
-    today.setHours(
-        0,
-        0,
-        0,
-        0
-    );
-
-
-    const difference =
-        expiryDate.getTime() -
-        today.getTime();
-
-
-    const days =
-        difference /
-        (
-            1000 *
-            60 *
-            60 *
-            24
-        );
-
-
-    return (
-        days >= 0 &&
-        days <= 30
-    );
-
-}
-
-
-/* =========================================================
-   ESTADÍSTICAS INVENTARIO
-========================================================= */
-
-function updateInventoryStatistics() {
-
-    const total =
-        document.getElementById(
-            "totalInventory"
-        );
-
-
-    const lowStock =
-        document.getElementById(
-            "lowStockInventory"
-        );
-
-
-    const expiring =
-        document.getElementById(
-            "expiringInventory"
-        );
-
-
-    const activeInventory =
-        inventory.filter(
-            item =>
-                item.status === "Activo"
-        );
-
-
-    const lowStockItems =
-        activeInventory.filter(
-            item =>
-                Number(item.stock || 0) <=
-                Number(item.minStock || 0)
-        );
-
-
-    const expiringItems =
-        activeInventory.filter(
-            item =>
-                isInventoryExpiringSoon(
-                    item.expiry
-                )
-        );
-
-
-    if (total) {
-
-        total.textContent =
-            activeInventory.length;
-
-    }
-
-
-    if (lowStock) {
-
-        lowStock.textContent =
-            lowStockItems.length;
-
-    }
-
-
-    if (expiring) {
-
-        expiring.textContent =
-            expiringItems.length;
-
-    }
-
-}
-
-
-/* =========================================================
-   NUEVO PRODUCTO INVENTARIO
-========================================================= */
-
-function openNewInventoryModal() {
+function openPatientModal(id = "") {
 
     const modal =
-        document.getElementById(
-            "inventoryModal"
-        );
-
+        document.getElementById("patientModal");
 
     const form =
-        document.getElementById(
-            "inventoryForm"
-        );
+        document.getElementById("patientForm");
+
+    const title =
+        document.getElementById("modalTitle");
 
 
     if (!modal || !form) {
@@ -2542,792 +894,392 @@ function openNewInventoryModal() {
 
 
     document.getElementById(
-        "inventoryId"
+        "patientId"
     ).value = "";
 
 
-    modal.classList.add(
-        "show"
-    );
-
-}
+    populatePatientServices();
 
 
-/* =========================================================
-   EDITAR INVENTARIO
-========================================================= */
+    if (id) {
 
-function editInventory(id) {
-
-    const item =
-        inventory.find(
-            product =>
-                product.id === id
-        );
+        const patient =
+            getPatients().find(
+                item => item.id === id
+            );
 
 
-    if (!item) {
-        return;
+        if (!patient) {
+            return;
+        }
+
+
+        title.textContent =
+            "Editar paciente";
+
+
+        document.getElementById(
+            "patientId"
+        ).value = patient.id;
+
+
+        document.getElementById(
+            "document"
+        ).value = patient.document;
+
+
+        document.getElementById(
+            "name"
+        ).value = patient.name;
+
+
+        document.getElementById(
+            "age"
+        ).value = patient.age;
+
+
+        document.getElementById(
+            "service"
+        ).value = patient.service;
+
+
+        document.getElementById(
+            "status"
+        ).value = patient.status;
+
+    } else {
+
+        title.textContent =
+            "Nuevo paciente";
+
     }
 
 
-    document.getElementById(
-        "inventoryId"
-    ).value =
-        item.id;
+    modal.classList.add("show");
+}
 
 
-    document.getElementById(
-        "inventoryCode"
-    ).value =
-        item.code;
-
-
-    document.getElementById(
-        "inventoryName"
-    ).value =
-        item.name;
-
-
-    document.getElementById(
-        "inventoryCategory"
-    ).value =
-        item.category;
-
-
-    document.getElementById(
-        "inventoryUnit"
-    ).value =
-        item.unit || "";
-
-
-    document.getElementById(
-        "inventoryStock"
-    ).value =
-        item.stock;
-
-
-    document.getElementById(
-        "inventoryMinStock"
-    ).value =
-        item.minStock;
-
-
-    document.getElementById(
-        "inventoryExpiry"
-    ).value =
-        item.expiry || "";
-
-
-    document.getElementById(
-        "inventoryPrice"
-    ).value =
-        item.price;
-
-
-    document.getElementById(
-        "inventoryStatus"
-    ).value =
-        item.status;
-
+function closePatientModal() {
 
     const modal =
-        document.getElementById(
-            "inventoryModal"
-        );
+        document.getElementById("patientModal");
 
 
     if (modal) {
-
-        modal.classList.add(
-            "show"
-        );
-
+        modal.classList.remove("show");
     }
 
 }
 
 
-/* =========================================================
-   GUARDAR INVENTARIO
-========================================================= */
-
-function saveInventoryItem(event) {
+function savePatient(event) {
 
     event.preventDefault();
 
 
+    const patients = getPatients();
+
+
     const id =
-        document.getElementById(
-            "inventoryId"
-        ).value.trim();
+        document.getElementById("patientId").value;
 
 
-    const code =
-        document.getElementById(
-            "inventoryCode"
-        ).value.trim()
-        .toUpperCase();
+    const patient = {
 
+        id: id || createId("pat"),
 
-    const name =
-        document.getElementById(
-            "inventoryName"
-        ).value.trim();
-
-
-    const category =
-        document.getElementById(
-            "inventoryCategory"
-        ).value;
-
-
-    const unit =
-        document.getElementById(
-            "inventoryUnit"
-        ).value.trim();
-
-
-    const stock =
-        Number(
-            document.getElementById(
-                "inventoryStock"
-            ).value
-        );
-
-
-    const minStock =
-        Number(
-            document.getElementById(
-                "inventoryMinStock"
-            ).value
-        );
-
-
-    const expiry =
-        document.getElementById(
-            "inventoryExpiry"
-        ).value;
-
-
-    const price =
-        Number(
-            document.getElementById(
-                "inventoryPrice"
-            ).value
-        );
-
-
-    const status =
-        document.getElementById(
-            "inventoryStatus"
-        ).value;
-
-
-    if (
-        !code ||
-        !name ||
-        !category ||
-        !unit ||
-        stock < 0 ||
-        minStock < 0 ||
-        price < 0 ||
-        !status
-    ) {
-
-        alert(
-            "Por favor complete correctamente todos los campos."
-        );
-
-        return;
-
-    }
-
-
-    const duplicate =
-        inventory.find(
-            item =>
-                item.code.toUpperCase() ===
-                    code &&
-                item.id !== id
-        );
-
-
-    if (duplicate) {
-
-        alert(
-            "Ya existe un producto con ese código."
-        );
-
-        return;
-
-    }
-
-
-    const inventoryData = {
-
-        id:
-            id ||
-            generarId("inv"),
-
-        code:
-            code,
+        document:
+            document.getElementById("document").value.trim(),
 
         name:
-            name,
+            document.getElementById("name").value.trim(),
 
-        category:
-            category,
+        age:
+            Number(
+                document.getElementById("age").value
+            ),
 
-        unit:
-            unit,
-
-        stock:
-            stock,
-
-        minStock:
-            minStock,
-
-        expiry:
-            expiry,
-
-        price:
-            price,
+        service:
+            document.getElementById("service").value,
 
         status:
-            status
+            document.getElementById("status").value
 
     };
+
+
+    if (!patient.document || !patient.name) {
+
+        alert(
+            "Por favor complete los campos obligatorios."
+        );
+
+        return;
+    }
 
 
     if (id) {
 
         const index =
-            inventory.findIndex(
-                item =>
-                    item.id === id
+            patients.findIndex(
+                item => item.id === id
             );
 
 
         if (index !== -1) {
 
-            inventory[index] =
-                inventoryData;
+            patients[index] = patient;
 
         }
 
     } else {
 
-        inventory.push(
-            inventoryData
-        );
+        patients.push(patient);
 
     }
 
 
-    guardarDatos(
-        "saludpredict_inventory",
-        inventory
+    saveData(
+        STORAGE.patients,
+        patients
     );
 
 
-    renderInventory();
+    closePatientModal();
 
-    updateInventoryStatistics();
 
-    actualizarDashboard();
+    renderPatients();
 
-    closeInventoryModal();
+
+    updatePatientStats();
+
+
+    updateDashboard();
+
+
+    updateAnalysis();
 
 }
 
 
-/* =========================================================
-   ELIMINAR PRODUCTO INVENTARIO
-========================================================= */
+function editPatient(id) {
 
-function deleteInventory(id) {
+    openPatientModal(id);
 
-    const item =
-        inventory.find(
-            product =>
-                product.id === id
+}
+
+
+function deletePatient(id) {
+
+    const patient =
+        getPatients().find(
+            item => item.id === id
         );
 
 
-    if (!item) {
+    if (!patient) {
         return;
     }
 
 
-    const confirmDelete =
-        confirm(
-            `¿Desea eliminar "${item.name}" del inventario?`
-        );
+    if (!confirm(
+        `¿Desea eliminar al paciente ${patient.name}?`
+    )) {
 
-
-    if (!confirmDelete) {
         return;
+
     }
 
 
-    inventory =
-        inventory.filter(
-            product =>
-                product.id !== id
+    const patients =
+        getPatients().filter(
+            item => item.id !== id
         );
 
 
-    guardarDatos(
-        "saludpredict_inventory",
-        inventory
+    saveData(
+        STORAGE.patients,
+        patients
     );
 
 
-    renderInventory();
+    renderPatients();
 
-    updateInventoryStatistics();
+    updatePatientStats();
 
-    actualizarDashboard();
+    updateDashboard();
+
+    updateAnalysis();
 
 }
 
 
 /* =========================================================
-   CERRAR MODAL INVENTARIO
+   SERVICIOS
 ========================================================= */
 
-function closeInventoryModal() {
-
-    const modal =
-        document.getElementById(
-            "inventoryModal"
-        );
-
-
-    if (modal) {
-
-        modal.classList.remove(
-            "show"
-        );
-
-    }
-
-}
-
-
-/* =========================================================
-   CERRAR MODALES CON ESC
-========================================================= */
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        if (
-            event.key !== "Escape"
-        ) {
-            return;
-        }
-
-
-        closePatientModal();
-
-        closeServiceModal();
-
-        closeInventoryModal();
-
-    }
-);
-/* ============================================================
-   SALUDPREDICT
-   MÓDULOS: PRESUPUESTO - ANÁLISIS - PREDICCIONES - ALERTAS - REPORTES
-============================================================ */
-
-
-/* ============================================================
-   CONFIGURACIÓN GENERAL
-============================================================ */
-
-const BUDGET_APPROVED_VALUE = 1000000000;
-
-const budgetCategories = [
-    "Personal",
-    "Medicamentos",
-    "Insumos",
-    "Servicios",
-    "Mantenimiento",
-    "Administración",
-    "Tecnología",
-    "Otros"
-];
-
-
-/* ============================================================
-   FUNCIONES AUXILIARES
-============================================================ */
-
-function advancedCurrency(value) {
-
-    return new Intl.NumberFormat("es-CO", {
-        style: "currency",
-        currency: "COP",
-        maximumFractionDigits: 0
-    }).format(Number(value) || 0);
-
-}
-
-
-function advancedEscape(value) {
-
-    return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-
-}
-
-
-function advancedDate(date) {
-
-    if (!date) return "-";
-
-    const parts = String(date).split("-");
-
-    if (parts.length === 3) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
-    }
-
-    return date;
-
-}
-
-
-function getAdvancedPatients() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem("saludpredict_patients")
-        ) || [];
-
-    } catch (error) {
-
-        return [];
-
-    }
-
-}
-
-
-function getAdvancedServices() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem("saludpredict_services")
-        ) || [];
-
-    } catch (error) {
-
-        return [];
-
-    }
-
-}
-
-
-function getAdvancedInventory() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem("saludpredict_inventory")
-        ) || [];
-
-    } catch (error) {
-
-        return [];
-
-    }
-
-}
-
-
-/* ============================================================
-   PRESUPUESTO
-============================================================ */
-
-const defaultBudgetMovements = [
-
-    {
-        id: "pres-001",
-        date: "2026-01-10",
-        type: "Gasto",
-        category: "Personal",
-        description: "Nómina personal asistencial",
-        value: 280000000,
-        responsible: "Administración",
-        costCenter: "CC-001"
-    },
-
-    {
-        id: "pres-002",
-        date: "2026-01-18",
-        type: "Gasto",
-        category: "Medicamentos",
-        description: "Compra de medicamentos",
-        value: 95000000,
-        responsible: "Farmacia",
-        costCenter: "CC-002"
-    },
-
-    {
-        id: "pres-003",
-        date: "2026-02-05",
-        type: "Gasto",
-        category: "Insumos",
-        description: "Compra de insumos médicos",
-        value: 75000000,
-        responsible: "Almacén",
-        costCenter: "CC-003"
-    },
-
-    {
-        id: "pres-004",
-        date: "2026-02-20",
-        type: "Gasto",
-        category: "Mantenimiento",
-        description: "Mantenimiento de equipos",
-        value: 45000000,
-        responsible: "Mantenimiento",
-        costCenter: "CC-004"
-    },
-
-    {
-        id: "pres-005",
-        date: "2026-03-02",
-        type: "Gasto",
-        category: "Tecnología",
-        description: "Licencias y equipos tecnológicos",
-        value: 35000000,
-        responsible: "Sistemas",
-        costCenter: "CC-005"
-    }
-
-];
-
-
-let budgetMovements = [];
-
-
-function loadBudgetData() {
-
-    const saved = localStorage.getItem(
-        "saludpredict_budget"
+function getServices() {
+
+    return getData(
+        STORAGE.services,
+        []
     );
-
-    if (saved) {
-
-        try {
-
-            budgetMovements = JSON.parse(saved);
-
-        } catch (error) {
-
-            budgetMovements = [...defaultBudgetMovements];
-
-        }
-
-    } else {
-
-        budgetMovements = [...defaultBudgetMovements];
-
-        localStorage.setItem(
-            "saludpredict_budget",
-            JSON.stringify(budgetMovements)
-        );
-
-    }
-
 }
 
 
-function saveBudgetData() {
+function updateServiceStats() {
 
-    localStorage.setItem(
-        "saludpredict_budget",
-        JSON.stringify(budgetMovements)
-    );
-
-}
+    const services = getServices();
 
 
-function updateBudgetSummary() {
-
-    const executed = budgetMovements
-        .filter(item => item.type === "Gasto")
-        .reduce(
-            (total, item) =>
-                total + Number(item.value || 0),
-            0
+    const active =
+        services.filter(
+            service => service.status === "Activo"
         );
 
-    const income = budgetMovements
-        .filter(item => item.type === "Ingreso")
-        .reduce(
-            (total, item) =>
-                total + Number(item.value || 0),
-            0
-        );
 
-    const available =
-        BUDGET_APPROVED_VALUE -
-        executed +
-        income;
-
-    const percentage =
-        BUDGET_APPROVED_VALUE > 0
-            ? (executed / BUDGET_APPROVED_VALUE) * 100
+    const average =
+        active.length
+            ? active.reduce(
+                (sum, service) =>
+                    sum + Number(service.price || 0),
+                0
+            ) / active.length
             : 0;
 
 
-    const approvedElement =
-        document.getElementById("budgetApproved");
-
-    const executedElement =
-        document.getElementById("budgetExecuted");
-
-    const availableElement =
-        document.getElementById("budgetAvailable");
-
-    const percentageElement =
-        document.getElementById("budgetPercentage");
+    document.getElementById(
+        "totalServices"
+    ).textContent = services.length;
 
 
-    if (approvedElement) {
-
-        approvedElement.textContent =
-            advancedCurrency(BUDGET_APPROVED_VALUE);
-
-    }
-
-    if (executedElement) {
-
-        executedElement.textContent =
-            advancedCurrency(executed);
-
-    }
-
-    if (availableElement) {
-
-        availableElement.textContent =
-            advancedCurrency(available);
-
-    }
-
-    if (percentageElement) {
-
-        percentageElement.textContent =
-            `${percentage.toFixed(1)}%`;
-
-    }
+    document.getElementById(
+        "activeServices"
+    ).textContent = active.length;
 
 
-    return {
-        executed,
-        income,
-        available,
-        percentage
-    };
-
+    document.getElementById(
+        "averageServicePrice"
+    ).textContent =
+        formatCurrency(average);
 }
 
 
-function renderBudget(search = "") {
+function renderServices(filter = "") {
 
-    const table =
-        document.getElementById("budgetTable");
-
-    if (!table) return;
+    const tbody =
+        document.getElementById("servicesTable");
 
 
-    const text =
-        search.toLowerCase().trim();
+    if (!tbody) {
+        return;
+    }
 
 
-    const filtered =
-        budgetMovements.filter(item => {
+    const search =
+        filter.trim().toLowerCase();
 
-            return [
 
-                item.date,
-                item.type,
-                item.category,
-                item.description,
-                item.responsible,
-                item.costCenter
+    const services =
+        getServices().filter(service => {
+
+            const text = [
+
+                service.code,
+
+                service.name,
+
+                service.category,
+
+                service.duration,
+
+                service.status
 
             ]
-            .join(" ")
-            .toLowerCase()
-            .includes(text);
+                .join(" ")
+                .toLowerCase();
+
+
+            return text.includes(search);
 
         });
 
 
-    if (!filtered.length) {
+    tbody.innerHTML = "";
 
-        table.innerHTML = `
+
+    if (!services.length) {
+
+        tbody.innerHTML = `
             <tr>
-                <td colspan="8">
-                    No hay movimientos presupuestales.
+                <td colspan="7" class="empty-table">
+                    No se encontraron servicios.
                 </td>
             </tr>
         `;
 
         return;
-
     }
 
 
-    table.innerHTML = filtered.map(item => `
+    services.forEach(service => {
 
-        <tr>
+        const tr =
+            document.createElement("tr");
 
-            <td>${advancedDate(item.date)}</td>
+
+        tr.innerHTML = `
 
             <td>
+                <strong>
+                    ${escapeHtml(service.code)}
+                </strong>
+            </td>
+
+            <td>
+                ${escapeHtml(service.name)}
+            </td>
+
+            <td>
+                ${escapeHtml(service.category)}
+            </td>
+
+            <td>
+                ${escapeHtml(service.duration)}
+            </td>
+
+            <td>
+                ${formatCurrency(service.price)}
+            </td>
+
+            <td>
+
                 <span class="status ${
-                    item.type === "Ingreso"
+                    service.status === "Activo"
                         ? "active"
                         : "inactive"
                 }">
-                    ${advancedEscape(item.type)}
+
+                    ${escapeHtml(service.status)}
+
                 </span>
+
             </td>
-
-            <td>${advancedEscape(item.category)}</td>
-
-            <td>${advancedEscape(item.description)}</td>
-
-            <td>
-                ${advancedCurrency(item.value)}
-            </td>
-
-            <td>${advancedEscape(item.responsible)}</td>
-
-            <td>${advancedEscape(item.costCenter)}</td>
 
             <td>
 
                 <div class="action-buttons">
 
                     <button
+                        class="action-btn edit-btn"
+                        data-edit-service="${service.id}"
+                    >
+                        Editar
+                    </button>
+
+                    <button
                         class="action-btn delete-btn"
-                        onclick="deleteBudgetMovement('${item.id}')"
+                        data-delete-service="${service.id}"
                     >
                         Eliminar
                     </button>
@@ -3336,219 +1288,1295 @@ function renderBudget(search = "") {
 
             </td>
 
-        </tr>
+        `;
 
-    `).join("");
+
+        tbody.appendChild(tr);
+
+    });
+
+
+    tbody.querySelectorAll(
+        "[data-edit-service]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                editService(
+                    button.dataset.editService
+                );
+
+            }
+        );
+
+    });
+
+
+    tbody.querySelectorAll(
+        "[data-delete-service]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                deleteService(
+                    button.dataset.deleteService
+                );
+
+            }
+        );
+
+    });
 
 }
 
 
-function createBudgetMovement() {
+function openServiceModal(id = "") {
 
-    const date =
-        prompt(
-            "Fecha (AAAA-MM-DD):",
-            new Date().toISOString().slice(0, 10)
+    const modal =
+        document.getElementById("serviceModal");
+
+    const form =
+        document.getElementById("serviceForm");
+
+    const title =
+        document.getElementById("serviceModalTitle");
+
+
+    form.reset();
+
+    document.getElementById(
+        "serviceId"
+    ).value = "";
+
+
+    if (id) {
+
+        const service =
+            getServices().find(
+                item => item.id === id
+            );
+
+
+        if (!service) {
+            return;
+        }
+
+
+        title.textContent =
+            "Editar servicio";
+
+
+        document.getElementById(
+            "serviceId"
+        ).value = service.id;
+
+
+        document.getElementById(
+            "serviceCode"
+        ).value = service.code;
+
+
+        document.getElementById(
+            "serviceName"
+        ).value = service.name;
+
+
+        document.getElementById(
+            "serviceCategory"
+        ).value = service.category;
+
+
+        document.getElementById(
+            "serviceDuration"
+        ).value = service.duration;
+
+
+        document.getElementById(
+            "servicePrice"
+        ).value = service.price;
+
+
+        document.getElementById(
+            "serviceStatus"
+        ).value = service.status;
+
+    } else {
+
+        title.textContent =
+            "Nuevo servicio";
+
+    }
+
+
+    modal.classList.add("show");
+}
+
+
+function closeServiceModal() {
+
+    document.getElementById(
+        "serviceModal"
+    ).classList.remove("show");
+
+}
+
+
+function saveService(event) {
+
+    event.preventDefault();
+
+
+    const services = getServices();
+
+
+    const id =
+        document.getElementById(
+            "serviceId"
+        ).value;
+
+
+    const service = {
+
+        id: id || createId("ser"),
+
+        code:
+            document.getElementById(
+                "serviceCode"
+            ).value.trim(),
+
+        name:
+            document.getElementById(
+                "serviceName"
+            ).value.trim(),
+
+        category:
+            document.getElementById(
+                "serviceCategory"
+            ).value,
+
+        duration:
+            document.getElementById(
+                "serviceDuration"
+            ).value.trim(),
+
+        price:
+            Number(
+                document.getElementById(
+                    "servicePrice"
+                ).value
+            ) || 0,
+
+        status:
+            document.getElementById(
+                "serviceStatus"
+            ).value
+
+    };
+
+
+    if (!service.code || !service.name) {
+
+        alert(
+            "Complete el código y el nombre del servicio."
         );
 
-    if (!date) return;
+        return;
+    }
 
 
-    const type =
-        prompt(
-            "Tipo: escriba Ingreso o Gasto",
-            "Gasto"
+    if (id) {
+
+        const index =
+            services.findIndex(
+                item => item.id === id
+            );
+
+
+        if (index !== -1) {
+
+            services[index] = service;
+
+        }
+
+    } else {
+
+        services.push(service);
+
+    }
+
+
+    saveData(
+        STORAGE.services,
+        services
+    );
+
+
+    closeServiceModal();
+
+
+    renderServices();
+
+    updateServiceStats();
+
+    populatePatientServices();
+
+    populatePredictionServices();
+
+    updateDashboard();
+
+    updateAnalysis();
+
+}
+
+
+function editService(id) {
+
+    openServiceModal(id);
+
+}
+
+
+function deleteService(id) {
+
+    const service =
+        getServices().find(
+            item => item.id === id
         );
 
-    if (!type) return;
+
+    if (!service) {
+        return;
+    }
 
 
-    const category =
-        prompt(
-            "Categoría:\n" +
-            budgetCategories.join(", "),
-            "Insumos"
-        );
-
-    if (!category) return;
-
-
-    const description =
-        prompt(
-            "Descripción del movimiento:"
-        );
-
-    if (!description) return;
-
-
-    const value =
-        Number(
-            prompt(
-                "Valor:",
-                "100000"
-            )
-        );
-
-
-    if (!value || value <= 0) {
-
-        alert("Ingrese un valor válido.");
+    if (!confirm(
+        `¿Desea eliminar el servicio ${service.name}?`
+    )) {
 
         return;
 
     }
 
 
-    const responsible =
-        prompt(
-            "Responsable:",
-            "Administración"
-        ) || "Administración";
-
-
-    const costCenter =
-        prompt(
-            "Centro de costo:",
-            "CC-001"
-        ) || "CC-001";
-
-
-    budgetMovements.push({
-
-        id: `pres-${Date.now()}`,
-
-        date,
-
-        type:
-            type.toLowerCase().includes("ingreso")
-                ? "Ingreso"
-                : "Gasto",
-
-        category,
-
-        description,
-
-        value,
-
-        responsible,
-
-        costCenter
-
-    });
-
-
-    saveBudgetData();
-
-    renderBudget();
-
-    updateBudgetSummary();
-
-    refreshAdvancedModules();
-
-}
-
-
-function deleteBudgetMovement(id) {
-
-    const confirmed =
-        confirm(
-            "¿Desea eliminar este movimiento?"
-        );
-
-    if (!confirmed) return;
-
-
-    budgetMovements =
-        budgetMovements.filter(
+    const services =
+        getServices().filter(
             item => item.id !== id
         );
 
 
-    saveBudgetData();
+    saveData(
+        STORAGE.services,
+        services
+    );
+
+
+    renderServices();
+
+    updateServiceStats();
+
+    populatePatientServices();
+
+    populatePredictionServices();
+
+    updateDashboard();
+
+    updateAnalysis();
+
+}
+
+
+/* =========================================================
+   INVENTARIO
+========================================================= */
+
+function getInventory() {
+
+    return getData(
+        STORAGE.inventory,
+        []
+    );
+}
+
+
+function updateInventoryStats() {
+
+    const inventory =
+        getInventory();
+
+
+    const lowStock =
+        inventory.filter(
+            item =>
+                Number(item.stock) <=
+                Number(item.minStock)
+        ).length;
+
+
+    const expiring =
+        inventory.filter(
+            item => {
+
+                const days =
+                    daysUntil(item.expiry);
+
+                return days >= 0 && days <= 90;
+
+            }
+        ).length;
+
+
+    document.getElementById(
+        "totalInventory"
+    ).textContent =
+        inventory.length;
+
+
+    document.getElementById(
+        "lowStockInventory"
+    ).textContent =
+        lowStock;
+
+
+    document.getElementById(
+        "expiringInventory"
+    ).textContent =
+        expiring;
+
+}
+
+
+function renderInventory(filter = "") {
+
+    const tbody =
+        document.getElementById(
+            "inventoryTable"
+        );
+
+
+    if (!tbody) {
+        return;
+    }
+
+
+    const search =
+        filter.trim().toLowerCase();
+
+
+    const inventory =
+        getInventory().filter(item => {
+
+            const text = [
+
+                item.code,
+
+                item.name,
+
+                item.category,
+
+                item.unit,
+
+                item.status
+
+            ]
+                .join(" ")
+                .toLowerCase();
+
+
+            return text.includes(search);
+
+        });
+
+
+    tbody.innerHTML = "";
+
+
+    if (!inventory.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="10" class="empty-table">
+                    No se encontraron productos.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    inventory.forEach(item => {
+
+        const lowStock =
+            Number(item.stock) <=
+            Number(item.minStock);
+
+
+        const days =
+            daysUntil(item.expiry);
+
+
+        const expiring =
+            days >= 0 && days <= 90;
+
+
+        let statusClass =
+            item.status === "Activo"
+                ? "active"
+                : "inactive";
+
+
+        let statusText =
+            item.status;
+
+
+        if (lowStock) {
+
+            statusClass = "danger";
+
+            statusText = "Stock bajo";
+
+        } else if (expiring) {
+
+            statusClass = "warning";
+
+            statusText = "Por vencer";
+
+        }
+
+
+        const tr =
+            document.createElement("tr");
+
+
+        tr.innerHTML = `
+
+            <td>
+                <strong>
+                    ${escapeHtml(item.code)}
+                </strong>
+            </td>
+
+            <td>
+                ${escapeHtml(item.name)}
+            </td>
+
+            <td>
+                ${escapeHtml(item.category)}
+            </td>
+
+            <td>
+                ${escapeHtml(item.unit)}
+            </td>
+
+            <td>
+                <strong>
+                    ${formatNumber(item.stock)}
+                </strong>
+            </td>
+
+            <td>
+                ${formatNumber(item.minStock)}
+            </td>
+
+            <td>
+                ${
+                    item.expiry
+                        ? item.expiry
+                        : "No aplica"
+                }
+            </td>
+
+            <td>
+                ${formatCurrency(item.price)}
+            </td>
+
+            <td>
+
+                <span class="status ${statusClass}">
+                    ${escapeHtml(statusText)}
+                </span>
+
+            </td>
+
+            <td>
+
+                <div class="action-buttons">
+
+                    <button
+                        class="action-btn edit-btn"
+                        data-edit-inventory="${item.id}"
+                    >
+                        Editar
+                    </button>
+
+                    <button
+                        class="action-btn delete-btn"
+                        data-delete-inventory="${item.id}"
+                    >
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </td>
+
+        `;
+
+
+        tbody.appendChild(tr);
+
+    });
+
+
+    tbody.querySelectorAll(
+        "[data-edit-inventory]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                editInventory(
+                    button.dataset.editInventory
+                );
+
+            }
+        );
+
+    });
+
+
+    tbody.querySelectorAll(
+        "[data-delete-inventory]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                deleteInventory(
+                    button.dataset.deleteInventory
+                );
+
+            }
+        );
+
+    });
+
+}
+
+
+function openInventoryModal(id = "") {
+
+    const modal =
+        document.getElementById(
+            "inventoryModal"
+        );
+
+
+    const form =
+        document.getElementById(
+            "inventoryForm"
+        );
+
+
+    form.reset();
+
+
+    document.getElementById(
+        "inventoryId"
+    ).value = "";
+
+
+    document.getElementById(
+        "inventoryUnit"
+    ).value = "Unidades";
+
+
+    if (id) {
+
+        const item =
+            getInventory().find(
+                inventoryItem =>
+                    inventoryItem.id === id
+            );
+
+
+        if (!item) {
+            return;
+        }
+
+
+        document.getElementById(
+            "inventoryModalTitle"
+        ).textContent =
+            "Editar producto";
+
+
+        document.getElementById(
+            "inventoryId"
+        ).value = item.id;
+
+
+        document.getElementById(
+            "inventoryCode"
+        ).value = item.code;
+
+
+        document.getElementById(
+            "inventoryName"
+        ).value = item.name;
+
+
+        document.getElementById(
+            "inventoryCategory"
+        ).value = item.category;
+
+
+        document.getElementById(
+            "inventoryUnit"
+        ).value = item.unit;
+
+
+        document.getElementById(
+            "inventoryStock"
+        ).value = item.stock;
+
+
+        document.getElementById(
+            "inventoryMinStock"
+        ).value = item.minStock;
+
+
+        document.getElementById(
+            "inventoryExpiry"
+        ).value = item.expiry;
+
+
+        document.getElementById(
+            "inventoryPrice"
+        ).value = item.price;
+
+
+        document.getElementById(
+            "inventoryStatus"
+        ).value = item.status;
+
+    } else {
+
+        document.getElementById(
+            "inventoryModalTitle"
+        ).textContent =
+            "Nuevo producto";
+
+    }
+
+
+    modal.classList.add("show");
+}
+
+
+function closeInventoryModal() {
+
+    document.getElementById(
+        "inventoryModal"
+    ).classList.remove("show");
+
+}
+
+
+function saveInventory(event) {
+
+    event.preventDefault();
+
+
+    const inventory =
+        getInventory();
+
+
+    const id =
+        document.getElementById(
+            "inventoryId"
+        ).value;
+
+
+    const item = {
+
+        id: id || createId("inv"),
+
+        code:
+            document.getElementById(
+                "inventoryCode"
+            ).value.trim(),
+
+        name:
+            document.getElementById(
+                "inventoryName"
+            ).value.trim(),
+
+        category:
+            document.getElementById(
+                "inventoryCategory"
+            ).value,
+
+        unit:
+            document.getElementById(
+                "inventoryUnit"
+            ).value.trim(),
+
+        stock:
+            Number(
+                document.getElementById(
+                    "inventoryStock"
+                ).value
+            ) || 0,
+
+        minStock:
+            Number(
+                document.getElementById(
+                    "inventoryMinStock"
+                ).value
+            ) || 0,
+
+        expiry:
+            document.getElementById(
+                "inventoryExpiry"
+            ).value,
+
+        price:
+            Number(
+                document.getElementById(
+                    "inventoryPrice"
+                ).value
+            ) || 0,
+
+        status:
+            document.getElementById(
+                "inventoryStatus"
+            ).value
+
+    };
+
+
+    if (!item.code || !item.name) {
+
+        alert(
+            "Complete el código y el nombre del producto."
+        );
+
+        return;
+    }
+
+
+    if (id) {
+
+        const index =
+            inventory.findIndex(
+                inventoryItem =>
+                    inventoryItem.id === id
+            );
+
+
+        if (index !== -1) {
+
+            inventory[index] = item;
+
+        }
+
+    } else {
+
+        inventory.push(item);
+
+    }
+
+
+    saveData(
+        STORAGE.inventory,
+        inventory
+    );
+
+
+    closeInventoryModal();
+
+
+    renderInventory();
+
+    updateInventoryStats();
+
+    updateDashboard();
+
+    updateAnalysis();
+
+    generateAlerts();
+
+}
+
+
+function editInventory(id) {
+
+    openInventoryModal(id);
+
+}
+
+
+function deleteInventory(id) {
+
+    const item =
+        getInventory().find(
+            inventoryItem =>
+                inventoryItem.id === id
+        );
+
+
+    if (!item) {
+        return;
+    }
+
+
+    if (!confirm(
+        `¿Desea eliminar ${item.name}?`
+    )) {
+
+        return;
+
+    }
+
+
+    const inventory =
+        getInventory().filter(
+            inventoryItem =>
+                inventoryItem.id !== id
+        );
+
+
+    saveData(
+        STORAGE.inventory,
+        inventory
+    );
+
+
+    renderInventory();
+
+    updateInventoryStats();
+
+    updateDashboard();
+
+    updateAnalysis();
+
+    generateAlerts();
+
+}
+
+
+/* =========================================================
+   PRESUPUESTO
+========================================================= */
+
+function getBudget() {
+
+    return getData(
+        STORAGE.budget,
+        []
+    );
+}
+
+
+function updateBudgetSummary() {
+
+    const budget =
+        getBudget();
+
+
+    const executed =
+        budget.reduce(
+            (sum, item) =>
+                sum + Number(item.amount || 0),
+            0
+        );
+
+
+    const available =
+        Math.max(
+            BUDGET_APPROVED_VALUE -
+            executed,
+            0
+        );
+
+
+    const percentage =
+        BUDGET_APPROVED_VALUE > 0
+            ? (
+                executed /
+                BUDGET_APPROVED_VALUE
+            ) * 100
+            : 0;
+
+
+    document.getElementById(
+        "budgetApproved"
+    ).textContent =
+        formatCurrency(
+            BUDGET_APPROVED_VALUE
+        );
+
+
+    document.getElementById(
+        "budgetExecuted"
+    ).textContent =
+        formatCurrency(executed);
+
+
+    document.getElementById(
+        "budgetAvailable"
+    ).textContent =
+        formatCurrency(available);
+
+
+    document.getElementById(
+        "budgetPercentage"
+    ).textContent =
+        `${Math.round(percentage)}%`;
+}
+
+
+function renderBudget(filter = "") {
+
+    const tbody =
+        document.getElementById(
+            "budgetTable"
+        );
+
+
+    if (!tbody) {
+        return;
+    }
+
+
+    const search =
+        filter.trim().toLowerCase();
+
+
+    const budget =
+        getBudget().filter(item => {
+
+            const text = [
+
+                item.concept,
+
+                item.category,
+
+                item.status,
+
+                item.date
+
+            ]
+                .join(" ")
+                .toLowerCase();
+
+
+            return text.includes(search);
+
+        });
+
+
+    tbody.innerHTML = "";
+
+
+    if (!budget.length) {
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-table">
+                    No se encontraron movimientos.
+                </td>
+            </tr>
+        `;
+
+        return;
+    }
+
+
+    budget.forEach(item => {
+
+        const tr =
+            document.createElement("tr");
+
+
+        tr.innerHTML = `
+
+            <td>
+                <strong>
+                    ${escapeHtml(item.concept)}
+                </strong>
+            </td>
+
+            <td>
+                ${escapeHtml(item.category)}
+            </td>
+
+            <td>
+                ${formatCurrency(item.amount)}
+            </td>
+
+            <td>
+                ${escapeHtml(item.date)}
+            </td>
+
+            <td>
+
+                <span class="status active">
+                    ${escapeHtml(item.status)}
+                </span>
+
+            </td>
+
+            <td>
+
+                <div class="action-buttons">
+
+                    <button
+                        class="action-btn delete-btn"
+                        data-delete-budget="${item.id}"
+                    >
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </td>
+
+        `;
+
+
+        tbody.appendChild(tr);
+
+    });
+
+
+    tbody.querySelectorAll(
+        "[data-delete-budget]"
+    ).forEach(button => {
+
+        button.addEventListener(
+            "click",
+            () => {
+
+                deleteBudget(
+                    button.dataset.deleteBudget
+                );
+
+            }
+        );
+
+    });
+
+}
+
+
+function openBudgetModal() {
+
+    const modal =
+        document.getElementById(
+            "budgetModal"
+        );
+
+
+    document.getElementById(
+        "budgetForm"
+    ).reset();
+
+
+    document.getElementById(
+        "budgetDate"
+    ).value =
+        todayString();
+
+
+    modal.classList.add("show");
+}
+
+
+function closeBudgetModal() {
+
+    document.getElementById(
+        "budgetModal"
+    ).classList.remove("show");
+}
+
+
+function saveBudget(event) {
+
+    event.preventDefault();
+
+
+    const budget =
+        getBudget();
+
+
+    const movement = {
+
+        id: createId("bud"),
+
+        concept:
+            document.getElementById(
+                "budgetConcept"
+            ).value.trim(),
+
+        category:
+            document.getElementById(
+                "budgetCategory"
+            ).value,
+
+        amount:
+            Number(
+                document.getElementById(
+                    "budgetAmount"
+                ).value
+            ) || 0,
+
+        date:
+            document.getElementById(
+                "budgetDate"
+            ).value,
+
+        status: "Ejecutado"
+
+    };
+
+
+    if (!movement.concept ||
+        movement.amount <= 0) {
+
+        alert(
+            "Ingrese un concepto y un valor válido."
+        );
+
+        return;
+    }
+
+
+    budget.push(movement);
+
+
+    saveData(
+        STORAGE.budget,
+        budget
+    );
+
+
+    closeBudgetModal();
+
 
     renderBudget();
 
     updateBudgetSummary();
 
-    refreshAdvancedModules();
+    updateDashboard();
+
+    updateAnalysis();
+
+    generateAlerts();
 
 }
 
 
-/* ============================================================
-   ANÁLISIS
-============================================================ */
+function deleteBudget(id) {
+
+    if (!confirm(
+        "¿Desea eliminar este movimiento?"
+    )) {
+
+        return;
+
+    }
+
+
+    const budget =
+        getBudget().filter(
+            item => item.id !== id
+        );
+
+
+    saveData(
+        STORAGE.budget,
+        budget
+    );
+
+
+    renderBudget();
+
+    updateBudgetSummary();
+
+    updateDashboard();
+
+    updateAnalysis();
+
+}
+
+
+/* =========================================================
+   ANALISIS
+========================================================= */
 
 function updateAnalysis() {
 
     const patients =
-        getAdvancedPatients();
+        getPatients();
 
     const services =
-        getAdvancedServices();
+        getServices();
 
     const inventory =
-        getAdvancedInventory();
-
-
-    const activeServices =
-        services.filter(
-            item =>
-                item.status === "Activo"
-        );
+        getInventory();
 
 
     const lowStock =
-        inventory.filter(item =>
-            Number(item.stock) <=
-            Number(item.minStock)
+        inventory.filter(
+            item =>
+                Number(item.stock) <=
+                Number(item.minStock)
         );
 
 
-    const patientElement =
-        document.getElementById(
-            "analysisPatients"
-        );
-
-    const servicesElement =
-        document.getElementById(
-            "analysisServices"
-        );
-
-    const inventoryElement =
-        document.getElementById(
-            "analysisInventory"
-        );
-
-    const lowStockElement =
-        document.getElementById(
-            "analysisLowStock"
-        );
+    document.getElementById(
+        "analysisPatients"
+    ).textContent =
+        patients.length;
 
 
-    if (patientElement)
-        patientElement.textContent =
-            patients.length;
-
-    if (servicesElement)
-        servicesElement.textContent =
-            activeServices.length;
-
-    if (inventoryElement)
-        inventoryElement.textContent =
-            inventory.length;
-
-    if (lowStockElement)
-        lowStockElement.textContent =
-            lowStock.length;
+    document.getElementById(
+        "analysisServices"
+    ).textContent =
+        services.length;
 
 
-    renderPatientsAnalysis(patients);
+    document.getElementById(
+        "analysisInventory"
+    ).textContent =
+        inventory.length;
 
-    renderInventoryAnalysis(inventory);
+
+    document.getElementById(
+        "analysisLowStock"
+    ).textContent =
+        lowStock.length;
+
+
+    renderPatientsAnalysis(
+        patients
+    );
+
+
+    renderInventoryAnalysis(
+        inventory
+    );
+
 
     renderFinancialAnalysis();
-
 }
 
 
@@ -3559,16 +2587,9 @@ function renderPatientsAnalysis(patients) {
             "patientsAnalysisChart"
         );
 
-    if (!container) return;
 
-
-    if (!patients.length) {
-
-        container.innerHTML =
-            "<p>No hay pacientes registrados.</p>";
-
+    if (!container) {
         return;
-
     }
 
 
@@ -3578,8 +2599,8 @@ function renderPatientsAnalysis(patients) {
     patients.forEach(patient => {
 
         const service =
-            patient.service ||
-            "Sin servicio";
+            patient.service || "Sin servicio";
+
 
         counts[service] =
             (counts[service] || 0) + 1;
@@ -3587,66 +2608,57 @@ function renderPatientsAnalysis(patients) {
     });
 
 
+    const entries =
+        Object.entries(counts)
+            .sort(
+                (a, b) => b[1] - a[1]
+            );
+
+
+    if (!entries.length) {
+
+        container.innerHTML =
+            `<p class="empty-message">
+                No hay pacientes registrados.
+            </p>`;
+
+        return;
+    }
+
+
     const max =
         Math.max(
-            ...Object.values(counts)
+            ...entries.map(item => item[1])
         );
 
 
     container.innerHTML =
-        Object.entries(counts)
-            .map(([name, count]) => {
+        entries.map(
+            ([name, value]) => `
 
-                const width =
-                    max > 0
-                        ? (count / max) * 100
-                        : 0;
+                <div class="demand-row">
 
-                return `
+                    <span class="demand-name">
+                        ${escapeHtml(name)}
+                    </span>
 
-                    <div style="
-                        margin:15px 0;
-                    ">
+                    <div class="demand-track">
 
-                        <div style="
-                            display:flex;
-                            justify-content:space-between;
-                            margin-bottom:5px;
-                        ">
-
-                            <span>
-                                ${advancedEscape(name)}
-                            </span>
-
-                            <strong>
-                                ${count}
-                            </strong>
-
-                        </div>
-
-                        <div style="
-                            background:#e5e7eb;
-                            border-radius:10px;
-                            height:12px;
-                            overflow:hidden;
-                        ">
-
-                            <div style="
-                                width:${width}%;
-                                height:100%;
-                                background:#20c6d7;
-                                border-radius:10px;
-                            "></div>
-
-                        </div>
+                        <div
+                            class="demand-fill"
+                            style="width:${(value / max) * 100}%"
+                        ></div>
 
                     </div>
 
-                `;
+                    <span class="demand-value">
+                        ${value}
+                    </span>
 
-            })
-            .join("");
+                </div>
 
+            `
+        ).join("");
 }
 
 
@@ -3657,63 +2669,90 @@ function renderInventoryAnalysis(inventory) {
             "inventoryAnalysisChart"
         );
 
-    if (!container) return;
 
-
-    if (!inventory.length) {
-
-        container.innerHTML =
-            "<p>No hay productos registrados.</p>";
-
+    if (!container) {
         return;
-
     }
 
 
     const total =
-        inventory.reduce(
-            (sum, item) =>
-                sum + Number(item.stock || 0),
-            0
-        );
+        inventory.length;
 
 
     const low =
-        inventory.filter(item =>
-            Number(item.stock) <=
-            Number(item.minStock)
+        inventory.filter(
+            item =>
+                Number(item.stock) <=
+                Number(item.minStock)
         ).length;
 
 
     const available =
-        inventory.length - low;
+        total - low;
+
+
+    if (!total) {
+
+        container.innerHTML =
+            `<p class="empty-message">
+                No hay productos registrados.
+            </p>`;
+
+        return;
+    }
+
+
+    const percentage =
+        Math.round(
+            (available / total) * 100
+        );
 
 
     container.innerHTML = `
 
-        <div style="
-            margin:20px 0;
-        ">
+        <div class="inventory-summary">
 
-            <p>
-                Productos disponibles:
-                <strong>${available}</strong>
-            </p>
+            <div class="inventory-summary-card">
 
-            <p>
-                Productos con stock bajo:
-                <strong>${low}</strong>
-            </p>
+                <strong>
+                    ${total}
+                </strong>
 
-            <p>
-                Unidades totales:
-                <strong>${total}</strong>
-            </p>
+                <span>
+                    Total productos
+                </span>
+
+            </div>
+
+
+            <div class="inventory-summary-card">
+
+                <strong>
+                    ${available}
+                </strong>
+
+                <span>
+                    Disponibles
+                </span>
+
+            </div>
+
+
+            <div class="inventory-summary-card">
+
+                <strong>
+                    ${percentage}%
+                </strong>
+
+                <span>
+                    Disponibilidad
+                </span>
+
+            </div>
 
         </div>
 
     `;
-
 }
 
 
@@ -3724,66 +2763,87 @@ function renderFinancialAnalysis() {
             "financialAnalysis"
         );
 
-    if (!container) return;
+
+    if (!container) {
+        return;
+    }
 
 
-    const summary =
-        updateBudgetSummary();
+    const budget =
+        getBudget();
+
+
+    const totals = {};
+
+
+    budget.forEach(item => {
+
+        totals[item.category] =
+            (totals[item.category] || 0) +
+            Number(item.amount || 0);
+
+    });
+
+
+    const rows =
+        Object.entries(totals);
 
 
     container.innerHTML = `
 
-        <div style="
-            display:grid;
-            grid-template-columns:
-            repeat(auto-fit,minmax(180px,1fr));
-            gap:15px;
-        ">
+        <div class="panel-header">
 
             <div>
-                <strong>Presupuesto</strong>
-                <p>
-                    ${advancedCurrency(
-                        BUDGET_APPROVED_VALUE
-                    )}
-                </p>
-            </div>
 
-            <div>
-                <strong>Ejecutado</strong>
-                <p>
-                    ${advancedCurrency(
-                        summary.executed
-                    )}
-                </p>
-            </div>
+                <h3>
+                    Distribución presupuestal
+                </h3>
 
-            <div>
-                <strong>Disponible</strong>
                 <p>
-                    ${advancedCurrency(
-                        summary.available
-                    )}
+                    Ejecución por categoría
                 </p>
-            </div>
 
-            <div>
-                <strong>Ejecución</strong>
-                <p>
-                    ${summary.percentage.toFixed(1)}%
-                </p>
             </div>
 
         </div>
 
-    `;
 
+        <div class="summary-list">
+
+            ${
+                rows.length
+                    ? rows.map(
+                        ([category, amount]) => `
+
+                            <div class="summary-row">
+
+                                <span>
+                                    ${escapeHtml(category)}
+                                </span>
+
+                                <strong>
+                                    ${formatCurrency(amount)}
+                                </strong>
+
+                            </div>
+
+                        `
+                    ).join("")
+                    : `
+                        <p class="empty-message">
+                            No hay movimientos presupuestales.
+                        </p>
+                    `
+            }
+
+        </div>
+    `;
 }
 
 
-/* ============================================================
+/* =========================================================
    PREDICCIONES
-============================================================ */
+========================================================= */
 
 function populatePredictionServices() {
 
@@ -3792,20 +2852,29 @@ function populatePredictionServices() {
             "predictionService"
         );
 
-    if (!select) return;
+
+    if (!select) {
+        return;
+    }
 
 
     const services =
-        getAdvancedServices()
-            .filter(
-                item => item.status === "Activo"
-            );
+        getServices().filter(
+            service =>
+                service.status === "Activo"
+        );
+
+
+    const current =
+        select.value;
 
 
     select.innerHTML = `
-        <option value="all">
-            Todos los servicios
+
+        <option value="">
+            Seleccione un servicio
         </option>
+
     `;
 
 
@@ -3814,1678 +2883,154 @@ function populatePredictionServices() {
         const option =
             document.createElement("option");
 
+
         option.value =
             service.name;
 
+
         option.textContent =
             service.name;
+
 
         select.appendChild(option);
 
     });
 
+
+    if (current) {
+        select.value = current;
+    }
 }
 
 
 function generatePrediction() {
 
-    const patients =
-        getAdvancedPatients();
-
-
-    const serviceSelect =
+    const serviceName =
         document.getElementById(
             "predictionService"
+        ).value;
+
+
+    const period =
+        Number(
+            document.getElementById(
+                "predictionPeriod"
+            ).value
         );
 
-    const periodSelect =
-        document.getElementById(
-            "predictionPeriod"
+
+    if (!serviceName) {
+
+        alert(
+            "Seleccione un servicio."
         );
 
-
-    const selectedService =
-        serviceSelect
-            ? serviceSelect.value
-            : "all";
-
-
-    const months =
-        periodSelect
-            ? Number(periodSelect.value)
-            : 1;
-
-
-    let historicalPatients =
-        patients;
-
-
-    if (
-        selectedService !== "all"
-    ) {
-
-        historicalPatients =
-            patients.filter(
-                patient =>
-                    patient.service ===
-                    selectedService
-            );
-
+        return;
     }
+
+
+    const patients =
+        getPatients();
 
 
     const historicalAverage =
-        historicalPatients.length;
+        patients.filter(
+            patient =>
+                patient.service === serviceName
+        ).length;
 
 
-    /*
-       Como SALUDPREDICT todavía no tiene
-       una serie histórica real de meses,
-       utilizamos una estimación inicial
-       basada en los registros actuales.
+    const base =
+        historicalAverage || 1;
 
-       Esto se mostrará como ESTIMACIÓN,
-       no como una predicción estadística real.
-    */
 
-    const estimatedDemand =
+    const growth =
+        period === 1
+            ? 0.08
+            : period === 3
+                ? 0.12
+                : 0.18;
+
+
+    const estimated =
         Math.round(
-            historicalAverage *
-            (1 + (0.05 * months))
+            base * (1 + growth)
         );
 
 
-    const variation =
-        historicalAverage > 0
-            ? (
-                (
-                    estimatedDemand -
-                    historicalAverage
-                ) /
-                historicalAverage
-            ) * 100
-            : 0;
+    document.getElementById(
+        "historicalAverage"
+    ).textContent =
+        historicalAverage;
 
 
-    let warning = "Normal";
+    document.getElementById(
+        "estimatedDemand"
+    ).textContent =
+        estimated;
 
 
-    if (variation >= 20) {
-
-        warning = "Crítico";
-
-    } else if (variation >= 10) {
-
-        warning = "Atención";
-
-    }
+    document.getElementById(
+        "predictionVariation"
+    ).textContent =
+        `${Math.round(growth * 100)}%`;
 
 
-    const averageElement =
-        document.getElementById(
-            "historicalAverage"
-        );
-
-    const demandElement =
-        document.getElementById(
-            "estimatedDemand"
-        );
-
-    const variationElement =
-        document.getElementById(
-            "predictionVariation"
-        );
-
-    const warningElement =
-        document.getElementById(
-            "predictionWarning"
-        );
+    document.getElementById(
+        "predictionWarning"
+    ).textContent =
+        "Estimación";
 
 
-    if (averageElement)
-        averageElement.textContent =
-            historicalAverage;
+    document.getElementById(
+        "predictionResult"
+    ).innerHTML = `
 
+        <h3>
+            Resultado de la predicción
+        </h3>
 
-    if (demandElement)
-        demandElement.textContent =
-            estimatedDemand;
+        <div class="prediction-highlight">
 
+            <strong>
+                ${formatNumber(estimated)}
+            </strong>
 
-    if (variationElement)
-        variationElement.textContent =
-            `${variation.toFixed(1)}%`;
+            <span>
+                demanda estimada para
+                ${escapeHtml(serviceName)}
+                en el periodo seleccionado.
+            </span>
 
+        </div>
 
-    if (warningElement)
-        warningElement.textContent =
-            warning;
+        <p style="margin-top:15px;">
+            Esta es una estimación inicial basada en los
+            registros actuales de SALUDPREDICT. A medida
+            que se incorporen más datos históricos, el
+            sistema podrá mejorar sus proyecciones.
+        </p>
 
-
-    const result =
-        document.getElementById(
-            "predictionResult"
-        );
-
-
-    if (result) {
-
-        result.innerHTML = `
-
-            <div style="
-                padding:20px;
-                border-radius:10px;
-                background:#f4f7f9;
-            ">
-
-                <h4>
-                    Proyección generada
-                </h4>
-
-                <p>
-                    Servicio:
-                    <strong>
-                        ${
-                            selectedService === "all"
-                                ? "Todos los servicios"
-                                : advancedEscape(
-                                    selectedService
-                                )
-                        }
-                    </strong>
-                </p>
-
-                <p>
-                    Período:
-                    <strong>
-                        ${
-                            months === 1
-                                ? "Próximo mes"
-                                : `Próximos ${months} meses`
-                        }
-                    </strong>
-                </p>
-
-                <p>
-                    Registros actuales:
-                    <strong>
-                        ${historicalAverage}
-                    </strong>
-                </p>
-
-                <p>
-                    Demanda estimada:
-                    <strong>
-                        ${estimatedDemand}
-                    </strong>
-                </p>
-
-                <p>
-                    Variación estimada:
-                    <strong>
-                        ${variation.toFixed(1)}%
-                    </strong>
-                </p>
-
-                <p>
-                    Nivel:
-                    <strong>
-                        ${warning}
-                    </strong>
-                </p>
-
-                <small>
-                    Esta proyección es una estimación
-                    inicial basada en los datos disponibles
-                    en SALUDPREDICT.
-                </small>
-
-            </div>
-
-        `;
-
-    }
-
+    `;
 }
 
 
-/* ============================================================
-   ALERTAS AUTOMÁTICAS
-============================================================ */
+/* =========================================================
+   ALERTAS
+========================================================= */
 
 function generateAlerts() {
 
-    const alerts = [];
-
     const inventory =
-        getAdvancedInventory();
-
-    const patients =
-        getAdvancedPatients();
-
-    const services =
-        getAdvancedServices();
-
-    const budget =
-        updateBudgetSummary();
-
-
-    /* STOCK BAJO */
-
-    inventory.forEach(item => {
-
-        const stock =
-            Number(item.stock || 0);
-
-        const minimum =
-            Number(item.minStock || 0);
-
-
-        if (stock <= minimum) {
-
-            alerts.push({
-
-                type: "critical",
-
-                title: "Inventario bajo",
-
-                message:
-                    `${item.name}: ` +
-                    `stock actual ${stock}, ` +
-                    `mínimo ${minimum}.`
-
-            });
-
-        }
-
-    });
-
-
-    /* VENCIMIENTOS */
-
-    const today =
-        new Date();
-
-    const limit =
-        new Date();
-
-    limit.setDate(
-        today.getDate() + 30
-    );
-
-
-    inventory.forEach(item => {
-
-        if (!item.expiry) return;
-
-
-        const expiry =
-            new Date(
-                `${item.expiry}T00:00:00`
-            );
-
-
-        if (
-            expiry >= today &&
-            expiry <= limit
-        ) {
-
-            alerts.push({
-
-                type: "attention",
-
-                title:
-                    "Próximo vencimiento",
-
-                message:
-                    `${item.name} vence el ` +
-                    `${advancedDate(item.expiry)}.`
-
-            });
-
-        }
-
-    });
-
-
-    /* PRESUPUESTO */
-
-    if (budget.percentage >= 90) {
-
-        alerts.push({
-
-            type: "critical",
-
-            title:
-                "Ejecución presupuestal elevada",
-
-            message:
-                `La ejecución presupuestal ` +
-                `alcanzó ${budget.percentage.toFixed(1)}%.`
-
-        });
-
-    } else if (budget.percentage >= 75) {
-
-        alerts.push({
-
-            type: "attention",
-
-            title:
-                "Ejecución presupuestal",
-
-            message:
-                `La ejecución alcanzó ` +
-                `${budget.percentage.toFixed(1)}%.`
-
-        });
-
-    }
-
-
-    /* SERVICIOS */
-
-    const activeServices =
-        services.filter(
-            item =>
-                item.status === "Activo"
-        );
-
-
-    if (activeServices.length === 0) {
-
-        alerts.push({
-
-            type: "critical",
-
-            title:
-                "Sin servicios activos",
-
-            message:
-                "No existen servicios activos registrados."
-
-        });
-
-    }
-
-
-    /* PACIENTES */
-
-    if (patients.length === 0) {
-
-        alerts.push({
-
-            type: "attention",
-
-            title:
-                "Sin pacientes registrados",
-
-            message:
-                "El sistema todavía no tiene pacientes registrados."
-
-        });
-
-    }
-
-
-    return alerts;
-
-}
-
-
-function renderAlerts() {
-
-    const container =
-        document.getElementById(
-            "alertsContainer"
-        );
-
-    if (!container) return;
-
-
-    const alerts =
-        generateAlerts();
-
-
-    const total =
-        document.getElementById(
-            "totalAlerts"
-        );
-
-    const attention =
-        document.getElementById(
-            "attentionAlerts"
-        );
-
-    const critical =
-        document.getElementById(
-            "criticalAlerts"
-        );
-
-    const normal =
-        document.getElementById(
-            "normalAlerts"
-        );
-
-
-    const attentionCount =
-        alerts.filter(
-            item =>
-                item.type === "attention"
-        ).length;
-
-
-    const criticalCount =
-        alerts.filter(
-            item =>
-                item.type === "critical"
-        ).length;
-
-
-    if (total)
-        total.textContent =
-            alerts.length;
-
-    if (attention)
-        attention.textContent =
-            attentionCount;
-
-    if (critical)
-        critical.textContent =
-            criticalCount;
-
-    if (normal)
-        normal.textContent =
-            Math.max(
-                0,
-                5 - alerts.length
-            );
-
-
-    if (!alerts.length) {
-
-        container.innerHTML = `
-
-            <div style="
-                padding:25px;
-                text-align:center;
-            ">
-
-                <h3>
-                    ✓ Todo está en orden
-                </h3>
-
-                <p>
-                    No se detectaron alertas
-                    en este momento.
-                </p>
-
-            </div>
-
-        `;
-
-        return;
-
-    }
-
-
-    container.innerHTML =
-        alerts.map(alert => {
-
-            const icon =
-                alert.type === "critical"
-                    ? "🔴"
-                    : "🟡";
-
-
-            return `
-
-                <div style="
-                    padding:18px;
-                    margin-bottom:12px;
-                    border-left:5px solid ${
-                        alert.type === "critical"
-                            ? "#dc3545"
-                            : "#f0ad4e"
-                    };
-                    background:#f8fafb;
-                    border-radius:8px;
-                ">
-
-                    <h4>
-                        ${icon}
-                        ${advancedEscape(
-                            alert.title
-                        )}
-                    </h4>
-
-                    <p>
-                        ${advancedEscape(
-                            alert.message
-                        )}
-                    </p>
-
-                </div>
-
-            `;
-
-        }).join("");
-
-}
-
-
-/* ============================================================
-   REPORTES
-============================================================ */
-
-function openReport(title, content) {
-
-    const reportWindow =
-        window.open(
-            "",
-            "_blank"
-        );
-
-
-    if (!reportWindow) {
-
-        alert(
-            "El navegador bloqueó la ventana del reporte."
-        );
-
-        return;
-
-    }
-
-
-    reportWindow.document.write(`
-
-        <!DOCTYPE html>
-
-        <html lang="es">
-
-        <head>
-
-            <meta charset="UTF-8">
-
-            <title>
-                ${advancedEscape(title)}
-            </title>
-
-            <style>
-
-                body {
-                    font-family: Arial, sans-serif;
-                    margin: 40px;
-                    color: #17212b;
-                }
-
-                h1 {
-                    color: #0b1724;
-                }
-
-                h2 {
-                    margin-top: 30px;
-                    color: #183246;
-                }
-
-                table {
-                    width:100%;
-                    border-collapse:collapse;
-                    margin-top:20px;
-                }
-
-                th,
-                td {
-                    border:1px solid #dce3e8;
-                    padding:10px;
-                    text-align:left;
-                }
-
-                th {
-                    background:#eef2f5;
-                }
-
-                .header {
-                    border-bottom:3px solid #c9a24d;
-                    padding-bottom:15px;
-                    margin-bottom:25px;
-                }
-
-                .print {
-                    padding:10px 18px;
-                    border:0;
-                    border-radius:6px;
-                    cursor:pointer;
-                    background:#0b1724;
-                    color:white;
-                    margin-bottom:20px;
-                }
-
-                @media print {
-
-                    .print {
-                        display:none;
-                    }
-
-                    body {
-                        margin:20px;
-                    }
-
-                }
-
-            </style>
-
-        </head>
-
-        <body>
-
-            <button
-                class="print"
-                onclick="window.print()"
-            >
-                Imprimir / Guardar PDF
-            </button>
-
-            <div class="header">
-
-                <h1>
-                    SALUDPREDICT
-                </h1>
-
-                <p>
-                    Gestión inteligente en salud
-                </p>
-
-                <h2>
-                    ${advancedEscape(title)}
-                </h2>
-
-                <p>
-                    Fecha:
-                    ${new Date().toLocaleDateString("es-CO")}
-                </p>
-
-            </div>
-
-            ${content}
-
-        </body>
-
-        </html>
-
-    `);
-
-
-    reportWindow.document.close();
-
-}
-
-
-function generateDemandReport() {
-
-    const patients =
-        getAdvancedPatients();
-
-    const services =
-        getAdvancedServices();
-
-
-    const rows =
-        patients.map(patient => `
-
-            <tr>
-
-                <td>
-                    ${advancedEscape(
-                        patient.document
-                    )}
-                </td>
-
-                <td>
-                    ${advancedEscape(
-                        patient.name
-                    )}
-                </td>
-
-                <td>
-                    ${advancedEscape(
-                        patient.service
-                    )}
-                </td>
-
-                <td>
-                    ${advancedEscape(
-                        patient.status
-                    )}
-                </td>
-
-            </tr>
-
-        `).join("");
-
-
-    openReport(
-
-        "Reporte de demanda y atención",
-
-        `
-
-        <p>
-            Total de pacientes:
-            <strong>${patients.length}</strong>
-        </p>
-
-        <p>
-            Servicios registrados:
-            <strong>${services.length}</strong>
-        </p>
-
-        <h2>
-            Pacientes
-        </h2>
-
-        <table>
-
-            <thead>
-
-                <tr>
-                    <th>Documento</th>
-                    <th>Nombre</th>
-                    <th>Servicio</th>
-                    <th>Estado</th>
-                </tr>
-
-            </thead>
-
-            <tbody>
-                ${rows}
-            </tbody>
-
-        </table>
-
-        `
-
-    );
-
-}
-
-
-function generateInventoryReport() {
-
-    const inventory =
-        getAdvancedInventory();
-
-
-    const rows =
-        inventory.map(item => `
-
-            <tr>
-
-                <td>
-                    ${advancedEscape(item.code)}
-                </td>
-
-                <td>
-                    ${advancedEscape(item.name)}
-                </td>
-
-                <td>
-                    ${advancedEscape(item.category)}
-                </td>
-
-                <td>
-                    ${advancedEscape(item.unit)}
-                </td>
-
-                <td>
-                    ${item.stock}
-                </td>
-
-                <td>
-                    ${item.minStock}
-                </td>
-
-                <td>
-                    ${advancedDate(item.expiry)}
-                </td>
-
-                <td>
-                    ${advancedCurrency(item.price)}
-                </td>
-
-            </tr>
-
-        `).join("");
-
-
-    openReport(
-
-        "Reporte de inventario",
-
-        `
-
-        <p>
-            Productos registrados:
-            <strong>${inventory.length}</strong>
-        </p>
-
-        <h2>
-            Existencias
-        </h2>
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Código</th>
-                    <th>Producto</th>
-                    <th>Categoría</th>
-                    <th>Unidad</th>
-                    <th>Stock</th>
-                    <th>Mínimo</th>
-                    <th>Vencimiento</th>
-                    <th>Precio</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-                ${rows}
-            </tbody>
-
-        </table>
-
-        `
-
-    );
-
-}
-
-
-function generateBudgetReport() {
-
-    const summary =
-        updateBudgetSummary();
-
-
-    const rows =
-        budgetMovements.map(item => `
-
-            <tr>
-
-                <td>
-                    ${advancedDate(item.date)}
-                </td>
-
-                <td>
-                    ${advancedEscape(item.type)}
-                </td>
-
-                <td>
-                    ${advancedEscape(item.category)}
-                </td>
-
-                <td>
-                    ${advancedEscape(item.description)}
-                </td>
-
-                <td>
-                    ${advancedCurrency(item.value)}
-                </td>
-
-            </tr>
-
-        `).join("");
-
-
-    openReport(
-
-        "Reporte presupuestal",
-
-        `
-
-        <h2>
-            Resumen
-        </h2>
-
-        <p>
-            Presupuesto aprobado:
-            <strong>
-                ${advancedCurrency(
-                    BUDGET_APPROVED_VALUE
-                )}
-            </strong>
-        </p>
-
-        <p>
-            Ejecutado:
-            <strong>
-                ${advancedCurrency(
-                    summary.executed
-                )}
-            </strong>
-        </p>
-
-        <p>
-            Disponible:
-            <strong>
-                ${advancedCurrency(
-                    summary.available
-                )}
-            </strong>
-        </p>
-
-        <p>
-            Ejecución:
-            <strong>
-                ${summary.percentage.toFixed(1)}%
-            </strong>
-        </p>
-
-        <h2>
-            Movimientos
-        </h2>
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Categoría</th>
-                    <th>Descripción</th>
-                    <th>Valor</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-                ${rows}
-            </tbody>
-
-        </table>
-
-        `
-
-    );
-
-}
-
-
-function generateGeneralReport() {
-
-    const patients =
-        getAdvancedPatients();
-
-    const services =
-        getAdvancedServices();
-
-    const inventory =
-        getAdvancedInventory();
-
-    const alerts =
-        generateAlerts();
-
-    const summary =
-        updateBudgetSummary();
-
-
-    openReport(
-
-        "Reporte institucional general",
-
-        `
-
-        <h2>
-            Resumen institucional
-        </h2>
-
-        <table>
-
-            <tr>
-                <th>Indicador</th>
-                <th>Resultado</th>
-            </tr>
-
-            <tr>
-                <td>Pacientes</td>
-                <td>${patients.length}</td>
-            </tr>
-
-            <tr>
-                <td>Servicios</td>
-                <td>${services.length}</td>
-            </tr>
-
-            <tr>
-                <td>Productos de inventario</td>
-                <td>${inventory.length}</td>
-            </tr>
-
-            <tr>
-                <td>Alertas</td>
-                <td>${alerts.length}</td>
-            </tr>
-
-            <tr>
-                <td>Presupuesto aprobado</td>
-                <td>
-                    ${advancedCurrency(
-                        BUDGET_APPROVED_VALUE
-                    )}
-                </td>
-            </tr>
-
-            <tr>
-                <td>Presupuesto ejecutado</td>
-                <td>
-                    ${advancedCurrency(
-                        summary.executed
-                    )}
-                </td>
-            </tr>
-
-            <tr>
-                <td>Ejecución presupuestal</td>
-                <td>
-                    ${summary.percentage.toFixed(1)}%
-                </td>
-            </tr>
-
-        </table>
-
-        <h2>
-            Alertas actuales
-        </h2>
-
-        ${
-            alerts.length
-                ? alerts.map(alert => `
-                    <p>
-                        <strong>
-                            ${advancedEscape(
-                                alert.title
-                            )}
-                        </strong>:
-                        ${advancedEscape(
-                            alert.message
-                        )}
-                    </p>
-                `).join("")
-                : "<p>No existen alertas.</p>"
-        }
-
-        `
-
-    );
-
-}
-
-
-/* ============================================================
-   ACTUALIZAR TODO
-============================================================ */
-
-function refreshAdvancedModules() {
-
-    updateBudgetSummary();
-
-    updateAnalysis();
-
-    populatePredictionServices();
-
-    renderAlerts();
-
-}
-
-
-/* ============================================================
-   EVENTOS
-============================================================ */
-
-function initAdvancedModules() {
-
-    loadBudgetData();
-
-    renderBudget();
-
-    updateBudgetSummary();
-
-    updateAnalysis();
-
-    populatePredictionServices();
-
-    renderAlerts();
-
-
-    const newBudgetBtn =
-        document.getElementById(
-            "newBudgetBtn"
-        );
-
-    if (newBudgetBtn) {
-
-        newBudgetBtn.addEventListener(
-            "click",
-            createBudgetMovement
-        );
-
-    }
-
-
-    const budgetSearch =
-        document.getElementById(
-            "budgetSearch"
-        );
-
-    if (budgetSearch) {
-
-        budgetSearch.addEventListener(
-            "input",
-            event => {
-
-                renderBudget(
-                    event.target.value
-                );
-
-            }
-        );
-
-    }
-
-
-    const predictionBtn =
-        document.getElementById(
-            "generatePredictionBtn"
-        );
-
-    if (predictionBtn) {
-
-        predictionBtn.addEventListener(
-            "click",
-            generatePrediction
-        );
-
-    }
-
-
-    const refreshAlertsBtn =
-        document.getElementById(
-            "refreshAlertsBtn"
-        );
-
-    if (refreshAlertsBtn) {
-
-        refreshAlertsBtn.addEventListener(
-            "click",
-            renderAlerts
-        );
-
-    }
-
-
-    const reportDemandBtn =
-        document.getElementById(
-            "reportDemandBtn"
-        );
-
-    if (reportDemandBtn) {
-
-        reportDemandBtn.addEventListener(
-            "click",
-            generateDemandReport
-        );
-
-    }
-
-
-    const reportInventoryBtn =
-        document.getElementById(
-            "reportInventoryBtn"
-        );
-
-    if (reportInventoryBtn) {
-
-        reportInventoryBtn.addEventListener(
-            "click",
-            generateInventoryReport
-        );
-
-    }
-
-
-    const reportBudgetBtn =
-        document.getElementById(
-            "reportBudgetBtn"
-        );
-
-    if (reportBudgetBtn) {
-
-        reportBudgetBtn.addEventListener(
-            "click",
-            generateBudgetReport
-        );
-
-    }
-
-
-    const reportGeneralBtn =
-        document.getElementById(
-            "reportGeneralBtn"
-        );
-
-    if (reportGeneralBtn) {
-
-        reportGeneralBtn.addEventListener(
-            "click",
-            generateGeneralReport
-        );
-
-    }
-
-}
-
-
-/* ============================================================
-   INICIAR MÓDULOS
-============================================================ */
-
-if (document.readyState === "loading") {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initAdvancedModules
-    );
-
-} else {
-
-    initAdvancedModules();
-
-}
-/* ============================================================
-   DASHBOARD DINÁMICO
-============================================================ */
-
-
-/* ============================================================
-   FORMATO DE MONEDA
-============================================================ */
-
-function dashboardCurrency(value) {
-
-    return new Intl.NumberFormat("es-CO", {
-
-        style: "currency",
-
-        currency: "COP",
-
-        maximumFractionDigits: 0
-
-    }).format(
-        Number(value) || 0
-    );
-
-}
-
-
-/* ============================================================
-   OBTENER DATOS
-============================================================ */
-
-function dashboardGetPatients() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem(
-                "saludpredict_patients"
-            )
-        ) || [];
-
-    } catch {
-
-        return [];
-
-    }
-
-}
-
-
-function dashboardGetServices() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem(
-                "saludpredict_services"
-            )
-        ) || [];
-
-    } catch {
-
-        return [];
-
-    }
-
-}
-
-
-function dashboardGetInventory() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem(
-                "saludpredict_inventory"
-            )
-        ) || [];
-
-    } catch {
-
-        return [];
-
-    }
-
-}
-
-
-function dashboardGetBudget() {
-
-    try {
-
-        return JSON.parse(
-            localStorage.getItem(
-                "saludpredict_budget"
-            )
-        ) || [];
-
-    } catch {
-
-        return [];
-
-    }
-
-}
-
-
-/* ============================================================
-   ACTUALIZAR INDICADORES
-============================================================ */
-
-function updateDashboardIndicators() {
-
-
-    const patients =
-        dashboardGetPatients();
-
-
-    const services =
-        dashboardGetServices();
-
-
-    const inventory =
-        dashboardGetInventory();
+        getInventory();
 
 
     const budget =
-        dashboardGetBudget();
-
-
-    /* =========================
-       PACIENTES
-    ========================== */
-
-    const dashboardPatients =
-        document.getElementById(
-            "dashboardPatients"
-        );
-
-
-    if (dashboardPatients) {
-
-        dashboardPatients.textContent =
-            patients.length;
-
-    }
-
-
-    /* =========================
-       SERVICIOS ACTIVOS
-    ========================== */
-
-    const activeServices =
-        services.filter(
-            service =>
-                service.status === "Activo"
-        );
-
-
-    const dashboardServices =
-        document.getElementById(
-            "dashboardServices"
-        );
-
-
-    if (dashboardServices) {
-
-        dashboardServices.textContent =
-            activeServices.length;
-
-    }
-
-
-    /* =========================
-       INVENTARIO
-    ========================== */
-
-    let inventoryPercentage = 0;
-
-
-    if (inventory.length > 0) {
-
-        const available =
-            inventory.filter(item => {
-
-                return Number(item.stock) >
-                    Number(item.minStock);
-
-            }).length;
-
-
-        inventoryPercentage =
-            Math.round(
-                (
-                    available /
-                    inventory.length
-                ) * 100
-            );
-
-    }
-
-
-    const dashboardInventory =
-        document.getElementById(
-            "dashboardInventory"
-        );
-
-
-    if (dashboardInventory) {
-
-        dashboardInventory.textContent =
-            `${inventoryPercentage}%`;
-
-    }
-
-
-    /* =========================
-       PRESUPUESTO
-    ========================== */
-
-    const approved =
-        1000000000;
-
-
-    const executed =
-        budget
-
-            .filter(
-                item =>
-                    item.type === "Gasto"
-            )
-
-            .reduce(
-                (total, item) =>
-                    total +
-                    Number(item.value || 0),
-
-                0
-            );
-
-
-    let budgetPercentage = 0;
-
-
-    if (approved > 0) {
-
-        budgetPercentage =
-            (
-                executed /
-                approved
-            ) * 100;
-
-    }
-
-
-    const dashboardBudget =
-        document.getElementById(
-            "dashboardBudget"
-        );
-
-
-    if (dashboardBudget) {
-
-        dashboardBudget.textContent =
-            `${budgetPercentage.toFixed(1)}%`;
-
-    }
-
-
-    const dashboardBudgetPercentage =
-        document.getElementById(
-            "dashboardBudgetPercentage"
-        );
-
-
-    if (dashboardBudgetPercentage) {
-
-        dashboardBudgetPercentage.textContent =
-            `${budgetPercentage.toFixed(1)}%`;
-
-    }
-
-
-    const dashboardBudgetBar =
-        document.getElementById(
-            "dashboardBudgetBar"
-        );
-
-
-    if (dashboardBudgetBar) {
-
-        dashboardBudgetBar.style.width =
-            `${Math.min(
-                budgetPercentage,
-                100
-            )}%`;
-
-    }
-
-
-    const dashboardBudgetExecuted =
-        document.getElementById(
-            "dashboardBudgetExecuted"
-        );
-
-
-    if (dashboardBudgetExecuted) {
-
-        dashboardBudgetExecuted.textContent =
-            dashboardCurrency(executed);
-
-    }
-
-
-    const dashboardBudgetTotal =
-        document.getElementById(
-            "dashboardBudgetTotal"
-        );
-
-
-    if (dashboardBudgetTotal) {
-
-        dashboardBudgetTotal.textContent =
-            dashboardCurrency(
-                approved
-            );
-
-    }
-
-
-    /* =========================
-       OTROS ELEMENTOS
-    ========================== */
-
-    updateDashboardAlerts();
-
-    updateDashboardSummary();
-
-    updateDashboardServiceDemand();
-
-    updateDashboardInventory();
-
-}
-
-
-/* ============================================================
-   ALERTAS DEL DASHBOARD
-============================================================ */
-
-function updateDashboardAlerts() {
-
-    const container =
-        document.getElementById(
-            "dashboardAlerts"
-        );
-
-
-    const counter =
-        document.getElementById(
-            "dashboardAlertCount"
-        );
-
-
-    if (!container) return;
-
-
-    const inventory =
-        dashboardGetInventory();
-
-
-    const budget =
-        dashboardGetBudget();
+        getBudget();
 
 
     const alerts = [];
 
-
-    /* STOCK BAJO */
 
     inventory.forEach(item => {
 
@@ -5496,68 +3041,40 @@ function updateDashboardAlerts() {
 
             alerts.push({
 
-                type: "warning",
+                level: "critical",
 
-                icon: "⚠️",
+                icon: "🚨",
 
-                title:
-                    "Inventario bajo",
+                title: "Stock bajo",
 
                 message:
-                    `${item.name}: ` +
-                    `stock ${item.stock}, ` +
-                    `mínimo ${item.minStock}.`
+                    `${item.name} tiene ${item.stock} unidades, ` +
+                    `por debajo o igual al mínimo de ${item.minStock}.`
 
             });
 
         }
 
-    });
 
-
-    /* VENCIMIENTOS */
-
-    const today =
-        new Date();
-
-
-    const limit =
-        new Date();
-
-
-    limit.setDate(
-        today.getDate() + 30
-    );
-
-
-    inventory.forEach(item => {
-
-        if (!item.expiry) return;
-
-
-        const expiry =
-            new Date(
-                `${item.expiry}T00:00:00`
-            );
+        const days =
+            daysUntil(item.expiry);
 
 
         if (
-            expiry >= today &&
-            expiry <= limit
+            days >= 0 &&
+            days <= 90
         ) {
 
             alerts.push({
 
-                type: "danger",
+                level: "warning",
 
-                icon: "🚨",
+                icon: "⚠️",
 
-                title:
-                    "Próximo vencimiento",
+                title: "Próximo vencimiento",
 
                 message:
-                    `${item.name} vence el ` +
-                    `${item.expiry}.`
+                    `${item.name} vence en ${days} días.`
 
             });
 
@@ -5566,81 +3083,114 @@ function updateDashboardAlerts() {
     });
 
 
-    /* PRESUPUESTO */
-
-    const approved =
-        1000000000;
-
-
     const executed =
-        budget
-
-            .filter(
-                item =>
-                    item.type === "Gasto"
-            )
-
-            .reduce(
-                (total, item) =>
-                    total +
-                    Number(item.value || 0),
-
-                0
-            );
+        budget.reduce(
+            (sum, item) =>
+                sum + Number(item.amount || 0),
+            0
+        );
 
 
     const percentage =
-        approved > 0
-            ? (executed / approved) * 100
-            : 0;
+        (
+            executed /
+            BUDGET_APPROVED_VALUE
+        ) * 100;
 
 
-    if (percentage >= 90) {
-
-        alerts.push({
-
-            type: "danger",
-
-            icon: "🚨",
-
-            title:
-                "Presupuesto crítico",
-
-            message:
-                `La ejecución presupuestal ` +
-                `está en ${percentage.toFixed(1)}%.`
-
-        });
-
-    }
-
-    else if (percentage >= 75) {
+    if (percentage >= 80) {
 
         alerts.push({
 
-            type: "warning",
+            level: "critical",
 
-            icon: "⚠️",
+            icon: "💰",
 
-            title:
-                "Presupuesto elevado",
+            title: "Ejecución presupuestal elevada",
 
             message:
-                `La ejecución presupuestal ` +
-                `está en ${percentage.toFixed(1)}%.`
+                `La ejecución presupuestal alcanza ` +
+                `${Math.round(percentage)}%.`
 
         });
 
     }
 
 
-    /* CONTENIDO */
+    renderAlerts(alerts);
 
-    if (counter) {
+    updateDashboardAlerts(alerts);
+}
 
-        counter.textContent =
+
+function renderAlerts(alerts) {
+
+    const container =
+        document.getElementById(
+            "alertsContainer"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    const total =
+        document.getElementById(
+            "totalAlerts"
+        );
+
+
+    const attention =
+        document.getElementById(
+            "attentionAlerts"
+        );
+
+
+    const critical =
+        document.getElementById(
+            "criticalAlerts"
+        );
+
+
+    const normal =
+        document.getElementById(
+            "normalAlerts"
+        );
+
+
+    if (total) {
+        total.textContent =
             alerts.length;
+    }
 
+
+    if (attention) {
+        attention.textContent =
+            alerts.filter(
+                item =>
+                    item.level === "warning" ||
+                    item.level === "critical"
+            ).length;
+    }
+
+
+    if (critical) {
+        critical.textContent =
+            alerts.filter(
+                item =>
+                    item.level === "critical"
+            ).length;
+    }
+
+
+    if (normal) {
+        normal.textContent =
+            alerts.filter(
+                item =>
+                    item.level === "normal"
+            ).length;
     }
 
 
@@ -5648,68 +3198,214 @@ function updateDashboardAlerts() {
 
         container.innerHTML = `
 
-            <div class="alert-item info">
+            <div class="panel">
 
-                <span>✓</span>
+                <h3>
+                    ✓ Sistema estable
+                </h3>
 
-                <div>
-
-                    <strong>
-                        Sistema estable
-                    </strong>
-
-                    <p>
-                        No existen alertas
-                        críticas actualmente.
-                    </p>
-
-                </div>
+                <p>
+                    No se han identificado situaciones
+                    que requieran atención.
+                </p>
 
             </div>
 
         `;
 
         return;
-
     }
 
 
     container.innerHTML =
-        alerts
-            .slice(0, 5)
-            .map(alert => `
+        alerts.map(
+            alert => `
 
-                <div class="alert-item ${alert.type}">
+                <div class="system-alert ${alert.level}">
 
-                    <span>
-                        ${alert.icon}
-                    </span>
+                    <div class="system-alert-header">
 
-                    <div>
+                        <h3>
+                            ${alert.icon}
+                            ${escapeHtml(alert.title)}
+                        </h3>
 
-                        <strong>
-                            ${alert.title}
-                        </strong>
+                        <span class="status ${
+                            alert.level === "critical"
+                                ? "danger"
+                                : "warning"
+                        }">
 
-                        <p>
-                            ${alert.message}
-                        </p>
+                            ${
+                                alert.level === "critical"
+                                    ? "Crítica"
+                                    : "Atención"
+                            }
+
+                        </span>
 
                     </div>
 
+                    <p>
+                        ${escapeHtml(alert.message)}
+                    </p>
+
                 </div>
 
-            `)
-            .join("");
-
+            `
+        ).join("");
 }
 
 
-/* ============================================================
-   RESUMEN INSTITUCIONAL
-============================================================ */
+/* =========================================================
+   DASHBOARD
+========================================================= */
 
-function updateDashboardSummary() {
+function updateDashboard() {
+
+    const patients =
+        getPatients();
+
+
+    const services =
+        getServices();
+
+
+    const inventory =
+        getInventory();
+
+
+    const budget =
+        getBudget();
+
+
+    const activeServices =
+        services.filter(
+            service =>
+                service.status === "Activo"
+        ).length;
+
+
+    const availableInventory =
+        inventory.filter(
+            item =>
+                Number(item.stock) >
+                Number(item.minStock)
+        ).length;
+
+
+    const inventoryPercentage =
+        inventory.length
+            ? Math.round(
+                (
+                    availableInventory /
+                    inventory.length
+                ) * 100
+            )
+            : 0;
+
+
+    const executed =
+        budget.reduce(
+            (sum, item) =>
+                sum + Number(item.amount || 0),
+            0
+        );
+
+
+    const budgetPercentage =
+        BUDGET_APPROVED_VALUE
+            ? Math.min(
+                Math.round(
+                    (
+                        executed /
+                        BUDGET_APPROVED_VALUE
+                    ) * 100
+                ),
+                100
+            )
+            : 0;
+
+
+    document.getElementById(
+        "dashboardPatients"
+    ).textContent =
+        patients.length;
+
+
+    document.getElementById(
+        "dashboardServices"
+    ).textContent =
+        activeServices;
+
+
+    document.getElementById(
+        "dashboardInventory"
+    ).textContent =
+        `${inventoryPercentage}%`;
+
+
+    document.getElementById(
+        "dashboardBudget"
+    ).textContent =
+        `${budgetPercentage}%`;
+
+
+    document.getElementById(
+        "dashboardBudgetPercentage"
+    ).textContent =
+        `${budgetPercentage}%`;
+
+
+    document.getElementById(
+        "dashboardBudgetBar"
+    ).style.width =
+        `${budgetPercentage}%`;
+
+
+    document.getElementById(
+        "dashboardBudgetExecuted"
+    ).textContent =
+        formatCurrency(executed);
+
+
+    document.getElementById(
+        "dashboardBudgetTotal"
+    ).textContent =
+        formatCurrency(
+            BUDGET_APPROVED_VALUE
+        );
+
+
+    updateDashboardSummary(
+        patients,
+        services,
+        inventory,
+        budget
+    );
+
+
+    updateDashboardServiceDemand(
+        patients,
+        services
+    );
+
+
+    updateDashboardInventory(
+        inventory
+    );
+
+
+    generateAlerts();
+}
+
+
+function updateDashboardSummary(
+    patients,
+    services,
+    inventory,
+    budget
+) {
 
     const container =
         document.getElementById(
@@ -5717,19 +3413,9 @@ function updateDashboardSummary() {
         );
 
 
-    if (!container) return;
-
-
-    const patients =
-        dashboardGetPatients();
-
-
-    const services =
-        dashboardGetServices();
-
-
-    const inventory =
-        dashboardGetInventory();
+    if (!container) {
+        return;
+    }
 
 
     const activePatients =
@@ -5754,65 +3440,75 @@ function updateDashboardSummary() {
         ).length;
 
 
+    const executed =
+        budget.reduce(
+            (sum, item) =>
+                sum + Number(item.amount || 0),
+            0
+        );
+
+
     container.innerHTML = `
 
-        <div style="
-            display:grid;
-            gap:12px;
-        ">
+        <div class="summary-row">
 
-            <p>
-                👥
-                <strong>
-                    ${patients.length}
-                </strong>
-                pacientes registrados.
-            </p>
+            <span>
+                Pacientes activos
+            </span>
 
-            <p>
-                ✓
-                <strong>
-                    ${activePatients}
-                </strong>
-                pacientes activos.
-            </p>
+            <strong>
+                ${activePatients}
+            </strong>
 
-            <p>
-                🏥
-                <strong>
-                    ${activeServices}
-                </strong>
-                servicios activos.
-            </p>
+        </div>
 
-            <p>
-                📦
-                <strong>
-                    ${inventory.length}
-                </strong>
-                productos en inventario.
-            </p>
 
-            <p>
-                ⚠️
-                <strong>
-                    ${lowStock}
-                </strong>
-                productos requieren reposición.
-            </p>
+        <div class="summary-row">
+
+            <span>
+                Servicios activos
+            </span>
+
+            <strong>
+                ${activeServices}
+            </strong>
+
+        </div>
+
+
+        <div class="summary-row">
+
+            <span>
+                Productos con stock bajo
+            </span>
+
+            <strong>
+                ${lowStock}
+            </strong>
+
+        </div>
+
+
+        <div class="summary-row">
+
+            <span>
+                Ejecución acumulada
+            </span>
+
+            <strong>
+                ${formatCurrency(executed)}
+            </strong>
 
         </div>
 
     `;
-
 }
 
 
-/* ============================================================
-   DEMANDA POR SERVICIO
-============================================================ */
-
-function updateDashboardServiceDemand() {
+function updateDashboardServiceDemand(
+    patients,
+    services
+) {
 
     const container =
         document.getElementById(
@@ -5820,29 +3516,12 @@ function updateDashboardServiceDemand() {
         );
 
 
-    if (!container) return;
-
-
-    const patients =
-        dashboardGetPatients();
-
-
-    if (!patients.length) {
-
-        container.innerHTML = `
-
-            <p>
-                Todavía no hay pacientes registrados.
-            </p>
-
-        `;
-
+    if (!container) {
         return;
-
     }
 
 
-    const serviceCount = {};
+    const counts = {};
 
 
     patients.forEach(patient => {
@@ -5852,100 +3531,79 @@ function updateDashboardServiceDemand() {
             "Sin servicio";
 
 
-        serviceCount[service] =
-            (
-                serviceCount[service] ||
-                0
-            ) + 1;
+        counts[service] =
+            (counts[service] || 0) + 1;
 
     });
 
 
-    const ordered =
-        Object.entries(
-            serviceCount
-        )
-        .sort(
-            (a, b) =>
-                b[1] - a[1]
-        );
+    const entries =
+        Object.entries(counts)
+            .sort(
+                (a, b) => b[1] - a[1]
+            );
+
+
+    if (!entries.length) {
+
+        container.innerHTML = `
+
+            <p class="empty-message">
+                Registra pacientes para visualizar
+                la demanda de servicios.
+            </p>
+
+        `;
+
+        return;
+    }
 
 
     const max =
-        ordered.length
-            ? ordered[0][1]
-            : 1;
+        Math.max(
+            ...entries.map(
+                item => item[1]
+            )
+        );
 
 
     container.innerHTML =
-        ordered
-            .map(
-                ([service, count]) => {
+        entries.map(
+            ([name, value]) => `
 
-                    const width =
-                        (
-                            count /
-                            max
-                        ) * 100;
+                <div class="demand-row">
 
+                    <span class="demand-name">
+                        ${escapeHtml(name)}
+                    </span>
 
-                    return `
+                    <div class="demand-track">
 
-                        <div style="
-                            width:100%;
-                            margin:10px 0;
-                        ">
+                        <div
+                            class="demand-fill"
+                            style="width:${
+                                max
+                                    ? (value / max) * 100
+                                    : 0
+                            }%"
+                        ></div>
 
-                            <div style="
-                                display:flex;
-                                justify-content:space-between;
-                                margin-bottom:5px;
-                            ">
+                    </div>
 
-                                <span>
-                                    ${service}
-                                </span>
+                    <span class="demand-value">
+                        ${value}
+                    </span>
 
-                                <strong>
-                                    ${count}
-                                </strong>
+                </div>
 
-                            </div>
-
-
-                            <div style="
-                                width:100%;
-                                height:12px;
-                                background:#e5e7eb;
-                                border-radius:10px;
-                                overflow:hidden;
-                            ">
-
-                                <div style="
-                                    width:${width}%;
-                                    height:100%;
-                                    background:#20c6d7;
-                                    border-radius:10px;
-                                "></div>
-
-                            </div>
-
-                        </div>
-
-                    `;
-
-                }
-            )
-            .join("");
-
+            `
+        ).join("");
 }
 
 
-/* ============================================================
-   RESUMEN INVENTARIO
-============================================================ */
-
-function updateDashboardInventory() {
+function updateDashboardInventory(
+    inventory
+) {
 
     const container =
         document.getElementById(
@@ -5953,29 +3611,453 @@ function updateDashboardInventory() {
         );
 
 
-    if (!container) return;
+    if (!container) {
+        return;
+    }
 
 
-    const inventory =
-        dashboardGetInventory();
+    const total =
+        inventory.length;
 
 
-    if (!inventory.length) {
+    const low =
+        inventory.filter(
+            item =>
+                Number(item.stock) <=
+                Number(item.minStock)
+        ).length;
+
+
+    const expiring =
+        inventory.filter(
+            item => {
+
+                const days =
+                    daysUntil(item.expiry);
+
+                return days >= 0 && days <= 90;
+
+            }
+        ).length;
+
+
+    const available =
+        total - low;
+
+
+    container.innerHTML = `
+
+        <div class="inventory-summary-card">
+
+            <strong>
+                ${total}
+            </strong>
+
+            <span>
+                Total productos
+            </span>
+
+        </div>
+
+
+        <div class="inventory-summary-card">
+
+            <strong>
+                ${available}
+            </strong>
+
+            <span>
+                Disponibles
+            </span>
+
+        </div>
+
+
+        <div class="inventory-summary-card">
+
+            <strong>
+                ${low}
+            </strong>
+
+            <span>
+                Stock bajo
+            </span>
+
+        </div>
+
+
+        <div class="inventory-summary-card">
+
+            <strong>
+                ${expiring}
+            </strong>
+
+            <span>
+                Próximos a vencer
+            </span>
+
+        </div>
+
+    `;
+}
+
+
+function updateDashboardAlerts(
+    alerts
+) {
+
+    const container =
+        document.getElementById(
+            "dashboardAlerts"
+        );
+
+
+    const count =
+        document.getElementById(
+            "dashboardAlertCount"
+        );
+
+
+    if (!container) {
+        return;
+    }
+
+
+    if (count) {
+        count.textContent =
+            alerts.length;
+    }
+
+
+    if (!alerts.length) {
 
         container.innerHTML = `
 
-            <p>
-                No hay productos registrados.
+            <p class="empty-message">
+                ✓ No existen alertas actualmente.
             </p>
 
         `;
 
         return;
+    }
+
+
+    const visible =
+        alerts.slice(0, 4);
+
+
+    container.innerHTML =
+        visible.map(
+            alert => `
+
+                <div class="alert-item ${
+                    alert.level
+                }">
+
+                    <span class="alert-item-icon">
+                        ${alert.icon}
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            ${escapeHtml(alert.title)}
+                        </strong>
+
+                        <p>
+                            ${escapeHtml(alert.message)}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `
+        ).join("");
+}
+
+
+/* =========================================================
+   REPORTES
+========================================================= */
+
+function openReport(type) {
+
+    let content = "";
+
+
+    if (type === "demand") {
+
+        content =
+            generateDemandReport();
 
     }
 
 
-    const lowStock =
+    if (type === "inventory") {
+
+        content =
+            generateInventoryReport();
+
+    }
+
+
+    if (type === "budget") {
+
+        content =
+            generateBudgetReport();
+
+    }
+
+
+    if (type === "general") {
+
+        content =
+            generateGeneralReport();
+
+    }
+
+
+    const reportWindow =
+        window.open(
+            "",
+            "_blank"
+        );
+
+
+    if (!reportWindow) {
+
+        alert(
+            "El navegador bloqueó la ventana del reporte. Permite ventanas emergentes."
+        );
+
+        return;
+    }
+
+
+    reportWindow.document.write(`
+
+        <!DOCTYPE html>
+
+        <html lang="es">
+
+        <head>
+
+            <meta charset="UTF-8">
+
+            <title>Reporte SALUDPREDICT</title>
+
+            <style>
+
+                body {
+                    font-family: Arial, sans-serif;
+                    padding: 40px;
+                    color: #17212b;
+                    line-height: 1.6;
+                }
+
+                h1 {
+                    color: #0b1724;
+                }
+
+                h2 {
+                    margin-top: 30px;
+                    color: #183246;
+                }
+
+                .header {
+                    border-bottom: 3px solid #20c6d7;
+                    padding-bottom: 15px;
+                    margin-bottom: 25px;
+                }
+
+                .box {
+                    background: #f4f7f8;
+                    padding: 15px;
+                    margin: 10px 0;
+                    border-radius: 8px;
+                }
+
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    margin-top: 15px;
+                }
+
+                th, td {
+                    border: 1px solid #dce3e8;
+                    padding: 9px;
+                    text-align: left;
+                }
+
+                th {
+                    background: #eef2f5;
+                }
+
+                .print {
+                    padding: 10px 16px;
+                    background: #20c6d7;
+                    border: 0;
+                    border-radius: 7px;
+                    cursor: pointer;
+                    font-weight: bold;
+                }
+
+                @media print {
+                    .print {
+                        display: none;
+                    }
+                }
+
+            </style>
+
+        </head>
+
+        <body>
+
+            <button
+                class="print"
+                onclick="window.print()"
+            >
+                🖨️ Imprimir / Guardar PDF
+            </button>
+
+            <div class="header">
+
+                <h1>
+                    SALUDPREDICT
+                </h1>
+
+                <p>
+                    Gestión inteligente en salud
+                </p>
+
+            </div>
+
+            ${content}
+
+        </body>
+
+        </html>
+
+    `);
+
+
+    reportWindow.document.close();
+}
+
+
+function generateDemandReport() {
+
+    const patients =
+        getPatients();
+
+
+    const services =
+        getServices();
+
+
+    return `
+
+        <h2>
+            Reporte de demanda
+        </h2>
+
+        <div class="box">
+            Total de pacientes:
+            <strong>${patients.length}</strong>
+        </div>
+
+        <div class="box">
+            Servicios registrados:
+            <strong>${services.length}</strong>
+        </div>
+
+        <h2>
+            Pacientes por servicio
+        </h2>
+
+        ${generatePatientServiceTable()}
+
+    `;
+}
+
+
+function generatePatientServiceTable() {
+
+    const patients =
+        getPatients();
+
+
+    const counts = {};
+
+
+    patients.forEach(patient => {
+
+        const service =
+            patient.service ||
+            "Sin servicio";
+
+
+        counts[service] =
+            (counts[service] || 0) + 1;
+
+    });
+
+
+    return `
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Servicio</th>
+                    <th>Pacientes</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${
+                    Object.entries(counts)
+                        .map(
+                            ([service, count]) => `
+
+                                <tr>
+
+                                    <td>
+                                        ${escapeHtml(service)}
+                                    </td>
+
+                                    <td>
+                                        ${count}
+                                    </td>
+
+                                </tr>
+
+                            `
+                        )
+                        .join("")
+                }
+
+            </tbody>
+
+        </table>
+
+    `;
+}
+
+
+function generateInventoryReport() {
+
+    const inventory =
+        getInventory();
+
+
+    const low =
         inventory.filter(
             item =>
                 Number(item.stock) <=
@@ -5983,115 +4065,616 @@ function updateDashboardInventory() {
         );
 
 
-    const normalStock =
-        inventory.length -
-        lowStock.length;
+    const expiring =
+        inventory.filter(
+            item => {
+
+                const days =
+                    daysUntil(item.expiry);
+
+                return days >= 0 && days <= 90;
+
+            }
+        );
 
 
-    const totalUnits =
-        inventory.reduce(
-            (total, item) =>
-                total +
-                Number(item.stock || 0),
+    return `
 
+        <h2>
+            Reporte de inventario
+        </h2>
+
+        <div class="box">
+            Total productos:
+            <strong>${inventory.length}</strong>
+        </div>
+
+        <div class="box">
+            Productos con stock bajo:
+            <strong>${low.length}</strong>
+        </div>
+
+        <div class="box">
+            Productos próximos a vencer:
+            <strong>${expiring.length}</strong>
+        </div>
+
+        <h2>
+            Detalle
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Vencimiento</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${
+                    inventory.map(
+                        item => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(item.code)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(item.name)}
+                                </td>
+
+                                <td>
+                                    ${item.stock}
+                                </td>
+
+                                <td>
+                                    ${item.minStock}
+                                </td>
+
+                                <td>
+                                    ${item.expiry || "No aplica"}
+                                </td>
+
+                            </tr>
+
+                        `
+                    ).join("")
+                }
+
+            </tbody>
+
+        </table>
+
+    `;
+}
+
+
+function generateBudgetReport() {
+
+    const budget =
+        getBudget();
+
+
+    const executed =
+        budget.reduce(
+            (sum, item) =>
+                sum + Number(item.amount || 0),
             0
         );
 
 
-    container.innerHTML = `
-
-        <div style="
-            display:grid;
-            grid-template-columns:
-            repeat(auto-fit,minmax(180px,1fr));
-            gap:15px;
-        ">
-
-            <div>
-
-                <strong>
-                    Productos
-                </strong>
-
-                <p>
-                    ${inventory.length}
-                </p>
-
-            </div>
+    const available =
+        Math.max(
+            BUDGET_APPROVED_VALUE -
+            executed,
+            0
+        );
 
 
-            <div>
-
-                <strong>
-                    Stock normal
-                </strong>
-
-                <p>
-                    ${normalStock}
-                </p>
-
-            </div>
+    const percentage =
+        (
+            executed /
+            BUDGET_APPROVED_VALUE
+        ) * 100;
 
 
-            <div>
+    return `
 
-                <strong>
-                    Stock bajo
-                </strong>
+        <h2>
+            Reporte presupuestal
+        </h2>
 
-                <p>
-                    ${lowStock.length}
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <strong>
-                    Unidades totales
-                </strong>
-
-                <p>
-                    ${totalUnits}
-                </p>
-
-            </div>
-
+        <div class="box">
+            Presupuesto aprobado:
+            <strong>
+                ${formatCurrency(
+                    BUDGET_APPROVED_VALUE
+                )}
+            </strong>
         </div>
 
+        <div class="box">
+            Ejecutado:
+            <strong>
+                ${formatCurrency(executed)}
+            </strong>
+        </div>
+
+        <div class="box">
+            Disponible:
+            <strong>
+                ${formatCurrency(available)}
+            </strong>
+        </div>
+
+        <div class="box">
+            Ejecución:
+            <strong>
+                ${Math.round(percentage)}%
+            </strong>
+        </div>
+
+        <h2>
+            Movimientos
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Concepto</th>
+                    <th>Categoría</th>
+                    <th>Valor</th>
+                    <th>Fecha</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                ${
+                    budget.map(
+                        item => `
+
+                            <tr>
+
+                                <td>
+                                    ${escapeHtml(item.concept)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(item.category)}
+                                </td>
+
+                                <td>
+                                    ${formatCurrency(item.amount)}
+                                </td>
+
+                                <td>
+                                    ${escapeHtml(item.date)}
+                                </td>
+
+                            </tr>
+
+                        `
+                    ).join("")
+                }
+
+            </tbody>
+
+        </table>
+
     `;
-
 }
 
 
-/* ============================================================
-   INICIALIZAR DASHBOARD
-============================================================ */
+function generateGeneralReport() {
 
-function initializeDynamicDashboard() {
+    const patients =
+        getPatients();
 
-    updateDashboardIndicators();
 
+    const services =
+        getServices();
+
+
+    const inventory =
+        getInventory();
+
+
+    const budget =
+        getBudget();
+
+
+    return `
+
+        <h2>
+            Reporte general institucional
+        </h2>
+
+        <div class="box">
+            Pacientes registrados:
+            <strong>${patients.length}</strong>
+        </div>
+
+        <div class="box">
+            Servicios registrados:
+            <strong>${services.length}</strong>
+        </div>
+
+        <div class="box">
+            Productos de inventario:
+            <strong>${inventory.length}</strong>
+        </div>
+
+        <div class="box">
+            Movimientos presupuestales:
+            <strong>${budget.length}</strong>
+        </div>
+
+        ${generateDemandReport()}
+
+        ${generateInventoryReport()}
+
+        ${generateBudgetReport()}
+
+    `;
 }
 
 
-/* ============================================================
-   ACTUALIZACIÓN AUTOMÁTICA
-============================================================ */
+/* =========================================================
+   EVENTOS
+========================================================= */
 
-if (
-    document.readyState ===
-    "loading"
-) {
+function initializeEvents() {
 
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeDynamicDashboard
+    /* Pacientes */
+
+    document.getElementById(
+        "newPatientBtn"
+    ).addEventListener(
+        "click",
+        () => openPatientModal()
     );
 
-} else {
 
-    initializeDynamicDashboard();
+    document.getElementById(
+        "closeModal"
+    ).addEventListener(
+        "click",
+        closePatientModal
+    );
+
+
+    document.getElementById(
+        "cancelModal"
+    ).addEventListener(
+        "click",
+        closePatientModal
+    );
+
+
+    document.getElementById(
+        "patientForm"
+    ).addEventListener(
+        "submit",
+        savePatient
+    );
+
+
+    document.getElementById(
+        "patientSearch"
+    ).addEventListener(
+        "input",
+        event =>
+            renderPatients(
+                event.target.value
+            )
+    );
+
+
+    /* Servicios */
+
+    document.getElementById(
+        "newServiceBtn"
+    ).addEventListener(
+        "click",
+        () => openServiceModal()
+    );
+
+
+    document.getElementById(
+        "closeServiceModal"
+    ).addEventListener(
+        "click",
+        closeServiceModal
+    );
+
+
+    document.getElementById(
+        "cancelServiceBtn"
+    ).addEventListener(
+        "click",
+        closeServiceModal
+    );
+
+
+    document.getElementById(
+        "serviceForm"
+    ).addEventListener(
+        "submit",
+        saveService
+    );
+
+
+    document.getElementById(
+        "serviceSearch"
+    ).addEventListener(
+        "input",
+        event =>
+            renderServices(
+                event.target.value
+            )
+    );
+
+
+    /* Inventario */
+
+    document.getElementById(
+        "newInventoryBtn"
+    ).addEventListener(
+        "click",
+        () => openInventoryModal()
+    );
+
+
+    document.getElementById(
+        "closeInventoryModal"
+    ).addEventListener(
+        "click",
+        closeInventoryModal
+    );
+
+
+    document.getElementById(
+        "cancelInventoryModal"
+    ).addEventListener(
+        "click",
+        closeInventoryModal
+    );
+
+
+    document.getElementById(
+        "inventoryForm"
+    ).addEventListener(
+        "submit",
+        saveInventory
+    );
+
+
+    document.getElementById(
+        "inventorySearch"
+    ).addEventListener(
+        "input",
+        event =>
+            renderInventory(
+                event.target.value
+            )
+    );
+
+
+    /* Presupuesto */
+
+    document.getElementById(
+        "newBudgetBtn"
+    ).addEventListener(
+        "click",
+        openBudgetModal
+    );
+
+
+    document.getElementById(
+        "closeBudgetModal"
+    ).addEventListener(
+        "click",
+        closeBudgetModal
+    );
+
+
+    document.getElementById(
+        "cancelBudgetBtn"
+    ).addEventListener(
+        "click",
+        closeBudgetModal
+    );
+
+
+    document.getElementById(
+        "budgetForm"
+    ).addEventListener(
+        "submit",
+        saveBudget
+    );
+
+
+    document.getElementById(
+        "budgetSearch"
+    ).addEventListener(
+        "input",
+        event =>
+            renderBudget(
+                event.target.value
+            )
+    );
+
+
+    /* Predicciones */
+
+    document.getElementById(
+        "generatePredictionBtn"
+    ).addEventListener(
+        "click",
+        generatePrediction
+    );
+
+
+    /* Alertas */
+
+    document.getElementById(
+        "refreshAlertsBtn"
+    ).addEventListener(
+        "click",
+        generateAlerts
+    );
+
+
+    /* Reportes */
+
+    document.getElementById(
+        "reportDemandBtn"
+    ).addEventListener(
+        "click",
+        () => openReport("demand")
+    );
+
+
+    document.getElementById(
+        "reportInventoryBtn"
+    ).addEventListener(
+        "click",
+        () => openReport("inventory")
+    );
+
+
+    document.getElementById(
+        "reportBudgetBtn"
+    ).addEventListener(
+        "click",
+        () => openReport("budget")
+    );
+
+
+    document.getElementById(
+        "reportGeneralBtn"
+    ).addEventListener(
+        "click",
+        () => openReport("general")
+    );
+
+
+    /* Cerrar modales al hacer clic fuera */
+
+    document.querySelectorAll(".modal")
+        .forEach(modal => {
+
+            modal.addEventListener(
+                "click",
+                event => {
+
+                    if (
+                        event.target === modal
+                    ) {
+
+                        modal.classList.remove(
+                            "show"
+                        );
+
+                    }
+
+                }
+            );
+
+        });
 
 }
+
+
+/* =========================================================
+   INICIALIZACIÓN
+========================================================= */
+
+function initializeApplication() {
+
+    initializeStorage();
+
+    initializeNavigation();
+
+    initializeEvents();
+
+
+    /* Pacientes */
+
+    populatePatientServices();
+
+    renderPatients();
+
+    updatePatientStats();
+
+
+    /* Servicios */
+
+    renderServices();
+
+    updateServiceStats();
+
+
+    /* Inventario */
+
+    renderInventory();
+
+    updateInventoryStats();
+
+
+    /* Presupuesto */
+
+    renderBudget();
+
+    updateBudgetSummary();
+
+
+    /* Predicciones */
+
+    populatePredictionServices();
+
+
+    /* Dashboard */
+
+    updateDashboard();
+
+
+    /* Análisis */
+
+    updateAnalysis();
+
+
+    /* Alertas */
+
+    generateAlerts();
+
+
+    /* Vista inicial */
+
+    showSection("dashboard");
+
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    initializeApplication
+);
