@@ -1462,3 +1462,150 @@ if (serviceSearch) {
 renderServices();
 
 updateServiceStatistics();
+/* =====================================
+   CONECTAR SERVICIOS CON PACIENTES
+===================================== */
+
+function updatePatientServiceOptions(currentService = "") {
+
+    if (!serviceInput) {
+        return;
+    }
+
+    serviceInput.innerHTML = `
+        <option value="">
+            Seleccione un servicio...
+        </option>
+    `;
+
+    /*
+       Obtener servicios activos
+    */
+
+    const activeServices = services.filter(
+        service => service.status === "Activo"
+    );
+
+    /*
+       Crear las opciones
+    */
+
+    activeServices.forEach(service => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            service.name;
+
+        option.textContent =
+            service.name;
+
+        serviceInput.appendChild(option);
+
+    });
+
+    /*
+       Si estamos editando un paciente
+       cuyo servicio ya no está activo,
+       conservamos temporalmente su servicio.
+    */
+
+    if (
+        currentService &&
+        !activeServices.some(
+            service =>
+                service.name === currentService
+        )
+    ) {
+
+        const oldOption =
+            document.createElement("option");
+
+        oldOption.value =
+            currentService;
+
+        oldOption.textContent =
+            currentService +
+            " (servicio anterior)";
+
+        serviceInput.appendChild(oldOption);
+
+    }
+
+    /*
+       Seleccionar el servicio actual
+    */
+
+    if (currentService) {
+
+        serviceInput.value =
+            currentService;
+
+    }
+
+}
+
+
+/* =====================================
+   ACTUALIZAR SERVICIOS AL ABRIR PACIENTES
+===================================== */
+
+const originalOpenNewPatientModal =
+    openNewPatientModal;
+
+openNewPatientModal = function () {
+
+    updatePatientServiceOptions();
+
+    originalOpenNewPatientModal();
+
+};
+
+
+/* =====================================
+   ACTUALIZAR SERVICIOS AL EDITAR
+===================================== */
+
+const originalEditPatient =
+    editPatient;
+
+editPatient = function (id) {
+
+    const patient =
+        patients.find(
+            item => item.id === id
+        );
+
+    if (!patient) {
+        return;
+    }
+
+    updatePatientServiceOptions(
+        patient.service
+    );
+
+    originalEditPatient(id);
+
+};
+
+
+/* =====================================
+   ACTUALIZAR SERVICIOS DESPUÉS DE
+   CAMBIOS EN EL MÓDULO SERVICIOS
+===================================== */
+
+if (typeof renderServices === "function") {
+
+    renderServices();
+
+    updateServiceStatistics();
+
+}
+
+
+/* =====================================
+   INICIALIZAR SELECTOR DE SERVICIOS
+===================================== */
+
+updatePatientServiceOptions();
