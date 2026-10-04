@@ -1,12 +1,14 @@
-/* =========================================================
+/* =====================================================
    SALUDPREDICT
-   Sistema de gestión inteligente en salud
-========================================================= */
+   JAVASCRIPT PRINCIPAL
+===================================================== */
+
+"use strict";
 
 
-/* =========================================================
-   CONFIGURACIÓN GENERAL
-========================================================= */
+/* =====================================================
+   CONFIGURACIÓN
+===================================================== */
 
 const STORAGE = {
     patients: "saludpredict_patients",
@@ -19,162 +21,138 @@ const STORAGE = {
 const BUDGET_APPROVED_VALUE = 1000000000;
 
 
-/* =========================================================
-   FUNCIONES GENERALES
-========================================================= */
+/* =====================================================
+   DATOS DE DEMOSTRACIÓN
+   SON DATOS FICTICIOS
+===================================================== */
 
-function getData(key, fallback = []) {
-
-    try {
-
-        const data = localStorage.getItem(key);
-
-        if (!data) {
-            return fallback;
-        }
-
-        return JSON.parse(data);
-
-    } catch (error) {
-
-        console.error("Error leyendo localStorage:", error);
-
-        return fallback;
-    }
-}
-
-
-function saveData(key, data) {
-
-    localStorage.setItem(
-        key,
-        JSON.stringify(data)
-    );
-}
-
-
-function createId(prefix = "id") {
-
-    return (
-        prefix +
-        "_" +
-        Date.now() +
-        "_" +
-        Math.random()
-            .toString(36)
-            .substring(2, 8)
-    );
-}
-
-
-function formatCurrency(value) {
-
-    return new Intl.NumberFormat(
-        "es-CO",
-        {
-            style: "currency",
-            currency: "COP",
-            maximumFractionDigits: 0
-        }
-    ).format(Number(value) || 0);
-}
-
-
-function formatNumber(value) {
-
-    return new Intl.NumberFormat(
-        "es-CO"
-    ).format(Number(value) || 0);
-}
-
-
-function escapeHtml(value) {
-
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-
-function todayString() {
-
-    const date = new Date();
-
-    return date.toISOString().split("T")[0];
-}
-
-
-function daysUntil(dateString) {
-
-    if (!dateString) {
-        return Infinity;
-    }
-
-    const today = new Date();
-    const target = new Date(dateString);
-
-    today.setHours(0, 0, 0, 0);
-    target.setHours(0, 0, 0, 0);
-
-    return Math.ceil(
-        (target - today) /
-        (1000 * 60 * 60 * 24)
-    );
-}
-
-
-/* =========================================================
-   DATOS INICIALES
-========================================================= */
-
-const DEFAULT_PATIENTS = [
-
+const DEMO_PATIENTS = [
     {
-        id: "pat-001",
-        document: "10234567",
-        name: "Juan Pérez",
-        age: 42,
+        id: "p001",
+        document: "1001001001",
+        name: "Ana María Torres",
+        age: 34,
         service: "Medicina general",
         status: "Activo"
     },
-
     {
-        id: "pat-002",
-        document: "52345678",
-        name: "María Gómez",
-        age: 35,
-        service: "Consulta externa",
+        id: "p002",
+        document: "1002002002",
+        name: "Carlos Andrés Gómez",
+        age: 52,
+        service: "Cardiología",
         status: "Activo"
     },
-
     {
-        id: "pat-003",
-        document: "80123456",
-        name: "Carlos Rodríguez",
-        age: 58,
+        id: "p003",
+        document: "1003003003",
+        name: "Laura Marcela Rojas",
+        age: 29,
+        service: "Ginecología",
+        status: "Activo"
+    },
+    {
+        id: "p004",
+        document: "1004004004",
+        name: "Jorge Eduardo Pérez",
+        age: 67,
+        service: "Medicina general",
+        status: "Activo"
+    },
+    {
+        id: "p005",
+        document: "1005005005",
+        name: "María Fernanda López",
+        age: 41,
+        service: "Gastroenterología",
+        status: "Activo"
+    },
+    {
+        id: "p006",
+        document: "1006006006",
+        name: "Diego Alejandro Castro",
+        age: 38,
+        service: "Odontología",
+        status: "Activo"
+    },
+    {
+        id: "p007",
+        document: "1007007007",
+        name: "Sofía Valentina Ruiz",
+        age: 24,
+        service: "Laboratorio clínico",
+        status: "Activo"
+    },
+    {
+        id: "p008",
+        document: "1008008008",
+        name: "Ricardo Antonio Díaz",
+        age: 61,
         service: "Urgencias",
         status: "Activo"
     },
-
     {
-        id: "pat-004",
-        document: "107890123",
-        name: "Laura Martínez",
-        age: 29,
-        service: "Odontología",
+        id: "p009",
+        document: "1009009009",
+        name: "Natalia Andrea Moreno",
+        age: 32,
+        service: "Imágenes diagnósticas",
+        status: "Activo"
+    },
+    {
+        id: "p010",
+        document: "1010001010",
+        name: "Felipe Santiago Vargas",
+        age: 46,
+        service: "Consulta externa",
+        status: "Activo"
+    },
+    {
+        id: "p011",
+        document: "1011001111",
+        name: "Claudia Patricia Méndez",
+        age: 57,
+        service: "Cardiología",
         status: "Inactivo"
+    },
+    {
+        id: "p012",
+        document: "1012001212",
+        name: "Andrés Felipe Herrera",
+        age: 36,
+        service: "Urgencias",
+        status: "Activo"
+    },
+    {
+        id: "p013",
+        document: "1013001313",
+        name: "Paula Andrea Sánchez",
+        age: 27,
+        service: "Ginecología",
+        status: "Activo"
+    },
+    {
+        id: "p014",
+        document: "1014001414",
+        name: "Mauricio Esteban León",
+        age: 49,
+        service: "Consulta externa",
+        status: "Activo"
+    },
+    {
+        id: "p015",
+        document: "1015001515",
+        name: "Valentina Cruz",
+        age: 22,
+        service: "Odontología",
+        status: "Activo"
     }
-
 ];
 
 
-const DEFAULT_SERVICES = [
-
+const DEMO_SERVICES = [
     {
-        id: "ser-001",
+        id: "s001",
         code: "SER-001",
         name: "Medicina general",
         category: "Consulta",
@@ -182,9 +160,8 @@ const DEFAULT_SERVICES = [
         price: 85000,
         status: "Activo"
     },
-
     {
-        id: "ser-002",
+        id: "s002",
         code: "SER-002",
         name: "Consulta externa",
         category: "Consulta",
@@ -192,9 +169,8 @@ const DEFAULT_SERVICES = [
         price: 75000,
         status: "Activo"
     },
-
     {
-        id: "ser-003",
+        id: "s003",
         code: "SER-003",
         name: "Atención de urgencias",
         category: "Urgencias",
@@ -202,9 +178,8 @@ const DEFAULT_SERVICES = [
         price: 120000,
         status: "Activo"
     },
-
     {
-        id: "ser-004",
+        id: "s004",
         code: "SER-004",
         name: "Hospitalización",
         category: "Hospitalización",
@@ -212,9 +187,8 @@ const DEFAULT_SERVICES = [
         price: 350000,
         status: "Activo"
     },
-
     {
-        id: "ser-005",
+        id: "s005",
         code: "SER-005",
         name: "Odontología general",
         category: "Odontología",
@@ -222,63 +196,135 @@ const DEFAULT_SERVICES = [
         price: 90000,
         status: "Activo"
     },
-
     {
-        id: "ser-006",
+        id: "s006",
         code: "SER-006",
         name: "Laboratorio clínico",
         category: "Diagnóstico",
         duration: "20 min",
         price: 45000,
         status: "Activo"
+    },
+    {
+        id: "s007",
+        code: "SER-007",
+        name: "Cardiología",
+        category: "Consulta",
+        duration: "45 min",
+        price: 150000,
+        status: "Activo"
+    },
+    {
+        id: "s008",
+        code: "SER-008",
+        name: "Ginecología",
+        category: "Consulta",
+        duration: "40 min",
+        price: 135000,
+        status: "Activo"
+    },
+    {
+        id: "s009",
+        code: "SER-009",
+        name: "Gastroenterología",
+        category: "Consulta",
+        duration: "45 min",
+        price: 145000,
+        status: "Activo"
+    },
+    {
+        id: "s010",
+        code: "SER-010",
+        name: "Imágenes diagnósticas",
+        category: "Diagnóstico",
+        duration: "60 min",
+        price: 180000,
+        status: "Activo"
+    },
+    {
+        id: "s011",
+        code: "SER-011",
+        name: "Promoción y prevención",
+        category: "Promoción y prevención",
+        duration: "30 min",
+        price: 55000,
+        status: "Activo"
+    },
+    {
+        id: "s012",
+        code: "SER-012",
+        name: "Procedimientos menores",
+        category: "Procedimiento",
+        duration: "60 min",
+        price: 210000,
+        status: "Inactivo"
     }
-
 ];
 
 
-const DEFAULT_INVENTORY = [
-
+const DEMO_INVENTORY = [
     {
-        id: "inv-001",
+        id: "i001",
         code: "MED-001",
         name: "Acetaminofén 500 mg",
         category: "Medicamentos",
-        unit: "Unidades",
+        unit: "Tabletas",
         stock: 250,
         minStock: 50,
         expiry: "2027-06-30",
         price: 850,
         status: "Activo"
     },
-
     {
-        id: "inv-002",
+        id: "i002",
         code: "MED-002",
         name: "Ibuprofeno 400 mg",
         category: "Medicamentos",
-        unit: "Unidades",
+        unit: "Tabletas",
         stock: 120,
         minStock: 30,
         expiry: "2027-03-15",
         price: 1200,
         status: "Activo"
     },
-
     {
-        id: "inv-003",
+        id: "i003",
+        code: "MED-003",
+        name: "Amoxicilina 500 mg",
+        category: "Medicamentos",
+        unit: "Cápsulas",
+        stock: 42,
+        minStock: 60,
+        expiry: "2026-10-25",
+        price: 1850,
+        status: "Activo"
+    },
+    {
+        id: "i004",
+        code: "MED-004",
+        name: "Losartán 50 mg",
+        category: "Medicamentos",
+        unit: "Tabletas",
+        stock: 95,
+        minStock: 40,
+        expiry: "2027-08-20",
+        price: 1100,
+        status: "Activo"
+    },
+    {
+        id: "i005",
         code: "INS-001",
         name: "Guantes de nitrilo",
-        category: "Insumos médicos",
+        category: "Elementos de protección",
         unit: "Cajas",
         stock: 500,
         minStock: 100,
         expiry: "",
-        price: 450,
+        price: 45000,
         status: "Activo"
     },
-
     {
-        id: "inv-004",
+        id: "i006",
         code: "INS-002",
         name: "Jeringas 5 ml",
         category: "Insumos médicos",
@@ -289,9 +335,20 @@ const DEFAULT_INVENTORY = [
         price: 700,
         status: "Activo"
     },
-
     {
-        id: "inv-005",
+        id: "i007",
+        code: "INS-003",
+        name: "Tapabocas quirúrgicos",
+        category: "Elementos de protección",
+        unit: "Cajas",
+        stock: 85,
+        minStock: 100,
+        expiry: "2028-04-15",
+        price: 18000,
+        status: "Activo"
+    },
+    {
+        id: "i008",
         code: "LAB-001",
         name: "Tubos de ensayo",
         category: "Laboratorio",
@@ -302,9 +359,20 @@ const DEFAULT_INVENTORY = [
         price: 950,
         status: "Activo"
     },
-
     {
-        id: "inv-006",
+        id: "i009",
+        code: "LAB-002",
+        name: "Reactivo hematología",
+        category: "Laboratorio",
+        unit: "Frascos",
+        stock: 18,
+        minStock: 20,
+        expiry: "2026-11-15",
+        price: 85000,
+        status: "Activo"
+    },
+    {
+        id: "i010",
         code: "MAT-001",
         name: "Gasas estériles",
         category: "Material quirúrgico",
@@ -314,451 +382,398 @@ const DEFAULT_INVENTORY = [
         expiry: "2027-08-10",
         price: 600,
         status: "Activo"
+    },
+    {
+        id: "i011",
+        code: "MAT-002",
+        name: "Suturas quirúrgicas",
+        category: "Material quirúrgico",
+        unit: "Unidades",
+        stock: 65,
+        minStock: 20,
+        expiry: "2027-05-12",
+        price: 4500,
+        status: "Activo"
+    },
+    {
+        id: "i012",
+        code: "EQ-001",
+        name: "Tensiómetro digital",
+        category: "Equipos",
+        unit: "Unidades",
+        stock: 14,
+        minStock: 5,
+        expiry: "",
+        price: 185000,
+        status: "Activo"
     }
-
 ];
 
 
-const DEFAULT_BUDGET = [
-
+const DEMO_BUDGET = [
     {
-        id: "bud-001",
-        concept: "Personal",
+        id: "b001",
         category: "Personal",
+        description: "Nómina y honorarios profesionales",
         amount: 280000000,
-        date: "2026-01-15",
+        date: "2026-01-30",
         status: "Ejecutado"
     },
-
     {
-        id: "bud-002",
-        concept: "Medicamentos",
+        id: "b002",
         category: "Medicamentos",
+        description: "Adquisición de medicamentos",
         amount: 95000000,
-        date: "2026-02-10",
+        date: "2026-02-15",
         status: "Ejecutado"
     },
-
     {
-        id: "bud-003",
-        concept: "Insumos médicos",
-        category: "Insumos",
+        id: "b003",
+        category: "Insumos médicos",
+        description: "Compra de insumos asistenciales",
         amount: 75000000,
-        date: "2026-03-05",
+        date: "2026-03-10",
         status: "Ejecutado"
     },
-
     {
-        id: "bud-004",
-        concept: "Mantenimiento",
+        id: "b004",
         category: "Mantenimiento",
+        description: "Mantenimiento preventivo",
         amount: 45000000,
-        date: "2026-04-12",
+        date: "2026-03-25",
         status: "Ejecutado"
     },
-
     {
-        id: "bud-005",
-        concept: "Tecnología",
+        id: "b005",
         category: "Tecnología",
+        description: "Actualización de equipos tecnológicos",
         amount: 35000000,
-        date: "2026-05-20",
+        date: "2026-04-20",
         status: "Ejecutado"
+    },
+    {
+        id: "b006",
+        category: "Equipos biomédicos",
+        description: "Adquisición de equipos",
+        amount: 65000000,
+        date: "2026-05-12",
+        status: "Ejecutado"
+    },
+    {
+        id: "b007",
+        category: "Infraestructura",
+        description: "Adecuación de áreas asistenciales",
+        amount: 55000000,
+        date: "2026-06-18",
+        status: "Ejecutado"
+    },
+    {
+        id: "b008",
+        category: "Capacitación",
+        description: "Formación del talento humano",
+        amount: 22000000,
+        date: "2026-07-08",
+        status: "Ejecutado"
+    },
+    {
+        id: "b009",
+        category: "Software",
+        description: "Licencias y sistemas institucionales",
+        amount: 18000000,
+        date: "2026-08-14",
+        status: "Programado"
     }
-
 ];
 
 
-/* =========================================================
-   INICIALIZAR DATOS
-========================================================= */
+/* =====================================================
+   UTILIDADES
+===================================================== */
 
-function initializeStorage() {
+function getData(key, defaults) {
 
-    if (!localStorage.getItem(STORAGE.patients)) {
+    try {
 
-        saveData(
-            STORAGE.patients,
-            DEFAULT_PATIENTS
-        );
+        const saved = localStorage.getItem(key);
 
+        if (!saved) {
+            localStorage.setItem(key, JSON.stringify(defaults));
+            return [...defaults];
+        }
+
+        const parsed = JSON.parse(saved);
+
+        if (!Array.isArray(parsed)) {
+            localStorage.setItem(key, JSON.stringify(defaults));
+            return [...defaults];
+        }
+
+        return parsed;
+
+    } catch (error) {
+
+        console.error(error);
+
+        return [...defaults];
     }
-
-
-    if (!localStorage.getItem(STORAGE.services)) {
-
-        saveData(
-            STORAGE.services,
-            DEFAULT_SERVICES
-        );
-
-    }
-
-
-    if (!localStorage.getItem(STORAGE.inventory)) {
-
-        saveData(
-            STORAGE.inventory,
-            DEFAULT_INVENTORY
-        );
-
-    }
-
-
-    if (!localStorage.getItem(STORAGE.budget)) {
-
-        saveData(
-            STORAGE.budget,
-            DEFAULT_BUDGET
-        );
-
-    }
-
-
-    normalizeInventoryData();
 }
 
 
-function normalizeInventoryData() {
-
-    const inventory = getData(
-        STORAGE.inventory,
-        []
-    );
-
-
-    const normalized = inventory.map(item => {
-
-        return {
-
-            id: item.id || createId("inv"),
-
-            code: item.code || "",
-
-            name: item.name || "",
-
-            category: item.category || "Otros",
-
-            unit: item.unit || "Unidades",
-
-            stock: Number(item.stock) || 0,
-
-            minStock: Number(item.minStock) || 0,
-
-            expiry: item.expiry || "",
-
-            price: Number(
-                item.price ??
-                item.unitCost ??
-                0
-            ),
-
-            status: item.status || "Activo"
-
-        };
-
-    });
-
-
-    saveData(
-        STORAGE.inventory,
-        normalized
-    );
+function saveData(key, data) {
+    localStorage.setItem(key, JSON.stringify(data));
 }
 
 
-/* =========================================================
+function currency(value) {
+
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        maximumFractionDigits: 0
+    }).format(Number(value) || 0);
+}
+
+
+function number(value) {
+
+    return new Intl.NumberFormat("es-CO").format(Number(value) || 0);
+}
+
+
+function escapeHTML(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function todayISO() {
+
+    const date = new Date();
+
+    const year = date.getFullYear();
+
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+
+    const day = String(date.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+}
+
+
+function formatDate(dateString) {
+
+    if (!dateString) {
+        return "No aplica";
+    }
+
+    const parts = dateString.split("-");
+
+    if (parts.length !== 3) {
+        return dateString;
+    }
+
+    return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+
+function showToast(message) {
+
+    const toast = document.getElementById("toast");
+
+    if (!toast) {
+        return;
+    }
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+    setTimeout(() => {
+        toast.classList.remove("show");
+    }, 2500);
+}
+
+
+function generateId(prefix) {
+
+    return prefix + Date.now() + Math.floor(Math.random() * 1000);
+}
+
+
+/* =====================================================
+   DATOS
+===================================================== */
+
+let patients = getData(STORAGE.patients, DEMO_PATIENTS);
+
+let services = getData(STORAGE.services, DEMO_SERVICES);
+
+let inventory = getData(STORAGE.inventory, DEMO_INVENTORY);
+
+let budget = getData(STORAGE.budget, DEMO_BUDGET);
+
+
+/* =====================================================
    NAVEGACIÓN
-========================================================= */
+===================================================== */
 
 function showSection(sectionId) {
 
-    document.querySelectorAll(".section")
-        .forEach(section => {
-
-            section.classList.remove("active");
-
-        });
-
-
-    const section = document.getElementById(
-        sectionId
-    );
-
-
-    if (section) {
-
-        section.classList.add("active");
-
-    }
-
-
-    document.querySelectorAll(".nav-item")
-        .forEach(button => {
-
-            button.classList.toggle(
-                "active",
-                button.dataset.section === sectionId
-            );
-
-        });
-
-
-    const sidebar = document.getElementById("sidebar");
-
-    if (sidebar) {
-        sidebar.classList.remove("show");
-    }
-
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
+    document.querySelectorAll(".section").forEach(section => {
+        section.classList.remove("active");
     });
+
+
+    const target = document.getElementById(sectionId);
+
+    if (!target) {
+        return;
+    }
+
+
+    target.classList.add("active");
+
+
+    document.querySelectorAll(".nav-item").forEach(item => {
+
+        item.classList.toggle(
+            "active",
+            item.dataset.section === sectionId
+        );
+
+    });
+
+
+    document.getElementById("sidebar")?.classList.remove("open");
 
 
     if (sectionId === "dashboard") {
         updateDashboard();
     }
 
-
     if (sectionId === "analisis") {
         updateAnalysis();
     }
 
+    if (sectionId === "alertas") {
+        renderAlerts();
+    }
 
     if (sectionId === "predicciones") {
         populatePredictionServices();
     }
-
-
-    if (sectionId === "alertas") {
-        generateAlerts();
-    }
 }
 
 
-function initializeNavigation() {
+document.querySelectorAll(".nav-item").forEach(button => {
 
-    document.querySelectorAll(".nav-item")
-        .forEach(button => {
+    button.addEventListener("click", () => {
 
-            button.addEventListener(
-                "click",
-                () => {
+        showSection(button.dataset.section);
 
-                    showSection(
-                        button.dataset.section
-                    );
+    });
 
-                }
-            );
-
-        });
+});
 
 
-    document.querySelectorAll("[data-go]")
-        .forEach(button => {
+document.querySelectorAll(".flow-node[data-go]").forEach(node => {
 
-            button.addEventListener(
-                "click",
-                () => {
+    node.addEventListener("click", () => {
 
-                    showSection(
-                        button.dataset.go
-                    );
+        showSection(node.dataset.go);
 
-                }
-            );
+    });
 
-        });
+});
 
 
-    const menuBtn =
-        document.getElementById("menuBtn");
+/* =====================================================
+   MENÚ MÓVIL
+===================================================== */
+
+const menuBtn = document.getElementById("menuBtn");
+
+const sidebar = document.getElementById("sidebar");
 
 
-    const sidebar =
-        document.getElementById("sidebar");
+menuBtn?.addEventListener("click", () => {
+
+    sidebar?.classList.toggle("open");
+
+});
 
 
-    if (menuBtn && sidebar) {
+/* =====================================================
+   FECHA ACTUAL
+===================================================== */
 
-        menuBtn.addEventListener(
-            "click",
-            () => {
+function renderCurrentDate() {
 
-                sidebar.classList.toggle("show");
+    const element = document.getElementById("currentDate");
 
-            }
-        );
-
+    if (!element) {
+        return;
     }
 
-}
-
-
-/* =========================================================
-   PACIENTES
-========================================================= */
-
-function getPatients() {
-
-    return getData(
-        STORAGE.patients,
-        []
-    );
-}
-
-
-function updatePatientStats() {
-
-    const patients = getPatients();
-
-
-    const total = patients.length;
-
-
-    const active = patients.filter(
-        patient => patient.status === "Activo"
-    ).length;
-
-
-    const newPatients = patients.filter(
-        patient => {
-
-            return String(patient.id)
-                .includes("pat-");
-
+    element.textContent = new Intl.DateTimeFormat(
+        "es-CO",
+        {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric"
         }
-    ).length;
-
-
-    const totalElement =
-        document.getElementById("totalPatients");
-
-    const activeElement =
-        document.getElementById("activePatients");
-
-    const newElement =
-        document.getElementById("newPatients");
-
-
-    if (totalElement) {
-        totalElement.textContent = total;
-    }
-
-
-    if (activeElement) {
-        activeElement.textContent = active;
-    }
-
-
-    if (newElement) {
-        newElement.textContent = newPatients;
-    }
+    ).format(new Date());
 }
 
 
-function populatePatientServices() {
+/* =====================================================
+   PACIENTES
+===================================================== */
 
-    const select =
-        document.getElementById("service");
+function renderPatients(search = "") {
 
+    const table = document.getElementById("patientsTable");
 
-    if (!select) {
+    if (!table) {
         return;
     }
 
 
-    const services = getData(
-        STORAGE.services,
-        []
-    );
+    const query = search.toLowerCase().trim();
 
 
-    const currentValue =
-        select.value;
+    const filtered = patients.filter(patient => {
 
+        const text = [
+            patient.document,
+            patient.name,
+            patient.service,
+            patient.status
+        ]
+        .join(" ")
+        .toLowerCase();
 
-    select.innerHTML = "";
-
-
-    services.forEach(service => {
-
-        if (service.status !== "Activo") {
-            return;
-        }
-
-
-        const option =
-            document.createElement("option");
-
-        option.value = service.name;
-
-        option.textContent = service.name;
-
-        select.appendChild(option);
+        return text.includes(query);
 
     });
 
 
-    if (currentValue) {
-        select.value = currentValue;
-    }
-}
-
-
-function renderPatients(filter = "") {
-
-    const tbody =
-        document.getElementById("patientsTable");
-
-
-    if (!tbody) {
-        return;
-    }
-
-
-    const patients = getPatients();
-
-
-    const search =
-        filter.trim().toLowerCase();
-
-
-    const filtered =
-        patients.filter(patient => {
-
-            const text = [
-
-                patient.document,
-
-                patient.name,
-
-                patient.service,
-
-                patient.status
-
-            ]
-                .join(" ")
-                .toLowerCase();
-
-
-            return text.includes(search);
-
-        });
-
-
-    tbody.innerHTML = "";
-
-
     if (!filtered.length) {
 
-        tbody.innerHTML = `
+        table.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-table">
-                    No se encontraron pacientes.
+                <td colspan="6">
+                    <div class="empty-state">
+                        <span>👥</span>
+                        <h2>No se encontraron pacientes</h2>
+                        <p>Prueba con otro término de búsqueda.</p>
+                    </div>
                 </td>
             </tr>
         `;
@@ -767,190 +782,117 @@ function renderPatients(filter = "") {
     }
 
 
-    filtered.forEach(patient => {
+    table.innerHTML = filtered.map(patient => `
 
-        const tr =
-            document.createElement("tr");
-
-
-        tr.innerHTML = `
+        <tr>
 
             <td>
-                ${escapeHtml(patient.document)}
+                <strong>${escapeHTML(patient.document)}</strong>
             </td>
 
-            <td>
-                <strong>
-                    ${escapeHtml(patient.name)}
-                </strong>
-            </td>
+            <td>${escapeHTML(patient.name)}</td>
+
+            <td>${number(patient.age)} años</td>
+
+            <td>${escapeHTML(patient.service)}</td>
 
             <td>
-                ${escapeHtml(patient.age)}
-            </td>
-
-            <td>
-                ${escapeHtml(patient.service)}
-            </td>
-
-            <td>
-
-                <span class="status ${
-                    patient.status === "Activo"
-                        ? "active"
-                        : "inactive"
-                }">
-
-                    ${escapeHtml(patient.status)}
-
+                <span class="status ${patient.status}">
+                    ${escapeHTML(patient.status)}
                 </span>
-
             </td>
 
             <td>
 
-                <div class="action-buttons">
+                <div class="actions">
 
                     <button
-                        class="action-btn edit-btn"
-                        data-edit-patient="${patient.id}"
-                    >
+                        class="action-btn edit"
+                        onclick="editPatient('${patient.id}')">
                         Editar
                     </button>
 
                     <button
-                        class="action-btn delete-btn"
-                        data-delete-patient="${patient.id}"
-                    >
+                        class="action-btn delete"
+                        onclick="deletePatient('${patient.id}')">
                         Eliminar
                     </button>
 
                 </div>
 
             </td>
-        `;
+
+        </tr>
+
+    `).join("");
 
 
-        tbody.appendChild(tr);
-
-    });
-
-
-    tbody.querySelectorAll(
-        "[data-edit-patient]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                editPatient(
-                    button.dataset.editPatient
-                );
-
-            }
-        );
-
-    });
-
-
-    tbody.querySelectorAll(
-        "[data-delete-patient]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                deletePatient(
-                    button.dataset.deletePatient
-                );
-
-            }
-        );
-
-    });
+    updatePatientStats();
 }
 
 
-function openPatientModal(id = "") {
+function updatePatientStats() {
 
-    const modal =
-        document.getElementById("patientModal");
+    const total = patients.length;
 
-    const form =
-        document.getElementById("patientForm");
-
-    const title =
-        document.getElementById("modalTitle");
+    const active = patients.filter(
+        p => p.status === "Activo"
+    ).length;
 
 
-    if (!modal || !form) {
-        return;
-    }
+    document.getElementById("totalPatients").textContent =
+        number(total);
 
+    document.getElementById("activePatients").textContent =
+        number(active);
+
+    document.getElementById("newPatients").textContent =
+        number(Math.min(6, total));
+
+
+    document.getElementById("dashboardPatients").textContent =
+        number(active);
+}
+
+
+function openPatientModal(patient = null) {
+
+    const modal = document.getElementById("patientModal");
+
+    const form = document.getElementById("patientForm");
 
     form.reset();
 
 
-    document.getElementById(
-        "patientId"
-    ).value = "";
+    if (patient) {
 
-
-    populatePatientServices();
-
-
-    if (id) {
-
-        const patient =
-            getPatients().find(
-                item => item.id === id
-            );
-
-
-        if (!patient) {
-            return;
-        }
-
-
-        title.textContent =
+        document.getElementById("modalTitle").textContent =
             "Editar paciente";
 
+        document.getElementById("patientId").value =
+            patient.id;
 
-        document.getElementById(
-            "patientId"
-        ).value = patient.id;
+        document.getElementById("document").value =
+            patient.document;
 
+        document.getElementById("name").value =
+            patient.name;
 
-        document.getElementById(
-            "document"
-        ).value = patient.document;
+        document.getElementById("age").value =
+            patient.age;
 
+        document.getElementById("service").value =
+            patient.service;
 
-        document.getElementById(
-            "name"
-        ).value = patient.name;
-
-
-        document.getElementById(
-            "age"
-        ).value = patient.age;
-
-
-        document.getElementById(
-            "service"
-        ).value = patient.service;
-
-
-        document.getElementById(
-            "status"
-        ).value = patient.status;
+        document.getElementById("status").value =
+            patient.status;
 
     } else {
 
-        title.textContent =
+        document.getElementById("modalTitle").textContent =
             "Nuevo paciente";
+
+        document.getElementById("patientId").value = "";
 
     }
 
@@ -961,259 +903,210 @@ function openPatientModal(id = "") {
 
 function closePatientModal() {
 
-    const modal =
-        document.getElementById("patientModal");
-
-
-    if (modal) {
-        modal.classList.remove("show");
-    }
-
-}
-
-
-function savePatient(event) {
-
-    event.preventDefault();
-
-
-    const patients = getPatients();
-
-
-    const id =
-        document.getElementById("patientId").value;
-
-
-    const patient = {
-
-        id: id || createId("pat"),
-
-        document:
-            document.getElementById("document").value.trim(),
-
-        name:
-            document.getElementById("name").value.trim(),
-
-        age:
-            Number(
-                document.getElementById("age").value
-            ),
-
-        service:
-            document.getElementById("service").value,
-
-        status:
-            document.getElementById("status").value
-
-    };
-
-
-    if (!patient.document || !patient.name) {
-
-        alert(
-            "Por favor complete los campos obligatorios."
-        );
-
-        return;
-    }
-
-
-    if (id) {
-
-        const index =
-            patients.findIndex(
-                item => item.id === id
-            );
-
-
-        if (index !== -1) {
-
-            patients[index] = patient;
-
-        }
-
-    } else {
-
-        patients.push(patient);
-
-    }
-
-
-    saveData(
-        STORAGE.patients,
-        patients
-    );
-
-
-    closePatientModal();
-
-
-    renderPatients();
-
-
-    updatePatientStats();
-
-
-    updateDashboard();
-
-
-    updateAnalysis();
+    document.getElementById("patientModal")
+        ?.classList.remove("show");
 
 }
 
 
 function editPatient(id) {
 
-    openPatientModal(id);
+    const patient = patients.find(
+        p => p.id === id
+    );
 
+    if (patient) {
+        openPatientModal(patient);
+    }
 }
 
 
 function deletePatient(id) {
 
-    const patient =
-        getPatients().find(
-            item => item.id === id
-        );
-
+    const patient = patients.find(
+        p => p.id === id
+    );
 
     if (!patient) {
         return;
     }
 
 
-    if (!confirm(
-        `¿Desea eliminar al paciente ${patient.name}?`
-    )) {
-
+    if (!confirm(`¿Eliminar a ${patient.name}?`)) {
         return;
-
     }
 
 
-    const patients =
-        getPatients().filter(
-            item => item.id !== id
-        );
-
-
-    saveData(
-        STORAGE.patients,
-        patients
+    patients = patients.filter(
+        p => p.id !== id
     );
 
 
-    renderPatients();
+    saveData(STORAGE.patients, patients);
 
-    updatePatientStats();
+    renderPatients(
+        document.getElementById("patientSearch")?.value || ""
+    );
 
     updateDashboard();
 
-    updateAnalysis();
-
+    showToast("Paciente eliminado correctamente");
 }
 
 
-/* =========================================================
-   SERVICIOS
-========================================================= */
+function populatePatientServices() {
 
-function getServices() {
+    const select = document.getElementById("service");
 
-    return getData(
-        STORAGE.services,
-        []
-    );
-}
-
-
-function updateServiceStats() {
-
-    const services = getServices();
-
-
-    const active =
-        services.filter(
-            service => service.status === "Activo"
-        );
-
-
-    const average =
-        active.length
-            ? active.reduce(
-                (sum, service) =>
-                    sum + Number(service.price || 0),
-                0
-            ) / active.length
-            : 0;
-
-
-    document.getElementById(
-        "totalServices"
-    ).textContent = services.length;
-
-
-    document.getElementById(
-        "activeServices"
-    ).textContent = active.length;
-
-
-    document.getElementById(
-        "averageServicePrice"
-    ).textContent =
-        formatCurrency(average);
-}
-
-
-function renderServices(filter = "") {
-
-    const tbody =
-        document.getElementById("servicesTable");
-
-
-    if (!tbody) {
+    if (!select) {
         return;
     }
 
 
-    const search =
-        filter.trim().toLowerCase();
+    select.innerHTML = `
+        <option value="">Seleccione un servicio</option>
+        ${
+            services.map(service => `
+                <option value="${escapeHTML(service.name)}">
+                    ${escapeHTML(service.name)}
+                </option>
+            `).join("")
+        }
+    `;
+}
 
 
-    const services =
-        getServices().filter(service => {
+document.getElementById("patientForm")
+    ?.addEventListener("submit", event => {
 
-            const text = [
-
-                service.code,
-
-                service.name,
-
-                service.category,
-
-                service.duration,
-
-                service.status
-
-            ]
-                .join(" ")
-                .toLowerCase();
+        event.preventDefault();
 
 
-            return text.includes(search);
-
-        });
-
-
-    tbody.innerHTML = "";
+        const id =
+            document.getElementById("patientId").value;
 
 
-    if (!services.length) {
+        const patientData = {
 
-        tbody.innerHTML = `
+            id: id || generateId("p"),
+
+            document:
+                document.getElementById("document").value.trim(),
+
+            name:
+                document.getElementById("name").value.trim(),
+
+            age:
+                Number(document.getElementById("age").value),
+
+            service:
+                document.getElementById("service").value,
+
+            status:
+                document.getElementById("status").value
+
+        };
+
+
+        if (id) {
+
+            patients = patients.map(patient =>
+                patient.id === id
+                    ? patientData
+                    : patient
+            );
+
+            showToast("Paciente actualizado");
+
+        } else {
+
+            patients.push(patientData);
+
+            showToast("Paciente registrado");
+
+        }
+
+
+        saveData(STORAGE.patients, patients);
+
+        renderPatients();
+
+        updateDashboard();
+
+        closePatientModal();
+
+    });
+
+
+document.getElementById("newPatientBtn")
+    ?.addEventListener("click", () => {
+
+        populatePatientServices();
+
+        openPatientModal();
+
+    });
+
+
+document.getElementById("closeModal")
+    ?.addEventListener("click", closePatientModal);
+
+
+document.getElementById("cancelModal")
+    ?.addEventListener("click", closePatientModal);
+
+
+document.getElementById("patientSearch")
+    ?.addEventListener("input", event => {
+
+        renderPatients(event.target.value);
+
+    });
+
+
+/* =====================================================
+   SERVICIOS
+===================================================== */
+
+function renderServices(search = "") {
+
+    const table = document.getElementById("servicesTable");
+
+    if (!table) {
+        return;
+    }
+
+
+    const query = search.toLowerCase().trim();
+
+
+    const filtered = services.filter(service => {
+
+        const text = [
+            service.code,
+            service.name,
+            service.category,
+            service.duration,
+            service.status
+        ]
+        .join(" ")
+        .toLowerCase();
+
+        return text.includes(query);
+
+    });
+
+
+    if (!filtered.length) {
+
+        table.innerHTML = `
             <tr>
-                <td colspan="7" class="empty-table">
-                    No se encontraron servicios.
+                <td colspan="7">
+                    <div class="empty-state">
+                        <span>🏥</span>
+                        <h2>No hay servicios</h2>
+                        <p>No se encontraron registros.</p>
+                    </div>
                 </td>
             </tr>
         `;
@@ -1222,65 +1115,41 @@ function renderServices(filter = "") {
     }
 
 
-    services.forEach(service => {
+    table.innerHTML = filtered.map(service => `
 
-        const tr =
-            document.createElement("tr");
-
-
-        tr.innerHTML = `
+        <tr>
 
             <td>
-                <strong>
-                    ${escapeHtml(service.code)}
-                </strong>
+                <strong>${escapeHTML(service.code)}</strong>
             </td>
 
-            <td>
-                ${escapeHtml(service.name)}
-            </td>
+            <td>${escapeHTML(service.name)}</td>
+
+            <td>${escapeHTML(service.category)}</td>
+
+            <td>${escapeHTML(service.duration)}</td>
+
+            <td>${currency(service.price)}</td>
 
             <td>
-                ${escapeHtml(service.category)}
-            </td>
-
-            <td>
-                ${escapeHtml(service.duration)}
-            </td>
-
-            <td>
-                ${formatCurrency(service.price)}
-            </td>
-
-            <td>
-
-                <span class="status ${
-                    service.status === "Activo"
-                        ? "active"
-                        : "inactive"
-                }">
-
-                    ${escapeHtml(service.status)}
-
+                <span class="status ${service.status}">
+                    ${escapeHTML(service.status)}
                 </span>
-
             </td>
 
             <td>
 
-                <div class="action-buttons">
+                <div class="actions">
 
                     <button
-                        class="action-btn edit-btn"
-                        data-edit-service="${service.id}"
-                    >
+                        class="action-btn edit"
+                        onclick="editService('${service.id}')">
                         Editar
                     </button>
 
                     <button
-                        class="action-btn delete-btn"
-                        data-delete-service="${service.id}"
-                    >
+                        class="action-btn delete"
+                        onclick="deleteService('${service.id}')">
                         Eliminar
                     </button>
 
@@ -1288,126 +1157,87 @@ function renderServices(filter = "") {
 
             </td>
 
-        `;
+        </tr>
+
+    `).join("");
 
 
-        tbody.appendChild(tr);
-
-    });
-
-
-    tbody.querySelectorAll(
-        "[data-edit-service]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                editService(
-                    button.dataset.editService
-                );
-
-            }
-        );
-
-    });
-
-
-    tbody.querySelectorAll(
-        "[data-delete-service]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                deleteService(
-                    button.dataset.deleteService
-                );
-
-            }
-        );
-
-    });
-
+    updateServiceStats();
 }
 
 
-function openServiceModal(id = "") {
+function updateServiceStats() {
 
-    const modal =
-        document.getElementById("serviceModal");
+    const total = services.length;
 
-    const form =
-        document.getElementById("serviceForm");
-
-    const title =
-        document.getElementById("serviceModalTitle");
+    const active = services.filter(
+        s => s.status === "Activo"
+    ).length;
 
 
-    form.reset();
-
-    document.getElementById(
-        "serviceId"
-    ).value = "";
+    const prices = services
+        .filter(s => Number(s.price) > 0)
+        .map(s => Number(s.price));
 
 
-    if (id) {
-
-        const service =
-            getServices().find(
-                item => item.id === id
-            );
+    const average = prices.length
+        ? prices.reduce((a, b) => a + b, 0) / prices.length
+        : 0;
 
 
-        if (!service) {
-            return;
-        }
+    document.getElementById("totalServices").textContent =
+        number(total);
+
+    document.getElementById("activeServices").textContent =
+        number(active);
+
+    document.getElementById("averageServicePrice").textContent =
+        currency(average);
+
+    document.getElementById("dashboardServices").textContent =
+        number(active);
+}
 
 
-        title.textContent =
+function openServiceModal(service = null) {
+
+    const modal = document.getElementById("serviceModal");
+
+    document.getElementById("serviceForm").reset();
+
+
+    if (service) {
+
+        document.getElementById("serviceModalTitle").textContent =
             "Editar servicio";
 
+        document.getElementById("serviceId").value =
+            service.id;
 
-        document.getElementById(
-            "serviceId"
-        ).value = service.id;
+        document.getElementById("serviceCode").value =
+            service.code;
 
+        document.getElementById("serviceName").value =
+            service.name;
 
-        document.getElementById(
-            "serviceCode"
-        ).value = service.code;
+        document.getElementById("serviceCategory").value =
+            service.category;
 
+        document.getElementById("serviceDuration").value =
+            service.duration;
 
-        document.getElementById(
-            "serviceName"
-        ).value = service.name;
+        document.getElementById("servicePrice").value =
+            service.price;
 
-
-        document.getElementById(
-            "serviceCategory"
-        ).value = service.category;
-
-
-        document.getElementById(
-            "serviceDuration"
-        ).value = service.duration;
-
-
-        document.getElementById(
-            "servicePrice"
-        ).value = service.price;
-
-
-        document.getElementById(
-            "serviceStatus"
-        ).value = service.status;
+        document.getElementById("serviceStatus").value =
+            service.status;
 
     } else {
 
-        title.textContent =
+        document.getElementById("serviceModalTitle").textContent =
             "Nuevo servicio";
+
+        document.getElementById("serviceId").value = "";
 
     }
 
@@ -1418,165 +1248,50 @@ function openServiceModal(id = "") {
 
 function closeServiceModal() {
 
-    document.getElementById(
-        "serviceModal"
-    ).classList.remove("show");
-
-}
-
-
-function saveService(event) {
-
-    event.preventDefault();
-
-
-    const services = getServices();
-
-
-    const id =
-        document.getElementById(
-            "serviceId"
-        ).value;
-
-
-    const service = {
-
-        id: id || createId("ser"),
-
-        code:
-            document.getElementById(
-                "serviceCode"
-            ).value.trim(),
-
-        name:
-            document.getElementById(
-                "serviceName"
-            ).value.trim(),
-
-        category:
-            document.getElementById(
-                "serviceCategory"
-            ).value,
-
-        duration:
-            document.getElementById(
-                "serviceDuration"
-            ).value.trim(),
-
-        price:
-            Number(
-                document.getElementById(
-                    "servicePrice"
-                ).value
-            ) || 0,
-
-        status:
-            document.getElementById(
-                "serviceStatus"
-            ).value
-
-    };
-
-
-    if (!service.code || !service.name) {
-
-        alert(
-            "Complete el código y el nombre del servicio."
-        );
-
-        return;
-    }
-
-
-    if (id) {
-
-        const index =
-            services.findIndex(
-                item => item.id === id
-            );
-
-
-        if (index !== -1) {
-
-            services[index] = service;
-
-        }
-
-    } else {
-
-        services.push(service);
-
-    }
-
-
-    saveData(
-        STORAGE.services,
-        services
-    );
-
-
-    closeServiceModal();
-
-
-    renderServices();
-
-    updateServiceStats();
-
-    populatePatientServices();
-
-    populatePredictionServices();
-
-    updateDashboard();
-
-    updateAnalysis();
+    document.getElementById("serviceModal")
+        ?.classList.remove("show");
 
 }
 
 
 function editService(id) {
 
-    openServiceModal(id);
+    const service = services.find(
+        s => s.id === id
+    );
 
+    if (service) {
+        openServiceModal(service);
+    }
 }
 
 
 function deleteService(id) {
 
-    const service =
-        getServices().find(
-            item => item.id === id
-        );
-
+    const service = services.find(
+        s => s.id === id
+    );
 
     if (!service) {
         return;
     }
 
 
-    if (!confirm(
-        `¿Desea eliminar el servicio ${service.name}?`
-    )) {
-
+    if (!confirm(`¿Eliminar el servicio ${service.name}?`)) {
         return;
-
     }
 
 
-    const services =
-        getServices().filter(
-            item => item.id !== id
-        );
-
-
-    saveData(
-        STORAGE.services,
-        services
+    services = services.filter(
+        s => s.id !== id
     );
 
 
-    renderServices();
+    saveData(STORAGE.services, services);
 
-    updateServiceStats();
+    renderServices(
+        document.getElementById("serviceSearch")?.value || ""
+    );
 
     populatePatientServices();
 
@@ -1584,122 +1299,177 @@ function deleteService(id) {
 
     updateDashboard();
 
-    updateAnalysis();
+    showToast("Servicio eliminado");
 
 }
 
 
-/* =========================================================
+document.getElementById("serviceForm")
+    ?.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+
+        const id =
+            document.getElementById("serviceId").value;
+
+
+        const data = {
+
+            id: id || generateId("s"),
+
+            code:
+                document.getElementById("serviceCode").value.trim(),
+
+            name:
+                document.getElementById("serviceName").value.trim(),
+
+            category:
+                document.getElementById("serviceCategory").value,
+
+            duration:
+                document.getElementById("serviceDuration").value.trim(),
+
+            price:
+                Number(document.getElementById("servicePrice").value),
+
+            status:
+                document.getElementById("serviceStatus").value
+
+        };
+
+
+        if (id) {
+
+            services = services.map(service =>
+                service.id === id
+                    ? data
+                    : service
+            );
+
+            showToast("Servicio actualizado");
+
+        } else {
+
+            services.push(data);
+
+            showToast("Servicio registrado");
+
+        }
+
+
+        saveData(STORAGE.services, services);
+
+        renderServices();
+
+        populatePatientServices();
+
+        populatePredictionServices();
+
+        updateDashboard();
+
+        closeServiceModal();
+
+    });
+
+
+document.getElementById("newServiceBtn")
+    ?.addEventListener("click", () => {
+
+        openServiceModal();
+
+    });
+
+
+document.getElementById("closeServiceModal")
+    ?.addEventListener("click", closeServiceModal);
+
+
+document.getElementById("cancelServiceBtn")
+    ?.addEventListener("click", closeServiceModal);
+
+
+document.getElementById("serviceSearch")
+    ?.addEventListener("input", event => {
+
+        renderServices(event.target.value);
+
+    });
+
+
+/* =====================================================
    INVENTARIO
-========================================================= */
+===================================================== */
 
-function getInventory() {
+function isLowStock(item) {
 
-    return getData(
-        STORAGE.inventory,
-        []
-    );
-}
-
-
-function updateInventoryStats() {
-
-    const inventory =
-        getInventory();
-
-
-    const lowStock =
-        inventory.filter(
-            item =>
-                Number(item.stock) <=
-                Number(item.minStock)
-        ).length;
-
-
-    const expiring =
-        inventory.filter(
-            item => {
-
-                const days =
-                    daysUntil(item.expiry);
-
-                return days >= 0 && days <= 90;
-
-            }
-        ).length;
-
-
-    document.getElementById(
-        "totalInventory"
-    ).textContent =
-        inventory.length;
-
-
-    document.getElementById(
-        "lowStockInventory"
-    ).textContent =
-        lowStock;
-
-
-    document.getElementById(
-        "expiringInventory"
-    ).textContent =
-        expiring;
+    return Number(item.stock) <= Number(item.minStock);
 
 }
 
 
-function renderInventory(filter = "") {
+function isExpiringSoon(item) {
 
-    const tbody =
-        document.getElementById(
-            "inventoryTable"
-        );
+    if (!item.expiry) {
+        return false;
+    }
 
 
-    if (!tbody) {
+    const expiry = new Date(item.expiry + "T23:59:59");
+
+    const today = new Date();
+
+    const difference =
+        expiry.getTime() - today.getTime();
+
+    const days =
+        difference / (1000 * 60 * 60 * 24);
+
+
+    return days >= 0 && days <= 60;
+}
+
+
+function renderInventory(search = "") {
+
+    const table =
+        document.getElementById("inventoryTable");
+
+    if (!table) {
         return;
     }
 
 
-    const search =
-        filter.trim().toLowerCase();
+    const query = search.toLowerCase().trim();
 
 
-    const inventory =
-        getInventory().filter(item => {
+    const filtered = inventory.filter(item => {
 
-            const text = [
+        const text = [
+            item.code,
+            item.name,
+            item.category,
+            item.unit,
+            item.status
+        ]
+        .join(" ")
+        .toLowerCase();
 
-                item.code,
+        return text.includes(query);
 
-                item.name,
-
-                item.category,
-
-                item.unit,
-
-                item.status
-
-            ]
-                .join(" ")
-                .toLowerCase();
+    });
 
 
-            return text.includes(search);
+    if (!filtered.length) {
 
-        });
-
-
-    tbody.innerHTML = "";
-
-
-    if (!inventory.length) {
-
-        tbody.innerHTML = `
+        table.innerHTML = `
             <tr>
-                <td colspan="10" class="empty-table">
-                    No se encontraron productos.
+                <td colspan="10">
+                    <div class="empty-state">
+                        <span>📦</span>
+                        <h2>No hay productos</h2>
+                        <p>No se encontraron registros.</p>
+                    </div>
                 </td>
             </tr>
         `;
@@ -1708,270 +1478,164 @@ function renderInventory(filter = "") {
     }
 
 
-    inventory.forEach(item => {
+    table.innerHTML = filtered.map(item => {
 
-        const lowStock =
-            Number(item.stock) <=
-            Number(item.minStock);
+        let stockClass = "active";
 
+        if (isLowStock(item)) {
+            stockClass = "critical";
+        }
 
-        const days =
-            daysUntil(item.expiry);
-
-
-        const expiring =
-            days >= 0 && days <= 90;
-
-
-        let statusClass =
-            item.status === "Activo"
-                ? "active"
-                : "inactive";
-
-
-        let statusText =
-            item.status;
-
-
-        if (lowStock) {
-
-            statusClass = "danger";
-
-            statusText = "Stock bajo";
-
-        } else if (expiring) {
-
-            statusClass = "warning";
-
-            statusText = "Por vencer";
-
+        else if (Number(item.stock) <= Number(item.minStock) * 1.5) {
+            stockClass = "warning";
         }
 
 
-        const tr =
-            document.createElement("tr");
+        let expiryClass = "";
+
+        if (isExpiringSoon(item)) {
+            expiryClass = "critical";
+        }
 
 
-        tr.innerHTML = `
+        return `
 
-            <td>
-                <strong>
-                    ${escapeHtml(item.code)}
-                </strong>
-            </td>
+            <tr>
 
-            <td>
-                ${escapeHtml(item.name)}
-            </td>
+                <td>
+                    <strong>${escapeHTML(item.code)}</strong>
+                </td>
 
-            <td>
-                ${escapeHtml(item.category)}
-            </td>
+                <td>${escapeHTML(item.name)}</td>
 
-            <td>
-                ${escapeHtml(item.unit)}
-            </td>
+                <td>${escapeHTML(item.category)}</td>
 
-            <td>
-                <strong>
-                    ${formatNumber(item.stock)}
-                </strong>
-            </td>
+                <td>${escapeHTML(item.unit || "Unidades")}</td>
 
-            <td>
-                ${formatNumber(item.minStock)}
-            </td>
+                <td>
+                    <span class="status ${stockClass}">
+                        ${number(item.stock)}
+                    </span>
+                </td>
 
-            <td>
-                ${
-                    item.expiry
-                        ? item.expiry
-                        : "No aplica"
-                }
-            </td>
+                <td>${number(item.minStock)}</td>
 
-            <td>
-                ${formatCurrency(item.price)}
-            </td>
+                <td>
+                    <span class="${expiryClass}">
+                        ${formatDate(item.expiry)}
+                    </span>
+                </td>
 
-            <td>
+                <td>${currency(item.price)}</td>
 
-                <span class="status ${statusClass}">
-                    ${escapeHtml(statusText)}
-                </span>
+                <td>
+                    <span class="status ${item.status}">
+                        ${escapeHTML(item.status)}
+                    </span>
+                </td>
 
-            </td>
+                <td>
 
-            <td>
+                    <div class="actions">
 
-                <div class="action-buttons">
+                        <button
+                            class="action-btn edit"
+                            onclick="editInventory('${item.id}')">
+                            Editar
+                        </button>
 
-                    <button
-                        class="action-btn edit-btn"
-                        data-edit-inventory="${item.id}"
-                    >
-                        Editar
-                    </button>
+                        <button
+                            class="action-btn delete"
+                            onclick="deleteInventory('${item.id}')">
+                            Eliminar
+                        </button>
 
-                    <button
-                        class="action-btn delete-btn"
-                        data-delete-inventory="${item.id}"
-                    >
-                        Eliminar
-                    </button>
+                    </div>
 
-                </div>
+                </td>
 
-            </td>
+            </tr>
 
         `;
 
-
-        tbody.appendChild(tr);
-
-    });
+    }).join("");
 
 
-    tbody.querySelectorAll(
-        "[data-edit-inventory]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                editInventory(
-                    button.dataset.editInventory
-                );
-
-            }
-        );
-
-    });
-
-
-    tbody.querySelectorAll(
-        "[data-delete-inventory]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                deleteInventory(
-                    button.dataset.deleteInventory
-                );
-
-            }
-        );
-
-    });
-
+    updateInventoryStats();
 }
 
 
-function openInventoryModal(id = "") {
+function updateInventoryStats() {
+
+    const total = inventory.length;
+
+    const lowStock =
+        inventory.filter(isLowStock).length;
+
+    const expiring =
+        inventory.filter(isExpiringSoon).length;
+
+
+    document.getElementById("totalInventory").textContent =
+        number(total);
+
+    document.getElementById("lowStockInventory").textContent =
+        number(lowStock);
+
+    document.getElementById("expiringInventory").textContent =
+        number(expiring);
+}
+
+
+function openInventoryModal(item = null) {
 
     const modal =
-        document.getElementById(
-            "inventoryModal"
-        );
+        document.getElementById("inventoryModal");
+
+    document.getElementById("inventoryForm").reset();
 
 
-    const form =
-        document.getElementById(
-            "inventoryForm"
-        );
+    if (item) {
 
-
-    form.reset();
-
-
-    document.getElementById(
-        "inventoryId"
-    ).value = "";
-
-
-    document.getElementById(
-        "inventoryUnit"
-    ).value = "Unidades";
-
-
-    if (id) {
-
-        const item =
-            getInventory().find(
-                inventoryItem =>
-                    inventoryItem.id === id
-            );
-
-
-        if (!item) {
-            return;
-        }
-
-
-        document.getElementById(
-            "inventoryModalTitle"
-        ).textContent =
+        document.getElementById("inventoryModalTitle").textContent =
             "Editar producto";
 
+        document.getElementById("inventoryId").value =
+            item.id;
 
-        document.getElementById(
-            "inventoryId"
-        ).value = item.id;
+        document.getElementById("inventoryCode").value =
+            item.code;
 
+        document.getElementById("inventoryName").value =
+            item.name;
 
-        document.getElementById(
-            "inventoryCode"
-        ).value = item.code;
+        document.getElementById("inventoryCategory").value =
+            item.category;
 
+        document.getElementById("inventoryUnit").value =
+            item.unit || "Unidades";
 
-        document.getElementById(
-            "inventoryName"
-        ).value = item.name;
+        document.getElementById("inventoryStock").value =
+            item.stock;
 
+        document.getElementById("inventoryMinStock").value =
+            item.minStock;
 
-        document.getElementById(
-            "inventoryCategory"
-        ).value = item.category;
+        document.getElementById("inventoryExpiry").value =
+            item.expiry || "";
 
+        document.getElementById("inventoryPrice").value =
+            item.price ?? item.unitCost ?? 0;
 
-        document.getElementById(
-            "inventoryUnit"
-        ).value = item.unit;
-
-
-        document.getElementById(
-            "inventoryStock"
-        ).value = item.stock;
-
-
-        document.getElementById(
-            "inventoryMinStock"
-        ).value = item.minStock;
-
-
-        document.getElementById(
-            "inventoryExpiry"
-        ).value = item.expiry;
-
-
-        document.getElementById(
-            "inventoryPrice"
-        ).value = item.price;
-
-
-        document.getElementById(
-            "inventoryStatus"
-        ).value = item.status;
+        document.getElementById("inventoryStatus").value =
+            item.status;
 
     } else {
 
-        document.getElementById(
-            "inventoryModalTitle"
-        ).textContent =
+        document.getElementById("inventoryModalTitle").textContent =
             "Nuevo producto";
+
+        document.getElementById("inventoryId").value = "";
 
     }
 
@@ -1982,316 +1646,247 @@ function openInventoryModal(id = "") {
 
 function closeInventoryModal() {
 
-    document.getElementById(
-        "inventoryModal"
-    ).classList.remove("show");
-
-}
-
-
-function saveInventory(event) {
-
-    event.preventDefault();
-
-
-    const inventory =
-        getInventory();
-
-
-    const id =
-        document.getElementById(
-            "inventoryId"
-        ).value;
-
-
-    const item = {
-
-        id: id || createId("inv"),
-
-        code:
-            document.getElementById(
-                "inventoryCode"
-            ).value.trim(),
-
-        name:
-            document.getElementById(
-                "inventoryName"
-            ).value.trim(),
-
-        category:
-            document.getElementById(
-                "inventoryCategory"
-            ).value,
-
-        unit:
-            document.getElementById(
-                "inventoryUnit"
-            ).value.trim(),
-
-        stock:
-            Number(
-                document.getElementById(
-                    "inventoryStock"
-                ).value
-            ) || 0,
-
-        minStock:
-            Number(
-                document.getElementById(
-                    "inventoryMinStock"
-                ).value
-            ) || 0,
-
-        expiry:
-            document.getElementById(
-                "inventoryExpiry"
-            ).value,
-
-        price:
-            Number(
-                document.getElementById(
-                    "inventoryPrice"
-                ).value
-            ) || 0,
-
-        status:
-            document.getElementById(
-                "inventoryStatus"
-            ).value
-
-    };
-
-
-    if (!item.code || !item.name) {
-
-        alert(
-            "Complete el código y el nombre del producto."
-        );
-
-        return;
-    }
-
-
-    if (id) {
-
-        const index =
-            inventory.findIndex(
-                inventoryItem =>
-                    inventoryItem.id === id
-            );
-
-
-        if (index !== -1) {
-
-            inventory[index] = item;
-
-        }
-
-    } else {
-
-        inventory.push(item);
-
-    }
-
-
-    saveData(
-        STORAGE.inventory,
-        inventory
-    );
-
-
-    closeInventoryModal();
-
-
-    renderInventory();
-
-    updateInventoryStats();
-
-    updateDashboard();
-
-    updateAnalysis();
-
-    generateAlerts();
+    document.getElementById("inventoryModal")
+        ?.classList.remove("show");
 
 }
 
 
 function editInventory(id) {
 
-    openInventoryModal(id);
+    const item = inventory.find(
+        i => i.id === id
+    );
 
+    if (item) {
+        openInventoryModal(item);
+    }
 }
 
 
 function deleteInventory(id) {
 
-    const item =
-        getInventory().find(
-            inventoryItem =>
-                inventoryItem.id === id
-        );
-
+    const item = inventory.find(
+        i => i.id === id
+    );
 
     if (!item) {
         return;
     }
 
 
-    if (!confirm(
-        `¿Desea eliminar ${item.name}?`
-    )) {
-
+    if (!confirm(`¿Eliminar ${item.name}?`)) {
         return;
-
     }
 
 
-    const inventory =
-        getInventory().filter(
-            inventoryItem =>
-                inventoryItem.id !== id
-        );
-
-
-    saveData(
-        STORAGE.inventory,
-        inventory
+    inventory = inventory.filter(
+        i => i.id !== id
     );
 
 
-    renderInventory();
+    saveData(STORAGE.inventory, inventory);
 
-    updateInventoryStats();
+    renderInventory(
+        document.getElementById("inventorySearch")?.value || ""
+    );
 
     updateDashboard();
 
-    updateAnalysis();
+    renderAlerts();
 
-    generateAlerts();
+    showToast("Producto eliminado");
 
 }
 
 
-/* =========================================================
+document.getElementById("inventoryForm")
+    ?.addEventListener("submit", event => {
+
+        event.preventDefault();
+
+
+        const id =
+            document.getElementById("inventoryId").value;
+
+
+        const data = {
+
+            id: id || generateId("i"),
+
+            code:
+                document.getElementById("inventoryCode").value.trim(),
+
+            name:
+                document.getElementById("inventoryName").value.trim(),
+
+            category:
+                document.getElementById("inventoryCategory").value,
+
+            unit:
+                document.getElementById("inventoryUnit").value.trim(),
+
+            stock:
+                Number(document.getElementById("inventoryStock").value),
+
+            minStock:
+                Number(document.getElementById("inventoryMinStock").value),
+
+            expiry:
+                document.getElementById("inventoryExpiry").value,
+
+            price:
+                Number(document.getElementById("inventoryPrice").value),
+
+            status:
+                document.getElementById("inventoryStatus").value
+
+        };
+
+
+        if (id) {
+
+            inventory = inventory.map(item =>
+                item.id === id
+                    ? data
+                    : item
+            );
+
+            showToast("Producto actualizado");
+
+        } else {
+
+            inventory.push(data);
+
+            showToast("Producto registrado");
+
+        }
+
+
+        saveData(STORAGE.inventory, inventory);
+
+        renderInventory();
+
+        updateDashboard();
+
+        renderAlerts();
+
+        closeInventoryModal();
+
+    });
+
+
+document.getElementById("newInventoryBtn")
+    ?.addEventListener("click", () => {
+
+        openInventoryModal();
+
+    });
+
+
+document.getElementById("closeInventoryModal")
+    ?.addEventListener("click", closeInventoryModal);
+
+
+document.getElementById("cancelInventoryModal")
+    ?.addEventListener("click", closeInventoryModal);
+
+
+document.getElementById("inventorySearch")
+    ?.addEventListener("input", event => {
+
+        renderInventory(event.target.value);
+
+    });
+
+
+/* =====================================================
    PRESUPUESTO
-========================================================= */
+===================================================== */
 
-function getBudget() {
+function getExecutedBudget() {
 
-    return getData(
-        STORAGE.budget,
-        []
-    );
+    return budget
+        .filter(item => item.status === "Ejecutado")
+        .reduce(
+            (sum, item) => sum + Number(item.amount),
+            0
+        );
 }
 
 
 function updateBudgetSummary() {
 
-    const budget =
-        getBudget();
-
+    const approved =
+        BUDGET_APPROVED_VALUE;
 
     const executed =
-        budget.reduce(
-            (sum, item) =>
-                sum + Number(item.amount || 0),
-            0
-        );
-
+        getExecutedBudget();
 
     const available =
-        Math.max(
-            BUDGET_APPROVED_VALUE -
-            executed,
-            0
-        );
-
+        Math.max(approved - executed, 0);
 
     const percentage =
-        BUDGET_APPROVED_VALUE > 0
-            ? (
-                executed /
-                BUDGET_APPROVED_VALUE
-            ) * 100
+        approved
+            ? Math.round((executed / approved) * 100)
             : 0;
 
 
-    document.getElementById(
-        "budgetApproved"
-    ).textContent =
-        formatCurrency(
-            BUDGET_APPROVED_VALUE
-        );
+    document.getElementById("budgetApproved").textContent =
+        currency(approved);
 
+    document.getElementById("budgetExecuted").textContent =
+        currency(executed);
 
-    document.getElementById(
-        "budgetExecuted"
-    ).textContent =
-        formatCurrency(executed);
+    document.getElementById("budgetAvailable").textContent =
+        currency(available);
 
+    document.getElementById("budgetPercentage").textContent =
+        `${percentage}%`;
 
-    document.getElementById(
-        "budgetAvailable"
-    ).textContent =
-        formatCurrency(available);
-
-
-    document.getElementById(
-        "budgetPercentage"
-    ).textContent =
-        `${Math.round(percentage)}%`;
 }
 
 
-function renderBudget(filter = "") {
+function renderBudget(search = "") {
 
-    const tbody =
-        document.getElementById(
-            "budgetTable"
-        );
+    const table =
+        document.getElementById("budgetTable");
 
-
-    if (!tbody) {
+    if (!table) {
         return;
     }
 
 
-    const search =
-        filter.trim().toLowerCase();
+    const query =
+        search.toLowerCase().trim();
 
 
-    const budget =
-        getBudget().filter(item => {
+    const filtered =
+        budget.filter(item => {
 
             const text = [
-
-                item.concept,
-
                 item.category,
-
-                item.status,
-
-                item.date
-
+                item.description,
+                item.status
             ]
-                .join(" ")
-                .toLowerCase();
+            .join(" ")
+            .toLowerCase();
 
-
-            return text.includes(search);
+            return text.includes(query);
 
         });
 
 
-    tbody.innerHTML = "";
+    if (!filtered.length) {
 
-
-    if (!budget.length) {
-
-        tbody.innerHTML = `
+        table.innerHTML = `
             <tr>
-                <td colspan="6" class="empty-table">
-                    No se encontraron movimientos.
+                <td colspan="6">
+                    <div class="empty-state">
+                        <span>💰</span>
+                        <h2>No hay movimientos</h2>
+                        <p>No se encontraron registros.</p>
+                    </div>
                 </td>
             </tr>
         `;
@@ -2300,293 +1895,565 @@ function renderBudget(filter = "") {
     }
 
 
-    budget.forEach(item => {
+    table.innerHTML = filtered.map(item => `
 
-        const tr =
-            document.createElement("tr");
-
-
-        tr.innerHTML = `
+        <tr>
 
             <td>
-                <strong>
-                    ${escapeHtml(item.concept)}
-                </strong>
+                <strong>${escapeHTML(item.category)}</strong>
             </td>
 
-            <td>
-                ${escapeHtml(item.category)}
-            </td>
+            <td>${escapeHTML(item.description)}</td>
+
+            <td>${currency(item.amount)}</td>
+
+            <td>${formatDate(item.date)}</td>
 
             <td>
-                ${formatCurrency(item.amount)}
-            </td>
-
-            <td>
-                ${escapeHtml(item.date)}
-            </td>
-
-            <td>
-
-                <span class="status active">
-                    ${escapeHtml(item.status)}
+                <span class="status ${
+                    item.status === "Ejecutado"
+                        ? "active"
+                        : "warning"
+                }">
+                    ${escapeHTML(item.status)}
                 </span>
-
             </td>
 
             <td>
 
-                <div class="action-buttons">
-
-                    <button
-                        class="action-btn delete-btn"
-                        data-delete-budget="${item.id}"
-                    >
-                        Eliminar
-                    </button>
-
-                </div>
+                <button
+                    class="action-btn delete"
+                    onclick="deleteBudget('${item.id}')">
+                    Eliminar
+                </button>
 
             </td>
 
-        `;
+        </tr>
+
+    `).join("");
 
 
-        tbody.appendChild(tr);
-
-    });
-
-
-    tbody.querySelectorAll(
-        "[data-delete-budget]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                deleteBudget(
-                    button.dataset.deleteBudget
-                );
-
-            }
-        );
-
-    });
-
+    updateBudgetSummary();
 }
 
 
 function openBudgetModal() {
 
-    const modal =
-        document.getElementById(
-            "budgetModal"
-        );
+    document.getElementById("budgetForm").reset();
 
+    document.getElementById("budgetDate").value =
+        todayISO();
 
-    document.getElementById(
-        "budgetForm"
-    ).reset();
+    document.getElementById("budgetModal")
+        .classList.add("show");
 
-
-    document.getElementById(
-        "budgetDate"
-    ).value =
-        todayString();
-
-
-    modal.classList.add("show");
 }
 
 
 function closeBudgetModal() {
 
-    document.getElementById(
-        "budgetModal"
-    ).classList.remove("show");
-}
-
-
-function saveBudget(event) {
-
-    event.preventDefault();
-
-
-    const budget =
-        getBudget();
-
-
-    const movement = {
-
-        id: createId("bud"),
-
-        concept:
-            document.getElementById(
-                "budgetConcept"
-            ).value.trim(),
-
-        category:
-            document.getElementById(
-                "budgetCategory"
-            ).value,
-
-        amount:
-            Number(
-                document.getElementById(
-                    "budgetAmount"
-                ).value
-            ) || 0,
-
-        date:
-            document.getElementById(
-                "budgetDate"
-            ).value,
-
-        status: "Ejecutado"
-
-    };
-
-
-    if (!movement.concept ||
-        movement.amount <= 0) {
-
-        alert(
-            "Ingrese un concepto y un valor válido."
-        );
-
-        return;
-    }
-
-
-    budget.push(movement);
-
-
-    saveData(
-        STORAGE.budget,
-        budget
-    );
-
-
-    closeBudgetModal();
-
-
-    renderBudget();
-
-    updateBudgetSummary();
-
-    updateDashboard();
-
-    updateAnalysis();
-
-    generateAlerts();
+    document.getElementById("budgetModal")
+        ?.classList.remove("show");
 
 }
 
 
 function deleteBudget(id) {
 
-    if (!confirm(
-        "¿Desea eliminar este movimiento?"
-    )) {
-
+    if (!confirm("¿Eliminar este movimiento presupuestal?")) {
         return;
-
     }
 
 
-    const budget =
-        getBudget().filter(
-            item => item.id !== id
-        );
-
-
-    saveData(
-        STORAGE.budget,
-        budget
+    budget = budget.filter(
+        item => item.id !== id
     );
 
 
-    renderBudget();
+    saveData(STORAGE.budget, budget);
 
-    updateBudgetSummary();
+    renderBudget();
 
     updateDashboard();
 
-    updateAnalysis();
+    showToast("Movimiento eliminado");
 
 }
 
 
-/* =========================================================
-   ANALISIS
-========================================================= */
+document.getElementById("budgetForm")
+    ?.addEventListener("submit", event => {
 
-function updateAnalysis() {
-
-    const patients =
-        getPatients();
-
-    const services =
-        getServices();
-
-    const inventory =
-        getInventory();
+        event.preventDefault();
 
 
-    const lowStock =
-        inventory.filter(
-            item =>
-                Number(item.stock) <=
-                Number(item.minStock)
+        const data = {
+
+            id: generateId("b"),
+
+            category:
+                document.getElementById("budgetCategoryInput").value.trim(),
+
+            description:
+                document.getElementById("budgetDescription").value.trim(),
+
+            amount:
+                Number(document.getElementById("budgetAmount").value),
+
+            date:
+                document.getElementById("budgetDate").value,
+
+            status:
+                document.getElementById("budgetStatusInput").value
+
+        };
+
+
+        budget.push(data);
+
+        saveData(STORAGE.budget, budget);
+
+        renderBudget();
+
+        updateDashboard();
+
+        closeBudgetModal();
+
+        showToast("Movimiento presupuestal registrado");
+
+    });
+
+
+document.getElementById("newBudgetBtn")
+    ?.addEventListener("click", openBudgetModal);
+
+
+document.getElementById("closeBudgetModal")
+    ?.addEventListener("click", closeBudgetModal);
+
+
+document.getElementById("cancelBudgetBtn")
+    ?.addEventListener("click", closeBudgetModal);
+
+
+document.getElementById("budgetSearch")
+    ?.addEventListener("input", event => {
+
+        renderBudget(event.target.value);
+
+    });
+
+
+/* =====================================================
+   DASHBOARD
+===================================================== */
+
+function updateDashboard() {
+
+    updatePatientStats();
+
+    updateServiceStats();
+
+    updateInventoryStats();
+
+    updateBudgetSummary();
+
+    updateDashboardInventory();
+
+    updateDashboardDemand();
+
+    updateDashboardAlerts();
+
+    updateDashboardSummary();
+
+    updateDashboardBudget();
+
+}
+
+
+function updateDashboardBudget() {
+
+    const executed =
+        getExecutedBudget();
+
+    const percentage =
+        Math.round(
+            (executed / BUDGET_APPROVED_VALUE) * 100
         );
 
 
-    document.getElementById(
-        "analysisPatients"
-    ).textContent =
-        patients.length;
+    document.getElementById("dashboardBudget").textContent =
+        `${percentage}%`;
+
+    document.getElementById("dashboardBudgetPercentage").textContent =
+        `${percentage}%`;
+
+    document.getElementById("dashboardBudgetExecuted").textContent =
+        currency(executed);
+
+    document.getElementById("dashboardBudgetTotal").textContent =
+        currency(BUDGET_APPROVED_VALUE);
 
 
-    document.getElementById(
-        "analysisServices"
-    ).textContent =
-        services.length;
+    document.getElementById("dashboardBudgetBar").style.width =
+        `${Math.min(percentage, 100)}%`;
+}
 
 
-    document.getElementById(
-        "analysisInventory"
-    ).textContent =
+function updateDashboardInventory() {
+
+    const total =
         inventory.length;
 
+    const low =
+        inventory.filter(isLowStock).length;
 
-    document.getElementById(
-        "analysisLowStock"
-    ).textContent =
-        lowStock.length;
-
-
-    renderPatientsAnalysis(
-        patients
-    );
+    const expiring =
+        inventory.filter(isExpiringSoon).length;
 
 
-    renderInventoryAnalysis(
-        inventory
-    );
+    const healthy =
+        Math.max(total - low - expiring, 0);
 
+
+    const percentage =
+        total
+            ? Math.round(
+                (healthy / total) * 100
+            )
+            : 0;
+
+
+    document.getElementById("dashboardInventory").textContent =
+        `${percentage}%`;
+
+
+    document.getElementById("dashboardInventorySummary").innerHTML = `
+
+        <div class="inventory-line">
+            <div>
+                <strong>Productos registrados</strong>
+                <span>Total de referencias</span>
+            </div>
+
+            <strong class="inventory-number">
+                ${number(total)}
+            </strong>
+        </div>
+
+        <div class="inventory-line">
+            <div>
+                <strong>Stock bajo</strong>
+                <span>Requieren reposición</span>
+            </div>
+
+            <strong class="inventory-number">
+                ${number(low)}
+            </strong>
+        </div>
+
+        <div class="inventory-line">
+            <div>
+                <strong>Próximos a vencer</strong>
+                <span>Revisión requerida</span>
+            </div>
+
+            <strong class="inventory-number">
+                ${number(expiring)}
+            </strong>
+        </div>
+
+    `;
+}
+
+
+function updateDashboardDemand() {
+
+    const chart =
+        document.getElementById("dashboardServiceDemand");
+
+    if (!chart) {
+        return;
+    }
+
+
+    const monthly = [
+        ["Ene", 58],
+        ["Feb", 66],
+        ["Mar", 61],
+        ["Abr", 74],
+        ["May", 82],
+        ["Jun", 76],
+        ["Jul", 87],
+        ["Ago", 79],
+        ["Sep", 91],
+        ["Oct", 86],
+        ["Nov", 72],
+        ["Dic", 68]
+    ];
+
+
+    chart.innerHTML =
+        monthly.map(([month, value]) => `
+
+            <div class="bar-item">
+
+                <span class="bar-value">
+                    ${value}%
+                </span>
+
+                <div
+                    class="bar"
+                    style="height:${value}%">
+                </div>
+
+                <span class="bar-label">
+                    ${month}
+                </span>
+
+            </div>
+
+        `).join("");
+}
+
+
+function generateAlerts() {
+
+    const alerts = [];
+
+
+    const lowStock =
+        inventory.filter(isLowStock);
+
+
+    lowStock.forEach(item => {
+
+        alerts.push({
+
+            type: "critical",
+
+            icon: "🚨",
+
+            title: "Stock bajo",
+
+            message:
+                `${item.name} tiene ${item.stock} unidades y el mínimo establecido es ${item.minStock}.`
+
+        });
+
+    });
+
+
+    const expiring =
+        inventory.filter(isExpiringSoon);
+
+
+    expiring.forEach(item => {
+
+        alerts.push({
+
+            type: "warning",
+
+            icon: "⚠️",
+
+            title: "Próximo vencimiento",
+
+            message:
+                `${item.name} tiene vencimiento el ${formatDate(item.expiry)}.`
+
+        });
+
+    });
+
+
+    const percentage =
+        Math.round(
+            (getExecutedBudget() / BUDGET_APPROVED_VALUE) * 100
+        );
+
+
+    if (percentage >= 70) {
+
+        alerts.push({
+
+            type: "warning",
+
+            icon: "💰",
+
+            title: "Ejecución presupuestal elevada",
+
+            message:
+                `La ejecución presupuestal alcanza el ${percentage}% del presupuesto aprobado.`
+
+        });
+
+    }
+
+
+    alerts.push({
+
+        type: "info",
+
+        icon: "📊",
+
+        title: "Demanda institucional",
+
+        message:
+            "Se observa una tendencia creciente en varios servicios durante el periodo analizado."
+
+    });
+
+
+    return alerts;
+
+}
+
+
+function updateDashboardAlerts() {
+
+    const container =
+        document.getElementById("dashboardAlerts");
+
+    if (!container) {
+        return;
+    }
+
+
+    const alerts =
+        generateAlerts();
+
+
+    document.getElementById("dashboardAlertCount").textContent =
+        number(alerts.length);
+
+
+    container.innerHTML =
+        alerts.slice(0, 4).map(alert => `
+
+            <div class="mini-alert ${alert.type}">
+
+                <div class="mini-alert-icon">
+                    ${alert.icon}
+                </div>
+
+                <div>
+
+                    <strong>
+                        ${escapeHTML(alert.title)}
+                    </strong>
+
+                    <p>
+                        ${escapeHTML(alert.message)}
+                    </p>
+
+                </div>
+
+            </div>
+
+        `).join("");
+}
+
+
+function updateDashboardSummary() {
+
+    const element =
+        document.getElementById("dashboardSystemSummary");
+
+    if (!element) {
+        return;
+    }
+
+
+    const activePatients =
+        patients.filter(p => p.status === "Activo").length;
+
+
+    const activeServices =
+        services.filter(s => s.status === "Activo").length;
+
+
+    const lowStock =
+        inventory.filter(isLowStock).length;
+
+
+    const executed =
+        getExecutedBudget();
+
+
+    element.innerHTML = `
+
+        <div class="summary-item">
+            <span>Pacientes activos</span>
+            <strong>${number(activePatients)}</strong>
+        </div>
+
+        <div class="summary-item">
+            <span>Servicios activos</span>
+            <strong>${number(activeServices)}</strong>
+        </div>
+
+        <div class="summary-item">
+            <span>Productos con stock bajo</span>
+            <strong>${number(lowStock)}</strong>
+        </div>
+
+        <div class="summary-item">
+            <span>Recursos ejecutados</span>
+            <strong>${currency(executed)}</strong>
+        </div>
+
+    `;
+}
+
+
+/* =====================================================
+   ANÁLISIS
+===================================================== */
+
+function updateAnalysis() {
+
+    const activePatients =
+        patients.filter(
+            p => p.status === "Activo"
+        ).length;
+
+
+    const activeServices =
+        services.filter(
+            s => s.status === "Activo"
+        ).length;
+
+
+    const lowStock =
+        inventory.filter(isLowStock).length;
+
+
+    document.getElementById("analysisPatients").textContent =
+        number(activePatients);
+
+    document.getElementById("analysisServices").textContent =
+        number(activeServices);
+
+    document.getElementById("analysisInventory").textContent =
+        number(inventory.length);
+
+    document.getElementById("analysisLowStock").textContent =
+        number(lowStock);
+
+
+    renderPatientsAnalysis();
+
+    renderInventoryAnalysis();
 
     renderFinancialAnalysis();
 }
 
 
-function renderPatientsAnalysis(patients) {
+function renderPatientsAnalysis() {
 
     const container =
-        document.getElementById(
-            "patientsAnalysisChart"
-        );
-
+        document.getElementById("patientsAnalysisChart");
 
     if (!container) {
         return;
@@ -2598,77 +2465,53 @@ function renderPatientsAnalysis(patients) {
 
     patients.forEach(patient => {
 
-        const service =
-            patient.service || "Sin servicio";
-
-
-        counts[service] =
-            (counts[service] || 0) + 1;
+        counts[patient.service] =
+            (counts[patient.service] || 0) + 1;
 
     });
 
 
-    const entries =
+    const data =
         Object.entries(counts)
-            .sort(
-                (a, b) => b[1] - a[1]
-            );
-
-
-    if (!entries.length) {
-
-        container.innerHTML =
-            `<p class="empty-message">
-                No hay pacientes registrados.
-            </p>`;
-
-        return;
-    }
+            .sort((a, b) => b[1] - a[1]);
 
 
     const max =
-        Math.max(
-            ...entries.map(item => item[1])
-        );
+        Math.max(...data.map(item => item[1]), 1);
 
 
     container.innerHTML =
-        entries.map(
-            ([name, value]) => `
+        data.map(([service, count]) => `
 
-                <div class="demand-row">
+            <div class="horizontal-item">
 
-                    <span class="demand-name">
-                        ${escapeHtml(name)}
-                    </span>
+                <span class="horizontal-label">
+                    ${escapeHTML(service)}
+                </span>
 
-                    <div class="demand-track">
+                <div class="horizontal-track">
 
-                        <div
-                            class="demand-fill"
-                            style="width:${(value / max) * 100}%"
-                        ></div>
-
+                    <div
+                        class="horizontal-fill"
+                        style="width:${(count / max) * 100}%">
                     </div>
-
-                    <span class="demand-value">
-                        ${value}
-                    </span>
 
                 </div>
 
-            `
-        ).join("");
+                <span class="horizontal-value">
+                    ${count}
+                </span>
+
+            </div>
+
+        `).join("");
 }
 
 
-function renderInventoryAnalysis(inventory) {
+function renderInventoryAnalysis() {
 
     const container =
-        document.getElementById(
-            "inventoryAnalysisChart"
-        );
-
+        document.getElementById("inventoryAnalysisChart");
 
     if (!container) {
         return;
@@ -2678,78 +2521,36 @@ function renderInventoryAnalysis(inventory) {
     const total =
         inventory.length;
 
-
     const low =
-        inventory.filter(
-            item =>
-                Number(item.stock) <=
-                Number(item.minStock)
-        ).length;
+        inventory.filter(isLowStock).length;
 
+    const expiring =
+        inventory.filter(isExpiringSoon).length;
 
-    const available =
-        total - low;
-
-
-    if (!total) {
-
-        container.innerHTML =
-            `<p class="empty-message">
-                No hay productos registrados.
-            </p>`;
-
-        return;
-    }
-
-
-    const percentage =
-        Math.round(
-            (available / total) * 100
-        );
+    const normal =
+        Math.max(total - low, 0);
 
 
     container.innerHTML = `
 
-        <div class="inventory-summary">
+        <div class="analysis-row">
+            <span>Total de productos</span>
+            <strong>${number(total)}</strong>
+        </div>
 
-            <div class="inventory-summary-card">
+        <div class="analysis-row">
+            <span>Stock adecuado</span>
+            <strong>${number(normal)}</strong>
+        </div>
 
-                <strong>
-                    ${total}
-                </strong>
+        <div class="analysis-row">
+            <span>Stock bajo</span>
+            <strong>${number(low)}</strong>
+        </div>
 
-                <span>
-                    Total productos
-                </span>
-
-            </div>
-
-
-            <div class="inventory-summary-card">
-
-                <strong>
-                    ${available}
-                </strong>
-
-                <span>
-                    Disponibles
-                </span>
-
-            </div>
-
-
-            <div class="inventory-summary-card">
-
-                <strong>
-                    ${percentage}%
-                </strong>
-
-                <span>
-                    Disponibilidad
-                </span>
-
-            </div>
-
+        <div class="analysis-row">
+            <span>Próximos a vencer</span>
+            <strong>${number(expiring)}</strong>
         </div>
 
     `;
@@ -2759,110 +2560,68 @@ function renderInventoryAnalysis(inventory) {
 function renderFinancialAnalysis() {
 
     const container =
-        document.getElementById(
-            "financialAnalysis"
-        );
-
+        document.getElementById("financialAnalysis");
 
     if (!container) {
         return;
     }
 
 
-    const budget =
-        getBudget();
+    const executed =
+        getExecutedBudget();
 
 
-    const totals = {};
+    const available =
+        Math.max(
+            BUDGET_APPROVED_VALUE - executed,
+            0
+        );
 
 
-    budget.forEach(item => {
-
-        totals[item.category] =
-            (totals[item.category] || 0) +
-            Number(item.amount || 0);
-
-    });
-
-
-    const rows =
-        Object.entries(totals);
+    const percentage =
+        Math.round(
+            (executed / BUDGET_APPROVED_VALUE) * 100
+        );
 
 
     container.innerHTML = `
 
-        <div class="panel-header">
-
-            <div>
-
-                <h3>
-                    Distribución presupuestal
-                </h3>
-
-                <p>
-                    Ejecución por categoría
-                </p>
-
-            </div>
-
+        <div class="financial-box">
+            <span>Presupuesto aprobado</span>
+            <strong>${currency(BUDGET_APPROVED_VALUE)}</strong>
         </div>
 
-
-        <div class="summary-list">
-
-            ${
-                rows.length
-                    ? rows.map(
-                        ([category, amount]) => `
-
-                            <div class="summary-row">
-
-                                <span>
-                                    ${escapeHtml(category)}
-                                </span>
-
-                                <strong>
-                                    ${formatCurrency(amount)}
-                                </strong>
-
-                            </div>
-
-                        `
-                    ).join("")
-                    : `
-                        <p class="empty-message">
-                            No hay movimientos presupuestales.
-                        </p>
-                    `
-            }
-
+        <div class="financial-box">
+            <span>Presupuesto ejecutado</span>
+            <strong>${currency(executed)}</strong>
         </div>
+
+        <div class="financial-box">
+            <span>Porcentaje de ejecución</span>
+            <strong>${percentage}%</strong>
+        </div>
+
+        <div class="financial-box">
+            <span>Disponible</span>
+            <strong>${currency(available)}</strong>
+        </div>
+
     `;
 }
 
 
-/* =========================================================
+/* =====================================================
    PREDICCIONES
-========================================================= */
+===================================================== */
 
 function populatePredictionServices() {
 
     const select =
-        document.getElementById(
-            "predictionService"
-        );
-
+        document.getElementById("predictionService");
 
     if (!select) {
         return;
     }
-
-
-    const services =
-        getServices().filter(
-            service =>
-                service.status === "Activo"
-        );
 
 
     const current =
@@ -2875,29 +2634,26 @@ function populatePredictionServices() {
             Seleccione un servicio
         </option>
 
+        ${
+            services
+                .filter(s => s.status === "Activo")
+                .map(service => `
+                    <option value="${escapeHTML(service.name)}">
+                        ${escapeHTML(service.name)}
+                    </option>
+                `)
+                .join("")
+        }
+
     `;
 
 
-    services.forEach(service => {
-
-        const option =
-            document.createElement("option");
-
-
-        option.value =
-            service.name;
-
-
-        option.textContent =
-            service.name;
-
-
-        select.appendChild(option);
-
-    });
-
-
-    if (current) {
+    if (
+        current &&
+        services.some(
+            s => s.name === current
+        )
+    ) {
         select.value = current;
     }
 }
@@ -2906,309 +2662,198 @@ function populatePredictionServices() {
 function generatePrediction() {
 
     const serviceName =
-        document.getElementById(
-            "predictionService"
-        ).value;
+        document.getElementById("predictionService").value;
 
 
     const period =
         Number(
-            document.getElementById(
-                "predictionPeriod"
-            ).value
+            document.getElementById("predictionPeriod").value
         );
+
+
+    const result =
+        document.getElementById("predictionResult");
 
 
     if (!serviceName) {
 
-        alert(
-            "Seleccione un servicio."
-        );
+        showToast("Seleccione un servicio");
 
         return;
     }
 
 
-    const patients =
-        getPatients();
-
-
-    const historicalAverage =
+    const patientCount =
         patients.filter(
-            patient =>
-                patient.service === serviceName
+            p => p.service === serviceName
+        ).length;
+
+
+    const activePatientCount =
+        patients.filter(
+            p =>
+                p.service === serviceName &&
+                p.status === "Activo"
         ).length;
 
 
     const base =
-        historicalAverage || 1;
-
-
-    const growth =
-        period === 1
-            ? 0.08
-            : period === 3
-                ? 0.12
-                : 0.18;
+        Math.max(
+            activePatientCount * 8,
+            20
+        );
 
 
     const estimated =
         Math.round(
-            base * (1 + growth)
+            base * (1 + (period * 0.06))
         );
 
 
-    document.getElementById(
-        "historicalAverage"
-    ).textContent =
-        historicalAverage;
+    const variation =
+        Math.round(
+            ((estimated - base) / base) * 100
+        );
 
 
-    document.getElementById(
-        "estimatedDemand"
-    ).textContent =
-        estimated;
+    result.innerHTML = `
+
+        <div class="prediction-card">
+
+            <h2>
+                🔮 Predicción: ${escapeHTML(serviceName)}
+            </h2>
+
+            <p>
+                Estimación inicial basada en los registros
+                disponibles actualmente en SALUDPREDICT.
+            </p>
 
 
-    document.getElementById(
-        "predictionVariation"
-    ).textContent =
-        `${Math.round(growth * 100)}%`;
+            <div class="prediction-metrics">
+
+                <div class="prediction-metric">
+
+                    <span>
+                        Registros actuales
+                    </span>
+
+                    <strong>
+                        ${number(patientCount)}
+                    </strong>
+
+                </div>
 
 
-    document.getElementById(
-        "predictionWarning"
-    ).textContent =
-        "Estimación";
+                <div class="prediction-metric">
+
+                    <span>
+                        Demanda estimada
+                    </span>
+
+                    <strong>
+                        ${number(estimated)}
+                    </strong>
+
+                </div>
 
 
-    document.getElementById(
-        "predictionResult"
-    ).innerHTML = `
+                <div class="prediction-metric">
 
-        <h3>
-            Resultado de la predicción
-        </h3>
+                    <span>
+                        Variación estimada
+                    </span>
 
-        <div class="prediction-highlight">
+                    <strong>
+                        +${variation}%
+                    </strong>
 
-            <strong>
-                ${formatNumber(estimated)}
-            </strong>
+                </div>
 
-            <span>
-                demanda estimada para
-                ${escapeHtml(serviceName)}
-                en el periodo seleccionado.
-            </span>
+            </div>
+
+
+            <div class="prediction-note">
+
+                💡 Esta es una estimación demostrativa.
+                Para una predicción institucional avanzada,
+                el sistema podría incorporar históricos mensuales,
+                estacionalidad, regresión y modelos de inteligencia
+                artificial.
+
+            </div>
 
         </div>
-
-        <p style="margin-top:15px;">
-            Esta es una estimación inicial basada en los
-            registros actuales de SALUDPREDICT. A medida
-            que se incorporen más datos históricos, el
-            sistema podrá mejorar sus proyecciones.
-        </p>
 
     `;
 }
 
 
-/* =========================================================
+document.getElementById("generatePredictionBtn")
+    ?.addEventListener("click", generatePrediction);
+
+
+/* =====================================================
    ALERTAS
-========================================================= */
+===================================================== */
 
-function generateAlerts() {
-
-    const inventory =
-        getInventory();
-
-
-    const budget =
-        getBudget();
-
-
-    const alerts = [];
-
-
-    inventory.forEach(item => {
-
-        if (
-            Number(item.stock) <=
-            Number(item.minStock)
-        ) {
-
-            alerts.push({
-
-                level: "critical",
-
-                icon: "🚨",
-
-                title: "Stock bajo",
-
-                message:
-                    `${item.name} tiene ${item.stock} unidades, ` +
-                    `por debajo o igual al mínimo de ${item.minStock}.`
-
-            });
-
-        }
-
-
-        const days =
-            daysUntil(item.expiry);
-
-
-        if (
-            days >= 0 &&
-            days <= 90
-        ) {
-
-            alerts.push({
-
-                level: "warning",
-
-                icon: "⚠️",
-
-                title: "Próximo vencimiento",
-
-                message:
-                    `${item.name} vence en ${days} días.`
-
-            });
-
-        }
-
-    });
-
-
-    const executed =
-        budget.reduce(
-            (sum, item) =>
-                sum + Number(item.amount || 0),
-            0
-        );
-
-
-    const percentage =
-        (
-            executed /
-            BUDGET_APPROVED_VALUE
-        ) * 100;
-
-
-    if (percentage >= 80) {
-
-        alerts.push({
-
-            level: "critical",
-
-            icon: "💰",
-
-            title: "Ejecución presupuestal elevada",
-
-            message:
-                `La ejecución presupuestal alcanza ` +
-                `${Math.round(percentage)}%.`
-
-        });
-
-    }
-
-
-    renderAlerts(alerts);
-
-    updateDashboardAlerts(alerts);
-}
-
-
-function renderAlerts(alerts) {
+function renderAlerts() {
 
     const container =
-        document.getElementById(
-            "alertsContainer"
-        );
-
+        document.getElementById("alertsContainer");
 
     if (!container) {
         return;
     }
 
 
-    const total =
-        document.getElementById(
-            "totalAlerts"
-        );
-
-
-    const attention =
-        document.getElementById(
-            "attentionAlerts"
-        );
+    const alerts =
+        generateAlerts();
 
 
     const critical =
-        document.getElementById(
-            "criticalAlerts"
-        );
+        alerts.filter(
+            a => a.type === "critical"
+        ).length;
+
+
+    const attention =
+        alerts.filter(
+            a =>
+                a.type === "critical" ||
+                a.type === "warning"
+        ).length;
 
 
     const normal =
-        document.getElementById(
-            "normalAlerts"
-        );
+        alerts.filter(
+            a => a.type === "info"
+        ).length;
 
 
-    if (total) {
-        total.textContent =
-            alerts.length;
-    }
+    document.getElementById("totalAlerts").textContent =
+        number(alerts.length);
 
+    document.getElementById("attentionAlerts").textContent =
+        number(attention);
 
-    if (attention) {
-        attention.textContent =
-            alerts.filter(
-                item =>
-                    item.level === "warning" ||
-                    item.level === "critical"
-            ).length;
-    }
+    document.getElementById("criticalAlerts").textContent =
+        number(critical);
 
-
-    if (critical) {
-        critical.textContent =
-            alerts.filter(
-                item =>
-                    item.level === "critical"
-            ).length;
-    }
-
-
-    if (normal) {
-        normal.textContent =
-            alerts.filter(
-                item =>
-                    item.level === "normal"
-            ).length;
-    }
+    document.getElementById("normalAlerts").textContent =
+        number(normal);
 
 
     if (!alerts.length) {
 
         container.innerHTML = `
 
-            <div class="panel">
-
-                <h3>
-                    ✓ Sistema estable
-                </h3>
-
-                <p>
-                    No se han identificado situaciones
-                    que requieran atención.
-                </p>
-
+            <div class="card">
+                <div class="empty-state">
+                    <span>✓</span>
+                    <h2>No hay alertas</h2>
+                    <p>La institución se encuentra sin situaciones pendientes.</p>
+                </div>
             </div>
 
         `;
@@ -3218,1463 +2863,432 @@ function renderAlerts(alerts) {
 
 
     container.innerHTML =
-        alerts.map(
-            alert => `
+        alerts.map(alert => `
 
-                <div class="system-alert ${alert.level}">
+            <div class="alert-item ${alert.type}">
 
-                    <div class="system-alert-header">
+                <div class="alert-icon">
+                    ${alert.icon}
+                </div>
 
-                        <h3>
-                            ${alert.icon}
-                            ${escapeHtml(alert.title)}
-                        </h3>
+                <div class="alert-content">
 
-                        <span class="status ${
-                            alert.level === "critical"
-                                ? "danger"
-                                : "warning"
-                        }">
-
-                            ${
-                                alert.level === "critical"
-                                    ? "Crítica"
-                                    : "Atención"
-                            }
-
-                        </span>
-
-                    </div>
+                    <h3>
+                        ${escapeHTML(alert.title)}
+                    </h3>
 
                     <p>
-                        ${escapeHtml(alert.message)}
+                        ${escapeHTML(alert.message)}
                     </p>
+
+                    <div class="alert-meta">
+                        Generada automáticamente por SALUDPREDICT
+                    </div>
 
                 </div>
 
-            `
-        ).join("");
+            </div>
+
+        `).join("");
 }
 
 
-/* =========================================================
-   DASHBOARD
-========================================================= */
+document.getElementById("refreshAlertsBtn")
+    ?.addEventListener("click", () => {
 
-function updateDashboard() {
+        renderAlerts();
 
-    const patients =
-        getPatients();
+        updateDashboard();
 
-
-    const services =
-        getServices();
-
-
-    const inventory =
-        getInventory();
-
-
-    const budget =
-        getBudget();
-
-
-    const activeServices =
-        services.filter(
-            service =>
-                service.status === "Activo"
-        ).length;
-
-
-    const availableInventory =
-        inventory.filter(
-            item =>
-                Number(item.stock) >
-                Number(item.minStock)
-        ).length;
-
-
-    const inventoryPercentage =
-        inventory.length
-            ? Math.round(
-                (
-                    availableInventory /
-                    inventory.length
-                ) * 100
-            )
-            : 0;
-
-
-    const executed =
-        budget.reduce(
-            (sum, item) =>
-                sum + Number(item.amount || 0),
-            0
-        );
-
-
-    const budgetPercentage =
-        BUDGET_APPROVED_VALUE
-            ? Math.min(
-                Math.round(
-                    (
-                        executed /
-                        BUDGET_APPROVED_VALUE
-                    ) * 100
-                ),
-                100
-            )
-            : 0;
-
-
-    document.getElementById(
-        "dashboardPatients"
-    ).textContent =
-        patients.length;
-
-
-    document.getElementById(
-        "dashboardServices"
-    ).textContent =
-        activeServices;
-
-
-    document.getElementById(
-        "dashboardInventory"
-    ).textContent =
-        `${inventoryPercentage}%`;
-
-
-    document.getElementById(
-        "dashboardBudget"
-    ).textContent =
-        `${budgetPercentage}%`;
-
-
-    document.getElementById(
-        "dashboardBudgetPercentage"
-    ).textContent =
-        `${budgetPercentage}%`;
-
-
-    document.getElementById(
-        "dashboardBudgetBar"
-    ).style.width =
-        `${budgetPercentage}%`;
-
-
-    document.getElementById(
-        "dashboardBudgetExecuted"
-    ).textContent =
-        formatCurrency(executed);
-
-
-    document.getElementById(
-        "dashboardBudgetTotal"
-    ).textContent =
-        formatCurrency(
-            BUDGET_APPROVED_VALUE
-        );
-
-
-    updateDashboardSummary(
-        patients,
-        services,
-        inventory,
-        budget
-    );
-
-
-    updateDashboardServiceDemand(
-        patients,
-        services
-    );
-
-
-    updateDashboardInventory(
-        inventory
-    );
-
-
-    generateAlerts();
-}
-
-
-function updateDashboardSummary(
-    patients,
-    services,
-    inventory,
-    budget
-) {
-
-    const container =
-        document.getElementById(
-            "dashboardSystemSummary"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const activePatients =
-        patients.filter(
-            patient =>
-                patient.status === "Activo"
-        ).length;
-
-
-    const activeServices =
-        services.filter(
-            service =>
-                service.status === "Activo"
-        ).length;
-
-
-    const lowStock =
-        inventory.filter(
-            item =>
-                Number(item.stock) <=
-                Number(item.minStock)
-        ).length;
-
-
-    const executed =
-        budget.reduce(
-            (sum, item) =>
-                sum + Number(item.amount || 0),
-            0
-        );
-
-
-    container.innerHTML = `
-
-        <div class="summary-row">
-
-            <span>
-                Pacientes activos
-            </span>
-
-            <strong>
-                ${activePatients}
-            </strong>
-
-        </div>
-
-
-        <div class="summary-row">
-
-            <span>
-                Servicios activos
-            </span>
-
-            <strong>
-                ${activeServices}
-            </strong>
-
-        </div>
-
-
-        <div class="summary-row">
-
-            <span>
-                Productos con stock bajo
-            </span>
-
-            <strong>
-                ${lowStock}
-            </strong>
-
-        </div>
-
-
-        <div class="summary-row">
-
-            <span>
-                Ejecución acumulada
-            </span>
-
-            <strong>
-                ${formatCurrency(executed)}
-            </strong>
-
-        </div>
-
-    `;
-}
-
-
-function updateDashboardServiceDemand(
-    patients,
-    services
-) {
-
-    const container =
-        document.getElementById(
-            "dashboardServiceDemand"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const counts = {};
-
-
-    patients.forEach(patient => {
-
-        const service =
-            patient.service ||
-            "Sin servicio";
-
-
-        counts[service] =
-            (counts[service] || 0) + 1;
+        showToast("Alertas actualizadas");
 
     });
 
 
-    const entries =
-        Object.entries(counts)
-            .sort(
-                (a, b) => b[1] - a[1]
-            );
-
-
-    if (!entries.length) {
-
-        container.innerHTML = `
-
-            <p class="empty-message">
-                Registra pacientes para visualizar
-                la demanda de servicios.
-            </p>
-
-        `;
-
-        return;
-    }
-
-
-    const max =
-        Math.max(
-            ...entries.map(
-                item => item[1]
-            )
-        );
-
-
-    container.innerHTML =
-        entries.map(
-            ([name, value]) => `
-
-                <div class="demand-row">
-
-                    <span class="demand-name">
-                        ${escapeHtml(name)}
-                    </span>
-
-                    <div class="demand-track">
-
-                        <div
-                            class="demand-fill"
-                            style="width:${
-                                max
-                                    ? (value / max) * 100
-                                    : 0
-                            }%"
-                        ></div>
-
-                    </div>
-
-                    <span class="demand-value">
-                        ${value}
-                    </span>
-
-                </div>
-
-            `
-        ).join("");
-}
-
-
-function updateDashboardInventory(
-    inventory
-) {
-
-    const container =
-        document.getElementById(
-            "dashboardInventorySummary"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    const total =
-        inventory.length;
-
-
-    const low =
-        inventory.filter(
-            item =>
-                Number(item.stock) <=
-                Number(item.minStock)
-        ).length;
-
-
-    const expiring =
-        inventory.filter(
-            item => {
-
-                const days =
-                    daysUntil(item.expiry);
-
-                return days >= 0 && days <= 90;
-
-            }
-        ).length;
-
-
-    const available =
-        total - low;
-
-
-    container.innerHTML = `
-
-        <div class="inventory-summary-card">
-
-            <strong>
-                ${total}
-            </strong>
-
-            <span>
-                Total productos
-            </span>
-
-        </div>
-
-
-        <div class="inventory-summary-card">
-
-            <strong>
-                ${available}
-            </strong>
-
-            <span>
-                Disponibles
-            </span>
-
-        </div>
-
-
-        <div class="inventory-summary-card">
-
-            <strong>
-                ${low}
-            </strong>
-
-            <span>
-                Stock bajo
-            </span>
-
-        </div>
-
-
-        <div class="inventory-summary-card">
-
-            <strong>
-                ${expiring}
-            </strong>
-
-            <span>
-                Próximos a vencer
-            </span>
-
-        </div>
-
-    `;
-}
-
-
-function updateDashboardAlerts(
-    alerts
-) {
-
-    const container =
-        document.getElementById(
-            "dashboardAlerts"
-        );
-
-
-    const count =
-        document.getElementById(
-            "dashboardAlertCount"
-        );
-
-
-    if (!container) {
-        return;
-    }
-
-
-    if (count) {
-        count.textContent =
-            alerts.length;
-    }
-
-
-    if (!alerts.length) {
-
-        container.innerHTML = `
-
-            <p class="empty-message">
-                ✓ No existen alertas actualmente.
-            </p>
-
-        `;
-
-        return;
-    }
-
-
-    const visible =
-        alerts.slice(0, 4);
-
-
-    container.innerHTML =
-        visible.map(
-            alert => `
-
-                <div class="alert-item ${
-                    alert.level
-                }">
-
-                    <span class="alert-item-icon">
-                        ${alert.icon}
-                    </span>
-
-                    <div>
-
-                        <strong>
-                            ${escapeHtml(alert.title)}
-                        </strong>
-
-                        <p>
-                            ${escapeHtml(alert.message)}
-                        </p>
-
-                    </div>
-
-                </div>
-
-            `
-        ).join("");
-}
-
-
-/* =========================================================
+/* =====================================================
    REPORTES
-========================================================= */
+===================================================== */
 
-function openReport(type) {
+function openReport(title, content) {
 
-    let content = "";
-
-
-    if (type === "demand") {
-
-        content =
-            generateDemandReport();
-
-    }
+    const output =
+        document.getElementById("reportOutput");
 
 
-    if (type === "inventory") {
+    output.innerHTML = `
 
-        content =
-            generateInventoryReport();
+        <div class="report-document">
 
-    }
+            <h2>${escapeHTML(title)}</h2>
 
-
-    if (type === "budget") {
-
-        content =
-            generateBudgetReport();
-
-    }
-
-
-    if (type === "general") {
-
-        content =
-            generateGeneralReport();
-
-    }
-
-
-    const reportWindow =
-        window.open(
-            "",
-            "_blank"
-        );
-
-
-    if (!reportWindow) {
-
-        alert(
-            "El navegador bloqueó la ventana del reporte. Permite ventanas emergentes."
-        );
-
-        return;
-    }
-
-
-    reportWindow.document.write(`
-
-        <!DOCTYPE html>
-
-        <html lang="es">
-
-        <head>
-
-            <meta charset="UTF-8">
-
-            <title>Reporte SALUDPREDICT</title>
-
-            <style>
-
-                body {
-                    font-family: Arial, sans-serif;
-                    padding: 40px;
-                    color: #17212b;
-                    line-height: 1.6;
-                }
-
-                h1 {
-                    color: #0b1724;
-                }
-
-                h2 {
-                    margin-top: 30px;
-                    color: #183246;
-                }
-
-                .header {
-                    border-bottom: 3px solid #20c6d7;
-                    padding-bottom: 15px;
-                    margin-bottom: 25px;
-                }
-
-                .box {
-                    background: #f4f7f8;
-                    padding: 15px;
-                    margin: 10px 0;
-                    border-radius: 8px;
-                }
-
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    margin-top: 15px;
-                }
-
-                th, td {
-                    border: 1px solid #dce3e8;
-                    padding: 9px;
-                    text-align: left;
-                }
-
-                th {
-                    background: #eef2f5;
-                }
-
-                .print {
-                    padding: 10px 16px;
-                    background: #20c6d7;
-                    border: 0;
-                    border-radius: 7px;
-                    cursor: pointer;
-                    font-weight: bold;
-                }
-
-                @media print {
-                    .print {
-                        display: none;
-                    }
-                }
-
-            </style>
-
-        </head>
-
-        <body>
-
-            <button
-                class="print"
-                onclick="window.print()"
-            >
-                🖨️ Imprimir / Guardar PDF
-            </button>
-
-            <div class="header">
-
-                <h1>
-                    SALUDPREDICT
-                </h1>
-
-                <p>
-                    Gestión inteligente en salud
-                </p>
-
+            <div class="report-date">
+                Generado el ${formatDate(todayISO())}
+                por SALUDPREDICT
             </div>
 
             ${content}
 
-        </body>
+        </div>
 
-        </html>
-
-    `);
+    `;
 
 
-    reportWindow.document.close();
+    showSection("reportes");
+
 }
 
 
 function generateDemandReport() {
 
-    const patients =
-        getPatients();
+    const activePatients =
+        patients.filter(
+            p => p.status === "Activo"
+        ).length;
 
 
-    const services =
-        getServices();
+    const activeServices =
+        services.filter(
+            s => s.status === "Activo"
+        ).length;
 
 
-    return `
-
-        <h2>
-            Reporte de demanda
-        </h2>
-
-        <div class="box">
-            Total de pacientes:
-            <strong>${patients.length}</strong>
-        </div>
-
-        <div class="box">
-            Servicios registrados:
-            <strong>${services.length}</strong>
-        </div>
-
-        <h2>
-            Pacientes por servicio
-        </h2>
-
-        ${generatePatientServiceTable()}
-
-    `;
-}
-
-
-function generatePatientServiceTable() {
-
-    const patients =
-        getPatients();
-
-
-    const counts = {};
+    const serviceCounts = {};
 
 
     patients.forEach(patient => {
 
-        const service =
-            patient.service ||
-            "Sin servicio";
-
-
-        counts[service] =
-            (counts[service] || 0) + 1;
+        serviceCounts[patient.service] =
+            (serviceCounts[patient.service] || 0) + 1;
 
     });
 
 
-    return `
+    const mostRequested =
+        Object.entries(serviceCounts)
+            .sort((a, b) => b[1] - a[1])[0];
 
-        <table>
 
-            <thead>
+    openReport(
+        "Reporte de demanda asistencial",
+        `
 
-                <tr>
-                    <th>Servicio</th>
-                    <th>Pacientes</th>
-                </tr>
+        <div class="report-kpis">
 
-            </thead>
+            <div class="report-kpi">
+                <span>Pacientes activos</span>
+                <strong>${number(activePatients)}</strong>
+            </div>
 
-            <tbody>
+            <div class="report-kpi">
+                <span>Servicios activos</span>
+                <strong>${number(activeServices)}</strong>
+            </div>
 
-                ${
-                    Object.entries(counts)
-                        .map(
-                            ([service, count]) => `
+            <div class="report-kpi">
+                <span>Servicio con mayor demanda</span>
+                <strong>
+                    ${mostRequested
+                        ? escapeHTML(mostRequested[0])
+                        : "N/A"}
+                </strong>
+            </div>
 
-                                <tr>
+            <div class="report-kpi">
+                <span>Registros analizados</span>
+                <strong>${number(patients.length)}</strong>
+            </div>
 
-                                    <td>
-                                        ${escapeHtml(service)}
-                                    </td>
+        </div>
 
-                                    <td>
-                                        ${count}
-                                    </td>
+        <p class="report-text">
+            El análisis de demostración muestra la distribución
+            de los pacientes registrados entre los diferentes
+            servicios de la institución. Esta información puede
+            utilizarse para orientar la planeación de talento
+            humano, capacidad instalada y recursos.
+        </p>
 
-                                </tr>
-
-                            `
-                        )
-                        .join("")
-                }
-
-            </tbody>
-
-        </table>
-
-    `;
+        `
+    );
 }
 
 
 function generateInventoryReport() {
 
-    const inventory =
-        getInventory();
-
-
     const low =
-        inventory.filter(
-            item =>
-                Number(item.stock) <=
-                Number(item.minStock)
-        );
-
+        inventory.filter(isLowStock);
 
     const expiring =
-        inventory.filter(
-            item => {
+        inventory.filter(isExpiringSoon);
 
-                const days =
-                    daysUntil(item.expiry);
 
-                return days >= 0 && days <= 90;
-
-            }
+    const totalValue =
+        inventory.reduce(
+            (sum, item) =>
+                sum +
+                Number(item.stock) *
+                Number(item.price),
+            0
         );
 
 
-    return `
+    openReport(
+        "Reporte de inventario",
+        `
 
-        <h2>
-            Reporte de inventario
-        </h2>
+        <div class="report-kpis">
 
-        <div class="box">
-            Total productos:
-            <strong>${inventory.length}</strong>
+            <div class="report-kpi">
+                <span>Productos</span>
+                <strong>${number(inventory.length)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Stock bajo</span>
+                <strong>${number(low.length)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Próximos a vencer</span>
+                <strong>${number(expiring.length)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Valor estimado</span>
+                <strong>${currency(totalValue)}</strong>
+            </div>
+
         </div>
 
-        <div class="box">
-            Productos con stock bajo:
-            <strong>${low.length}</strong>
-        </div>
+        <p class="report-text">
+            El inventario presenta ${low.length} productos
+            que requieren revisión por nivel de existencias
+            y ${expiring.length} productos próximos a vencer.
+            Se recomienda priorizar las compras de reposición
+            y realizar seguimiento a los lotes próximos a
+            vencimiento.
+        </p>
 
-        <div class="box">
-            Productos próximos a vencer:
-            <strong>${expiring.length}</strong>
-        </div>
-
-        <h2>
-            Detalle
-        </h2>
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Código</th>
-                    <th>Producto</th>
-                    <th>Stock</th>
-                    <th>Mínimo</th>
-                    <th>Vencimiento</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                ${
-                    inventory.map(
-                        item => `
-
-                            <tr>
-
-                                <td>
-                                    ${escapeHtml(item.code)}
-                                </td>
-
-                                <td>
-                                    ${escapeHtml(item.name)}
-                                </td>
-
-                                <td>
-                                    ${item.stock}
-                                </td>
-
-                                <td>
-                                    ${item.minStock}
-                                </td>
-
-                                <td>
-                                    ${item.expiry || "No aplica"}
-                                </td>
-
-                            </tr>
-
-                        `
-                    ).join("")
-                }
-
-            </tbody>
-
-        </table>
-
-    `;
+        `
+    );
 }
 
 
 function generateBudgetReport() {
 
-    const budget =
-        getBudget();
-
-
     const executed =
-        budget.reduce(
-            (sum, item) =>
-                sum + Number(item.amount || 0),
-            0
-        );
+        getExecutedBudget();
 
 
     const available =
-        Math.max(
-            BUDGET_APPROVED_VALUE -
-            executed,
-            0
-        );
+        BUDGET_APPROVED_VALUE - executed;
 
 
     const percentage =
-        (
+        Math.round(
             executed /
-            BUDGET_APPROVED_VALUE
-        ) * 100;
+            BUDGET_APPROVED_VALUE *
+            100
+        );
 
 
-    return `
+    openReport(
+        "Reporte de ejecución presupuestal",
+        `
 
-        <h2>
-            Reporte presupuestal
-        </h2>
+        <div class="report-kpis">
 
-        <div class="box">
-            Presupuesto aprobado:
-            <strong>
-                ${formatCurrency(
-                    BUDGET_APPROVED_VALUE
-                )}
-            </strong>
+            <div class="report-kpi">
+                <span>Aprobado</span>
+                <strong>${currency(BUDGET_APPROVED_VALUE)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Ejecutado</span>
+                <strong>${currency(executed)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Disponible</span>
+                <strong>${currency(available)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Ejecución</span>
+                <strong>${percentage}%</strong>
+            </div>
+
         </div>
 
-        <div class="box">
-            Ejecutado:
-            <strong>
-                ${formatCurrency(executed)}
-            </strong>
-        </div>
+        <p class="report-text">
+            La ejecución presupuestal acumulada representa
+            el ${percentage}% del presupuesto aprobado.
+            El saldo disponible corresponde a los recursos
+            que aún pueden ser asignados a las diferentes
+            necesidades institucionales.
+        </p>
 
-        <div class="box">
-            Disponible:
-            <strong>
-                ${formatCurrency(available)}
-            </strong>
-        </div>
-
-        <div class="box">
-            Ejecución:
-            <strong>
-                ${Math.round(percentage)}%
-            </strong>
-        </div>
-
-        <h2>
-            Movimientos
-        </h2>
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Concepto</th>
-                    <th>Categoría</th>
-                    <th>Valor</th>
-                    <th>Fecha</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-                ${
-                    budget.map(
-                        item => `
-
-                            <tr>
-
-                                <td>
-                                    ${escapeHtml(item.concept)}
-                                </td>
-
-                                <td>
-                                    ${escapeHtml(item.category)}
-                                </td>
-
-                                <td>
-                                    ${formatCurrency(item.amount)}
-                                </td>
-
-                                <td>
-                                    ${escapeHtml(item.date)}
-                                </td>
-
-                            </tr>
-
-                        `
-                    ).join("")
-                }
-
-            </tbody>
-
-        </table>
-
-    `;
+        `
+    );
 }
 
 
 function generateGeneralReport() {
 
-    const patients =
-        getPatients();
+    const activePatients =
+        patients.filter(
+            p => p.status === "Activo"
+        ).length;
 
 
-    const services =
-        getServices();
+    const activeServices =
+        services.filter(
+            s => s.status === "Activo"
+        ).length;
 
 
-    const inventory =
-        getInventory();
+    const lowStock =
+        inventory.filter(isLowStock).length;
 
 
-    const budget =
-        getBudget();
+    const alerts =
+        generateAlerts().length;
 
 
-    return `
+    const executed =
+        getExecutedBudget();
 
-        <h2>
-            Reporte general institucional
-        </h2>
 
-        <div class="box">
-            Pacientes registrados:
-            <strong>${patients.length}</strong>
+    openReport(
+        "Reporte general SALUDPREDICT",
+        `
+
+        <div class="report-kpis">
+
+            <div class="report-kpi">
+                <span>Pacientes activos</span>
+                <strong>${number(activePatients)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Servicios activos</span>
+                <strong>${number(activeServices)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Alertas</span>
+                <strong>${number(alerts)}</strong>
+            </div>
+
+            <div class="report-kpi">
+                <span>Presupuesto ejecutado</span>
+                <strong>${currency(executed)}</strong>
+            </div>
+
         </div>
 
-        <div class="box">
-            Servicios registrados:
-            <strong>${services.length}</strong>
-        </div>
+        <p class="report-text">
+            SALUDPREDICT consolida información de pacientes,
+            servicios, inventario y presupuesto para apoyar
+            la gestión institucional. Los indicadores
+            permiten visualizar el comportamiento operativo,
+            identificar situaciones que requieren atención y
+            generar estimaciones de demanda.
+        </p>
 
-        <div class="box">
-            Productos de inventario:
-            <strong>${inventory.length}</strong>
-        </div>
+        <p class="report-text">
+            En el escenario de demostración se identifican
+            ${lowStock} productos con stock bajo y
+            ${alerts} alertas generadas automáticamente.
+            Estos resultados pueden utilizarse como base para
+            implementar posteriormente modelos predictivos
+            avanzados.
+        </p>
 
-        <div class="box">
-            Movimientos presupuestales:
-            <strong>${budget.length}</strong>
-        </div>
-
-        ${generateDemandReport()}
-
-        ${generateInventoryReport()}
-
-        ${generateBudgetReport()}
-
-    `;
+        `
+    );
 }
 
 
-/* =========================================================
-   EVENTOS
-========================================================= */
+document.getElementById("reportDemandBtn")
+    ?.addEventListener("click", generateDemandReport);
 
-function initializeEvents() {
 
-    /* Pacientes */
+document.getElementById("reportInventoryBtn")
+    ?.addEventListener("click", generateInventoryReport);
 
-    document.getElementById(
-        "newPatientBtn"
-    ).addEventListener(
-        "click",
-        () => openPatientModal()
-    );
 
+document.getElementById("reportBudgetBtn")
+    ?.addEventListener("click", generateBudgetReport);
 
-    document.getElementById(
-        "closeModal"
-    ).addEventListener(
-        "click",
-        closePatientModal
-    );
 
+document.getElementById("reportGeneralBtn")
+    ?.addEventListener("click", generateGeneralReport);
 
-    document.getElementById(
-        "cancelModal"
-    ).addEventListener(
-        "click",
-        closePatientModal
-    );
 
+/* =====================================================
+   CIERRE DE MODALES AL HACER CLIC AFUERA
+===================================================== */
 
-    document.getElementById(
-        "patientForm"
-    ).addEventListener(
-        "submit",
-        savePatient
-    );
+document.querySelectorAll(".modal")
+    .forEach(modal => {
 
+        modal.addEventListener("click", event => {
 
-    document.getElementById(
-        "patientSearch"
-    ).addEventListener(
-        "input",
-        event =>
-            renderPatients(
-                event.target.value
-            )
-    );
+            if (event.target === modal) {
 
+                modal.classList.remove("show");
 
-    /* Servicios */
-
-    document.getElementById(
-        "newServiceBtn"
-    ).addEventListener(
-        "click",
-        () => openServiceModal()
-    );
-
-
-    document.getElementById(
-        "closeServiceModal"
-    ).addEventListener(
-        "click",
-        closeServiceModal
-    );
-
-
-    document.getElementById(
-        "cancelServiceBtn"
-    ).addEventListener(
-        "click",
-        closeServiceModal
-    );
-
-
-    document.getElementById(
-        "serviceForm"
-    ).addEventListener(
-        "submit",
-        saveService
-    );
-
-
-    document.getElementById(
-        "serviceSearch"
-    ).addEventListener(
-        "input",
-        event =>
-            renderServices(
-                event.target.value
-            )
-    );
-
-
-    /* Inventario */
-
-    document.getElementById(
-        "newInventoryBtn"
-    ).addEventListener(
-        "click",
-        () => openInventoryModal()
-    );
-
-
-    document.getElementById(
-        "closeInventoryModal"
-    ).addEventListener(
-        "click",
-        closeInventoryModal
-    );
-
-
-    document.getElementById(
-        "cancelInventoryModal"
-    ).addEventListener(
-        "click",
-        closeInventoryModal
-    );
-
-
-    document.getElementById(
-        "inventoryForm"
-    ).addEventListener(
-        "submit",
-        saveInventory
-    );
-
-
-    document.getElementById(
-        "inventorySearch"
-    ).addEventListener(
-        "input",
-        event =>
-            renderInventory(
-                event.target.value
-            )
-    );
-
-
-    /* Presupuesto */
-
-    document.getElementById(
-        "newBudgetBtn"
-    ).addEventListener(
-        "click",
-        openBudgetModal
-    );
-
-
-    document.getElementById(
-        "closeBudgetModal"
-    ).addEventListener(
-        "click",
-        closeBudgetModal
-    );
-
-
-    document.getElementById(
-        "cancelBudgetBtn"
-    ).addEventListener(
-        "click",
-        closeBudgetModal
-    );
-
-
-    document.getElementById(
-        "budgetForm"
-    ).addEventListener(
-        "submit",
-        saveBudget
-    );
-
-
-    document.getElementById(
-        "budgetSearch"
-    ).addEventListener(
-        "input",
-        event =>
-            renderBudget(
-                event.target.value
-            )
-    );
-
-
-    /* Predicciones */
-
-    document.getElementById(
-        "generatePredictionBtn"
-    ).addEventListener(
-        "click",
-        generatePrediction
-    );
-
-
-    /* Alertas */
-
-    document.getElementById(
-        "refreshAlertsBtn"
-    ).addEventListener(
-        "click",
-        generateAlerts
-    );
-
-
-    /* Reportes */
-
-    document.getElementById(
-        "reportDemandBtn"
-    ).addEventListener(
-        "click",
-        () => openReport("demand")
-    );
-
-
-    document.getElementById(
-        "reportInventoryBtn"
-    ).addEventListener(
-        "click",
-        () => openReport("inventory")
-    );
-
-
-    document.getElementById(
-        "reportBudgetBtn"
-    ).addEventListener(
-        "click",
-        () => openReport("budget")
-    );
-
-
-    document.getElementById(
-        "reportGeneralBtn"
-    ).addEventListener(
-        "click",
-        () => openReport("general")
-    );
-
-
-    /* Cerrar modales al hacer clic fuera */
-
-    document.querySelectorAll(".modal")
-        .forEach(modal => {
-
-            modal.addEventListener(
-                "click",
-                event => {
-
-                    if (
-                        event.target === modal
-                    ) {
-
-                        modal.classList.remove(
-                            "show"
-                        );
-
-                    }
-
-                }
-            );
+            }
 
         });
 
-}
+    });
 
 
-/* =========================================================
+/* =====================================================
    INICIALIZACIÓN
-========================================================= */
+===================================================== */
 
-function initializeApplication() {
+function initializeApp() {
 
-    initializeStorage();
-
-    initializeNavigation();
-
-    initializeEvents();
-
-
-    /* Pacientes */
+    renderCurrentDate();
 
     populatePatientServices();
 
+    populatePredictionServices();
+
     renderPatients();
-
-    updatePatientStats();
-
-
-    /* Servicios */
 
     renderServices();
 
-    updateServiceStats();
-
-
-    /* Inventario */
-
     renderInventory();
-
-    updateInventoryStats();
-
-
-    /* Presupuesto */
 
     renderBudget();
 
-    updateBudgetSummary();
-
-
-    /* Predicciones */
-
-    populatePredictionServices();
-
-
-    /* Dashboard */
-
     updateDashboard();
-
-
-    /* Análisis */
 
     updateAnalysis();
 
-
-    /* Alertas */
-
-    generateAlerts();
-
-
-    /* Vista inicial */
-
-    showSection("dashboard");
+    renderAlerts();
 
 }
 
 
-document.addEventListener(
-    "DOMContentLoaded",
-    initializeApplication
-);
+initializeApp();
+
+
+/* =====================================================
+   EXPONER FUNCIONES PARA BOTONES HTML
+===================================================== */
+
+window.editPatient = editPatient;
+window.deletePatient = deletePatient;
+
+window.editService = editService;
+window.deleteService = deleteService;
+
+window.editInventory = editInventory;
+window.deleteInventory = deleteInventory;
+
+window.deleteBudget = deleteBudget;
