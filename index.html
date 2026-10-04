@@ -459,28 +459,447 @@
 
         <section id="servicios" class="section">
 
-            <div class="page-header">
+    <div class="page-header">
 
-                <div>
-                    <h2>Servicios</h2>
-                    <p>Gestión de servicios de salud</p>
+        <div>
+            <h2>Servicios</h2>
+            <p>Gestión de servicios de salud</p>
+        </div>
+
+        <button id="newServiceBtn" class="primary-btn">
+            + Nuevo servicio
+        </button>
+
+    </div>
+
+
+    <!-- ESTADÍSTICAS -->
+
+    <div class="cards-grid small-cards">
+
+        <div class="stat-card">
+
+            <div class="stat-icon blue">
+                🏥
+            </div>
+
+            <div>
+                <span>Total servicios</span>
+                <strong id="totalServices">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon green">
+                ✓
+            </div>
+
+            <div>
+                <span>Servicios activos</span>
+                <strong id="activeServices">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon orange">
+                💰
+            </div>
+
+            <div>
+                <span>Valor promedio</span>
+                <strong id="averageServicePrice">$0</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- BUSCADOR -->
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <h3>Catálogo de servicios</h3>
+                <p>Administra los servicios ofrecidos por la institución</p>
+            </div>
+
+        </div>
+
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="serviceSearch"
+                placeholder="Buscar por código, nombre o categoría..."
+            >
+
+        </div>
+
+
+        <!-- TABLA -->
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Código</th>
+                        <th>Servicio</th>
+                        <th>Categoría</th>
+                        <th>Duración</th>
+                        <th>Valor</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="servicesTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     SERVICIOS
+========================== -->
+
+<section id="servicios" class="section">
+
+    <div class="page-header">
+
+        <div>
+            <h2>Servicios</h2>
+            <p>Gestión de servicios de salud</p>
+        </div>
+
+        <button id="newServiceBtn" class="primary-btn">
+            + Nuevo servicio
+        </button>
+
+    </div>
+
+
+    <!-- ESTADÍSTICAS -->
+
+    <div class="cards-grid small-cards">
+
+        <div class="stat-card">
+
+            <div class="stat-icon blue">
+                🏥
+            </div>
+
+            <div>
+                <span>Total servicios</span>
+                <strong id="totalServices">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon green">
+                ✓
+            </div>
+
+            <div>
+                <span>Servicios activos</span>
+                <strong id="activeServices">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon orange">
+                💰
+            </div>
+
+            <div>
+                <span>Valor promedio</span>
+                <strong id="averageServicePrice">$0</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- BUSCADOR -->
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <h3>Catálogo de servicios</h3>
+                <p>Administra los servicios ofrecidos por la institución</p>
+            </div>
+
+        </div>
+
+
+        <div class="search-box">
+
+            <input
+                type="text"
+                id="serviceSearch"
+                placeholder="Buscar por código, nombre o categoría..."
+            >
+
+        </div>
+
+
+        <!-- TABLA -->
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>Código</th>
+                        <th>Servicio</th>
+                        <th>Categoría</th>
+                        <th>Duración</th>
+                        <th>Valor</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+
+                </thead>
+
+                <tbody id="servicesTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     MODAL SERVICIO
+========================== -->
+
+<div id="serviceModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h3 id="serviceModalTitle">
+                Nuevo servicio
+            </h3>
+
+            <button
+                type="button"
+                class="close-modal"
+                id="closeServiceModal"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form id="serviceForm">
+
+            <input
+                type="hidden"
+                id="serviceId"
+            >
+
+
+            <div class="form-grid">
+
+                <div class="form-group">
+
+                    <label for="serviceCode">
+                        Código
+                    </label>
+
+                    <input
+                        type="text"
+                        id="serviceCode"
+                        placeholder="Ej: SER-001"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="serviceName">
+                        Nombre del servicio
+                    </label>
+
+                    <input
+                        type="text"
+                        id="serviceName"
+                        placeholder="Ej: Medicina general"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="serviceCategory">
+                        Categoría
+                    </label>
+
+                    <select
+                        id="serviceCategory"
+                        required
+                    >
+
+                        <option value="">
+                            Seleccione una categoría
+                        </option>
+
+                        <option value="Consulta">
+                            Consulta
+                        </option>
+
+                        <option value="Urgencias">
+                            Urgencias
+                        </option>
+
+                        <option value="Hospitalización">
+                            Hospitalización
+                        </option>
+
+                        <option value="Diagnóstico">
+                            Diagnóstico
+                        </option>
+
+                        <option value="Odontología">
+                            Odontología
+                        </option>
+
+                        <option value="Procedimiento">
+                            Procedimiento
+                        </option>
+
+                        <option value="Promoción y prevención">
+                            Promoción y prevención
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="serviceDuration">
+                        Duración
+                    </label>
+
+                    <input
+                        type="text"
+                        id="serviceDuration"
+                        placeholder="Ej: 30 min"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="servicePrice">
+                        Valor
+                    </label>
+
+                    <input
+                        type="number"
+                        id="servicePrice"
+                        min="0"
+                        step="100"
+                        placeholder="85000"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="serviceStatus">
+                        Estado
+                    </label>
+
+                    <select
+                        id="serviceStatus"
+                        required
+                    >
+
+                        <option value="Activo">
+                            Activo
+                        </option>
+
+                        <option value="Inactivo">
+                            Inactivo
+                        </option>
+
+                    </select>
+
                 </div>
 
             </div>
 
-            <div class="empty-panel">
 
-                <div>🏥</div>
+            <div class="modal-actions">
 
-                <h3>Módulo de Servicios</h3>
+                <button
+                    type="button"
+                    class="secondary-btn"
+                    id="cancelServiceBtn"
+                >
+                    Cancelar
+                </button>
 
-                <p>
-                    Este módulo será desarrollado en la siguiente etapa.
-                </p>
+                <button
+                    type="submit"
+                    class="primary-btn"
+                >
+                    Guardar servicio
+                </button>
 
             </div>
 
-        </section>
+        </form>
+
+    </div>
+
+</div>
 
 
 
