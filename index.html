@@ -1039,160 +1039,423 @@
 
 
 
-        <!-- =========================
-             PRESUPUESTO
-        ========================== -->
+       <!-- =========================
+     PRESUPUESTO
+========================== -->
 
-        <section id="presupuesto" class="section">
+<section id="presupuesto" class="section">
 
-            <div class="page-header">
+    <div class="section-header">
+        <div>
+            <h2>Presupuesto</h2>
+            <p>Control financiero de la institución</p>
+        </div>
 
-                <div>
-                    <h2>Presupuesto</h2>
-                    <p>Control financiero de la institución</p>
-                </div>
+        <button class="primary-btn" id="newBudgetBtn">
+            + Nuevo movimiento
+        </button>
+    </div>
+
+    <div class="small-cards">
+
+        <div class="stat-card">
+            <span>Presupuesto aprobado</span>
+            <strong id="budgetApproved">$1.000.000.000</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Ejecutado</span>
+            <strong id="budgetExecuted">$0</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Disponible</span>
+            <strong id="budgetAvailable">$0</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Ejecución</span>
+            <strong id="budgetPercentage">0%</strong>
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <div class="section-header">
+            <div>
+                <h3>Movimientos presupuestales</h3>
+                <p>Ingresos y gastos registrados</p>
+            </div>
+
+            <input
+                type="text"
+                id="budgetSearch"
+                placeholder="Buscar movimiento..."
+            >
+        </div>
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Categoría</th>
+                        <th>Descripción</th>
+                        <th>Valor</th>
+                        <th>Responsable</th>
+                        <th>Centro de costo</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="budgetTable"></tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     ANÁLISIS
+========================== -->
+
+<section id="analisis" class="section">
+
+    <div class="section-header">
+        <div>
+            <h2>Análisis</h2>
+            <p>Análisis de información institucional</p>
+        </div>
+    </div>
+
+    <div class="small-cards">
+
+        <div class="stat-card">
+            <span>Total pacientes</span>
+            <strong id="analysisPatients">0</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Servicios activos</span>
+            <strong id="analysisServices">0</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Productos inventario</span>
+            <strong id="analysisInventory">0</strong>
+        </div>
+
+        <div class="stat-card">
+            <span>Stock bajo</span>
+            <strong id="analysisLowStock">0</strong>
+        </div>
+
+    </div>
+
+    <div class="cards-grid">
+
+        <div class="panel">
+
+            <h3>Distribución de pacientes por servicio</h3>
+            <p>Pacientes registrados actualmente</p>
+
+            <div id="patientsAnalysisChart"></div>
+
+        </div>
+
+        <div class="panel">
+
+            <h3>Inventario</h3>
+            <p>Situación actual de existencias</p>
+
+            <div id="inventoryAnalysisChart"></div>
+
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <h3>Resumen financiero</h3>
+
+        <div id="financialAnalysis"></div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     PREDICCIONES
+========================== -->
+
+<section id="predicciones" class="section">
+
+    <div class="section-header">
+
+        <div>
+            <h2>Predicciones</h2>
+            <p>Proyección de demanda y recursos</p>
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <div class="form-grid">
+
+            <div class="form-group">
+
+                <label for="predictionService">
+                    Servicio
+                </label>
+
+                <select id="predictionService">
+                    <option value="all">Todos los servicios</option>
+                </select>
 
             </div>
 
-            <div class="empty-panel">
+            <div class="form-group">
 
-                <div>💰</div>
+                <label for="predictionPeriod">
+                    Período
+                </label>
 
-                <h3>Módulo de Presupuesto</h3>
+                <select id="predictionPeriod">
 
-                <p>
-                    Aquí gestionaremos ingresos, gastos y ejecución presupuestal.
-                </p>
+                    <option value="1">
+                        Próximo mes
+                    </option>
 
-            </div>
+                    <option value="3">
+                        Próximos 3 meses
+                    </option>
 
-        </section>
+                    <option value="6">
+                        Próximos 6 meses
+                    </option>
 
-
-
-        <!-- =========================
-             ANALISIS
-        ========================== -->
-
-        <section id="analisis" class="section">
-
-            <div class="page-header">
-
-                <div>
-                    <h2>Análisis</h2>
-                    <p>Análisis de información institucional</p>
-                </div>
+                </select>
 
             </div>
 
-            <div class="empty-panel">
+        </div>
 
-                <div>📊</div>
+        <button class="primary-btn" id="generatePredictionBtn">
+            Generar predicción
+        </button>
 
-                <h3>Módulo de Análisis</h3>
+    </div>
 
-                <p>
-                    Aquí incorporaremos indicadores y gráficos.
-                </p>
+    <div class="small-cards">
 
-            </div>
+        <div class="stat-card">
 
-        </section>
+            <span>Promedio histórico</span>
 
+            <strong id="historicalAverage">
+                0
+            </strong>
 
+        </div>
 
-        <!-- =========================
-             PREDICCIONES
-        ========================== -->
+        <div class="stat-card">
 
-        <section id="predicciones" class="section">
+            <span>Demanda estimada</span>
 
-            <div class="page-header">
+            <strong id="estimatedDemand">
+                0
+            </strong>
 
-                <div>
-                    <h2>Predicciones</h2>
-                    <p>Proyección de demanda y recursos</p>
-                </div>
+        </div>
 
-            </div>
+        <div class="stat-card">
 
-            <div class="empty-panel">
+            <span>Variación estimada</span>
 
-                <div>🔮</div>
+            <strong id="predictionVariation">
+                0%
+            </strong>
 
-                <h3>Módulo de Predicciones</h3>
+        </div>
 
-                <p>
-                    Aquí construiremos las proyecciones de demanda.
-                </p>
+        <div class="stat-card">
 
-            </div>
+            <span>Nivel de atención</span>
 
-        </section>
+            <strong id="predictionWarning">
+                Normal
+            </strong>
 
+        </div>
 
+    </div>
 
-        <!-- =========================
-             ALERTAS
-        ========================== -->
+    <div class="panel">
 
-        <section id="alertas" class="section">
+        <h3>Resultado de la predicción</h3>
 
-            <div class="page-header">
+        <div id="predictionResult">
 
-                <div>
-                    <h2>Alertas</h2>
-                    <p>Situaciones que requieren atención</p>
-                </div>
+            Selecciona un servicio y genera una predicción.
 
-            </div>
+        </div>
 
-            <div class="empty-panel">
+    </div>
 
-                <div>🚨</div>
-
-                <h3>Módulo de Alertas</h3>
-
-                <p>
-                    Aquí aparecerán las alertas generadas por el sistema.
-                </p>
-
-            </div>
-
-        </section>
+</section>
 
 
+<!-- =========================
+     ALERTAS
+========================== -->
 
-        <!-- =========================
-             REPORTES
-        ========================== -->
+<section id="alertas" class="section">
 
-        <section id="reportes" class="section">
+    <div class="section-header">
 
-            <div class="page-header">
+        <div>
+            <h2>Alertas</h2>
+            <p>Situaciones que requieren atención</p>
+        </div>
 
-                <div>
-                    <h2>Reportes</h2>
-                    <p>Generación de informes administrativos</p>
-                </div>
+        <button class="secondary-btn" id="refreshAlertsBtn">
+            Actualizar alertas
+        </button>
 
-            </div>
+    </div>
 
-            <div class="empty-panel">
+    <div class="small-cards">
 
-                <div>📄</div>
+        <div class="stat-card">
+            <span>Total alertas</span>
+            <strong id="totalAlerts">0</strong>
+        </div>
 
-                <h3>Módulo de Reportes</h3>
+        <div class="stat-card">
+            <span>Atención</span>
+            <strong id="attentionAlerts">0</strong>
+        </div>
 
-                <p>
-                    Aquí podremos generar informes de la institución.
-                </p>
+        <div class="stat-card">
+            <span>Críticas</span>
+            <strong id="criticalAlerts">0</strong>
+        </div>
 
-            </div>
+        <div class="stat-card">
+            <span>Normales</span>
+            <strong id="normalAlerts">0</strong>
+        </div>
 
-        </section>
+    </div>
 
-    </main>
+    <div class="panel">
+
+        <div id="alertsContainer"></div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     REPORTES
+========================== -->
+
+<section id="reportes" class="section">
+
+    <div class="section-header">
+
+        <div>
+            <h2>Reportes</h2>
+            <p>Generación de informes administrativos</p>
+        </div>
+
+    </div>
+
+    <div class="cards-grid">
+
+        <div class="panel">
+
+            <h3>Reporte de demanda</h3>
+
+            <p>
+                Resumen de pacientes, servicios y atención.
+            </p>
+
+            <button
+                class="primary-btn"
+                id="reportDemandBtn"
+            >
+                Generar reporte
+            </button>
+
+        </div>
+
+        <div class="panel">
+
+            <h3>Reporte de inventario</h3>
+
+            <p>
+                Existencias, productos con stock bajo y vencimientos.
+            </p>
+
+            <button
+                class="primary-btn"
+                id="reportInventoryBtn"
+            >
+                Generar reporte
+            </button>
+
+        </div>
+
+        <div class="panel">
+
+            <h3>Reporte presupuestal</h3>
+
+            <p>
+                Presupuesto, ejecución, gastos y disponibilidad.
+            </p>
+
+            <button
+                class="primary-btn"
+                id="reportBudgetBtn"
+            >
+                Generar reporte
+            </button>
+
+        </div>
+
+    </div>
+
+    <div class="panel">
+
+        <h3>Reporte institucional general</h3>
+
+        <p>
+            Consolida pacientes, servicios, inventario,
+            presupuesto, alertas y predicciones.
+        </p>
+
+        <button
+            class="primary-btn"
+            id="reportGeneralBtn"
+        >
+            Generar reporte general
+        </button>
+
+    </div>
+
+</section>
 
     <!-- =========================
          MODAL PACIENTE
