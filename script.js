@@ -5109,3 +5109,989 @@ if (document.readyState === "loading") {
     initAdvancedModules();
 
 }
+/* ============================================================
+   DASHBOARD DINÁMICO
+============================================================ */
+
+
+/* ============================================================
+   FORMATO DE MONEDA
+============================================================ */
+
+function dashboardCurrency(value) {
+
+    return new Intl.NumberFormat("es-CO", {
+
+        style: "currency",
+
+        currency: "COP",
+
+        maximumFractionDigits: 0
+
+    }).format(
+        Number(value) || 0
+    );
+
+}
+
+
+/* ============================================================
+   OBTENER DATOS
+============================================================ */
+
+function dashboardGetPatients() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "saludpredict_patients"
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+function dashboardGetServices() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "saludpredict_services"
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+function dashboardGetInventory() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "saludpredict_inventory"
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+function dashboardGetBudget() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem(
+                "saludpredict_budget"
+            )
+        ) || [];
+
+    } catch {
+
+        return [];
+
+    }
+
+}
+
+
+/* ============================================================
+   ACTUALIZAR INDICADORES
+============================================================ */
+
+function updateDashboardIndicators() {
+
+
+    const patients =
+        dashboardGetPatients();
+
+
+    const services =
+        dashboardGetServices();
+
+
+    const inventory =
+        dashboardGetInventory();
+
+
+    const budget =
+        dashboardGetBudget();
+
+
+    /* =========================
+       PACIENTES
+    ========================== */
+
+    const dashboardPatients =
+        document.getElementById(
+            "dashboardPatients"
+        );
+
+
+    if (dashboardPatients) {
+
+        dashboardPatients.textContent =
+            patients.length;
+
+    }
+
+
+    /* =========================
+       SERVICIOS ACTIVOS
+    ========================== */
+
+    const activeServices =
+        services.filter(
+            service =>
+                service.status === "Activo"
+        );
+
+
+    const dashboardServices =
+        document.getElementById(
+            "dashboardServices"
+        );
+
+
+    if (dashboardServices) {
+
+        dashboardServices.textContent =
+            activeServices.length;
+
+    }
+
+
+    /* =========================
+       INVENTARIO
+    ========================== */
+
+    let inventoryPercentage = 0;
+
+
+    if (inventory.length > 0) {
+
+        const available =
+            inventory.filter(item => {
+
+                return Number(item.stock) >
+                    Number(item.minStock);
+
+            }).length;
+
+
+        inventoryPercentage =
+            Math.round(
+                (
+                    available /
+                    inventory.length
+                ) * 100
+            );
+
+    }
+
+
+    const dashboardInventory =
+        document.getElementById(
+            "dashboardInventory"
+        );
+
+
+    if (dashboardInventory) {
+
+        dashboardInventory.textContent =
+            `${inventoryPercentage}%`;
+
+    }
+
+
+    /* =========================
+       PRESUPUESTO
+    ========================== */
+
+    const approved =
+        1000000000;
+
+
+    const executed =
+        budget
+
+            .filter(
+                item =>
+                    item.type === "Gasto"
+            )
+
+            .reduce(
+                (total, item) =>
+                    total +
+                    Number(item.value || 0),
+
+                0
+            );
+
+
+    let budgetPercentage = 0;
+
+
+    if (approved > 0) {
+
+        budgetPercentage =
+            (
+                executed /
+                approved
+            ) * 100;
+
+    }
+
+
+    const dashboardBudget =
+        document.getElementById(
+            "dashboardBudget"
+        );
+
+
+    if (dashboardBudget) {
+
+        dashboardBudget.textContent =
+            `${budgetPercentage.toFixed(1)}%`;
+
+    }
+
+
+    const dashboardBudgetPercentage =
+        document.getElementById(
+            "dashboardBudgetPercentage"
+        );
+
+
+    if (dashboardBudgetPercentage) {
+
+        dashboardBudgetPercentage.textContent =
+            `${budgetPercentage.toFixed(1)}%`;
+
+    }
+
+
+    const dashboardBudgetBar =
+        document.getElementById(
+            "dashboardBudgetBar"
+        );
+
+
+    if (dashboardBudgetBar) {
+
+        dashboardBudgetBar.style.width =
+            `${Math.min(
+                budgetPercentage,
+                100
+            )}%`;
+
+    }
+
+
+    const dashboardBudgetExecuted =
+        document.getElementById(
+            "dashboardBudgetExecuted"
+        );
+
+
+    if (dashboardBudgetExecuted) {
+
+        dashboardBudgetExecuted.textContent =
+            dashboardCurrency(executed);
+
+    }
+
+
+    const dashboardBudgetTotal =
+        document.getElementById(
+            "dashboardBudgetTotal"
+        );
+
+
+    if (dashboardBudgetTotal) {
+
+        dashboardBudgetTotal.textContent =
+            dashboardCurrency(
+                approved
+            );
+
+    }
+
+
+    /* =========================
+       OTROS ELEMENTOS
+    ========================== */
+
+    updateDashboardAlerts();
+
+    updateDashboardSummary();
+
+    updateDashboardServiceDemand();
+
+    updateDashboardInventory();
+
+}
+
+
+/* ============================================================
+   ALERTAS DEL DASHBOARD
+============================================================ */
+
+function updateDashboardAlerts() {
+
+    const container =
+        document.getElementById(
+            "dashboardAlerts"
+        );
+
+
+    const counter =
+        document.getElementById(
+            "dashboardAlertCount"
+        );
+
+
+    if (!container) return;
+
+
+    const inventory =
+        dashboardGetInventory();
+
+
+    const budget =
+        dashboardGetBudget();
+
+
+    const alerts = [];
+
+
+    /* STOCK BAJO */
+
+    inventory.forEach(item => {
+
+        if (
+            Number(item.stock) <=
+            Number(item.minStock)
+        ) {
+
+            alerts.push({
+
+                type: "warning",
+
+                icon: "⚠️",
+
+                title:
+                    "Inventario bajo",
+
+                message:
+                    `${item.name}: ` +
+                    `stock ${item.stock}, ` +
+                    `mínimo ${item.minStock}.`
+
+            });
+
+        }
+
+    });
+
+
+    /* VENCIMIENTOS */
+
+    const today =
+        new Date();
+
+
+    const limit =
+        new Date();
+
+
+    limit.setDate(
+        today.getDate() + 30
+    );
+
+
+    inventory.forEach(item => {
+
+        if (!item.expiry) return;
+
+
+        const expiry =
+            new Date(
+                `${item.expiry}T00:00:00`
+            );
+
+
+        if (
+            expiry >= today &&
+            expiry <= limit
+        ) {
+
+            alerts.push({
+
+                type: "danger",
+
+                icon: "🚨",
+
+                title:
+                    "Próximo vencimiento",
+
+                message:
+                    `${item.name} vence el ` +
+                    `${item.expiry}.`
+
+            });
+
+        }
+
+    });
+
+
+    /* PRESUPUESTO */
+
+    const approved =
+        1000000000;
+
+
+    const executed =
+        budget
+
+            .filter(
+                item =>
+                    item.type === "Gasto"
+            )
+
+            .reduce(
+                (total, item) =>
+                    total +
+                    Number(item.value || 0),
+
+                0
+            );
+
+
+    const percentage =
+        approved > 0
+            ? (executed / approved) * 100
+            : 0;
+
+
+    if (percentage >= 90) {
+
+        alerts.push({
+
+            type: "danger",
+
+            icon: "🚨",
+
+            title:
+                "Presupuesto crítico",
+
+            message:
+                `La ejecución presupuestal ` +
+                `está en ${percentage.toFixed(1)}%.`
+
+        });
+
+    }
+
+    else if (percentage >= 75) {
+
+        alerts.push({
+
+            type: "warning",
+
+            icon: "⚠️",
+
+            title:
+                "Presupuesto elevado",
+
+            message:
+                `La ejecución presupuestal ` +
+                `está en ${percentage.toFixed(1)}%.`
+
+        });
+
+    }
+
+
+    /* CONTENIDO */
+
+    if (counter) {
+
+        counter.textContent =
+            alerts.length;
+
+    }
+
+
+    if (!alerts.length) {
+
+        container.innerHTML = `
+
+            <div class="alert-item info">
+
+                <span>✓</span>
+
+                <div>
+
+                    <strong>
+                        Sistema estable
+                    </strong>
+
+                    <p>
+                        No existen alertas
+                        críticas actualmente.
+                    </p>
+
+                </div>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        alerts
+            .slice(0, 5)
+            .map(alert => `
+
+                <div class="alert-item ${alert.type}">
+
+                    <span>
+                        ${alert.icon}
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            ${alert.title}
+                        </strong>
+
+                        <p>
+                            ${alert.message}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `)
+            .join("");
+
+}
+
+
+/* ============================================================
+   RESUMEN INSTITUCIONAL
+============================================================ */
+
+function updateDashboardSummary() {
+
+    const container =
+        document.getElementById(
+            "dashboardSystemSummary"
+        );
+
+
+    if (!container) return;
+
+
+    const patients =
+        dashboardGetPatients();
+
+
+    const services =
+        dashboardGetServices();
+
+
+    const inventory =
+        dashboardGetInventory();
+
+
+    const activePatients =
+        patients.filter(
+            patient =>
+                patient.status === "Activo"
+        ).length;
+
+
+    const activeServices =
+        services.filter(
+            service =>
+                service.status === "Activo"
+        ).length;
+
+
+    const lowStock =
+        inventory.filter(
+            item =>
+                Number(item.stock) <=
+                Number(item.minStock)
+        ).length;
+
+
+    container.innerHTML = `
+
+        <div style="
+            display:grid;
+            gap:12px;
+        ">
+
+            <p>
+                👥
+                <strong>
+                    ${patients.length}
+                </strong>
+                pacientes registrados.
+            </p>
+
+            <p>
+                ✓
+                <strong>
+                    ${activePatients}
+                </strong>
+                pacientes activos.
+            </p>
+
+            <p>
+                🏥
+                <strong>
+                    ${activeServices}
+                </strong>
+                servicios activos.
+            </p>
+
+            <p>
+                📦
+                <strong>
+                    ${inventory.length}
+                </strong>
+                productos en inventario.
+            </p>
+
+            <p>
+                ⚠️
+                <strong>
+                    ${lowStock}
+                </strong>
+                productos requieren reposición.
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+/* ============================================================
+   DEMANDA POR SERVICIO
+============================================================ */
+
+function updateDashboardServiceDemand() {
+
+    const container =
+        document.getElementById(
+            "dashboardServiceDemand"
+        );
+
+
+    if (!container) return;
+
+
+    const patients =
+        dashboardGetPatients();
+
+
+    if (!patients.length) {
+
+        container.innerHTML = `
+
+            <p>
+                Todavía no hay pacientes registrados.
+            </p>
+
+        `;
+
+        return;
+
+    }
+
+
+    const serviceCount = {};
+
+
+    patients.forEach(patient => {
+
+        const service =
+            patient.service ||
+            "Sin servicio";
+
+
+        serviceCount[service] =
+            (
+                serviceCount[service] ||
+                0
+            ) + 1;
+
+    });
+
+
+    const ordered =
+        Object.entries(
+            serviceCount
+        )
+        .sort(
+            (a, b) =>
+                b[1] - a[1]
+        );
+
+
+    const max =
+        ordered.length
+            ? ordered[0][1]
+            : 1;
+
+
+    container.innerHTML =
+        ordered
+            .map(
+                ([service, count]) => {
+
+                    const width =
+                        (
+                            count /
+                            max
+                        ) * 100;
+
+
+                    return `
+
+                        <div style="
+                            width:100%;
+                            margin:10px 0;
+                        ">
+
+                            <div style="
+                                display:flex;
+                                justify-content:space-between;
+                                margin-bottom:5px;
+                            ">
+
+                                <span>
+                                    ${service}
+                                </span>
+
+                                <strong>
+                                    ${count}
+                                </strong>
+
+                            </div>
+
+
+                            <div style="
+                                width:100%;
+                                height:12px;
+                                background:#e5e7eb;
+                                border-radius:10px;
+                                overflow:hidden;
+                            ">
+
+                                <div style="
+                                    width:${width}%;
+                                    height:100%;
+                                    background:#20c6d7;
+                                    border-radius:10px;
+                                "></div>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            )
+            .join("");
+
+}
+
+
+/* ============================================================
+   RESUMEN INVENTARIO
+============================================================ */
+
+function updateDashboardInventory() {
+
+    const container =
+        document.getElementById(
+            "dashboardInventorySummary"
+        );
+
+
+    if (!container) return;
+
+
+    const inventory =
+        dashboardGetInventory();
+
+
+    if (!inventory.length) {
+
+        container.innerHTML = `
+
+            <p>
+                No hay productos registrados.
+            </p>
+
+        `;
+
+        return;
+
+    }
+
+
+    const lowStock =
+        inventory.filter(
+            item =>
+                Number(item.stock) <=
+                Number(item.minStock)
+        );
+
+
+    const normalStock =
+        inventory.length -
+        lowStock.length;
+
+
+    const totalUnits =
+        inventory.reduce(
+            (total, item) =>
+                total +
+                Number(item.stock || 0),
+
+            0
+        );
+
+
+    container.innerHTML = `
+
+        <div style="
+            display:grid;
+            grid-template-columns:
+            repeat(auto-fit,minmax(180px,1fr));
+            gap:15px;
+        ">
+
+            <div>
+
+                <strong>
+                    Productos
+                </strong>
+
+                <p>
+                    ${inventory.length}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    Stock normal
+                </strong>
+
+                <p>
+                    ${normalStock}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    Stock bajo
+                </strong>
+
+                <p>
+                    ${lowStock.length}
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <strong>
+                    Unidades totales
+                </strong>
+
+                <p>
+                    ${totalUnits}
+                </p>
+
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+/* ============================================================
+   INICIALIZAR DASHBOARD
+============================================================ */
+
+function initializeDynamicDashboard() {
+
+    updateDashboardIndicators();
+
+}
+
+
+/* ============================================================
+   ACTUALIZACIÓN AUTOMÁTICA
+============================================================ */
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initializeDynamicDashboard
+    );
+
+} else {
+
+    initializeDynamicDashboard();
+
+}
