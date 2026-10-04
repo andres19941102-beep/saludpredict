@@ -1027,3 +1027,26 @@ tbody tr:hover {
 
 }
 }
+
+/* =====================================
+   SERVICIOS
+===================================== */
+
+#servicesTable td:nth-child(5) {
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+#servicesTable td:nth-child(7) {
+    white-space: nowrap;
+}
+
+#averageServicePrice {
+    font-size: 18px;
+}
+
+@media (max-width: 900px) {
+    #servicesTable {
+        min-width: 900px;
+    }
+}
