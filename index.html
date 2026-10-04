@@ -903,35 +903,154 @@
 
 
 
-        <!-- =========================
-             INVENTARIO
-        ========================== -->
+       <!-- =========================
+     INVENTARIO
+========================== -->
 
-        <section id="inventario" class="section">
+<section id="inventario" class="section">
 
-            <div class="page-header">
+    <div class="page-header">
 
-                <div>
-                    <h2>Inventario</h2>
-                    <p>Control de medicamentos y recursos</p>
-                </div>
+        <div>
+            <h2>Inventario</h2>
+            <p>Control de medicamentos, insumos y recursos</p>
+        </div>
 
+        <button id="newInventoryBtn" class="primary-btn">
+            + Nuevo producto
+        </button>
+
+    </div>
+
+
+    <!-- ESTADÍSTICAS -->
+
+    <div class="cards-grid">
+
+        <div class="stat-card">
+
+            <div class="stat-icon blue">
+                📦
             </div>
 
-            <div class="empty-panel">
-
-                <div>📦</div>
-
-                <h3>Módulo de Inventario</h3>
-
-                <p>
-                    Próximamente podrás controlar entradas, salidas,
-                    existencias y vencimientos.
-                </p>
-
+            <div>
+                <span>Total productos</span>
+                <strong id="totalInventory">0</strong>
             </div>
 
-        </section>
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon green">
+                📊
+            </div>
+
+            <div>
+                <span>Unidades disponibles</span>
+                <strong id="totalStock">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon orange">
+                ⚠️
+            </div>
+
+            <div>
+                <span>Stock bajo</span>
+                <strong id="lowStock">0</strong>
+            </div>
+
+        </div>
+
+
+        <div class="stat-card">
+
+            <div class="stat-icon purple">
+                💰
+            </div>
+
+            <div>
+                <span>Valor inventario</span>
+                <strong id="inventoryValue">$0</strong>
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- BUSCADOR -->
+
+    <div class="panel">
+
+        <div class="panel-header">
+
+            <div>
+                <h3>Productos e insumos</h3>
+                <p>Consulta y administra el inventario institucional</p>
+            </div>
+
+        </div>
+
+
+        <div class="search-container">
+
+            <input
+                type="text"
+                id="inventorySearch"
+                placeholder="Buscar por código, nombre o categoría..."
+            >
+
+        </div>
+
+
+        <div class="table-container">
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>Código</th>
+
+                        <th>Producto</th>
+
+                        <th>Categoría</th>
+
+                        <th>Stock</th>
+
+                        <th>Mínimo</th>
+
+                        <th>Costo unitario</th>
+
+                        <th>Vencimiento</th>
+
+                        <th>Estado</th>
+
+                        <th>Acciones</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="inventoryTable">
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+</section>
 
 
 
