@@ -702,3 +702,763 @@ patientSearch.addEventListener(
 renderPatients();
 
 updateStatistics();
+/* =====================================
+   SALUDPREDICT
+   MÓDULO DE SERVICIOS
+===================================== */
+
+
+/* =====================================
+   SERVICIOS INICIALES
+===================================== */
+
+const defaultServices = [
+
+    {
+        id: 1,
+        code: "SER-001",
+        name: "Medicina general",
+        category: "Consulta",
+        duration: "30 min",
+        price: 85000,
+        status: "Activo"
+    },
+
+    {
+        id: 2,
+        code: "SER-002",
+        name: "Consulta externa",
+        category: "Consulta",
+        duration: "30 min",
+        price: 75000,
+        status: "Activo"
+    },
+
+    {
+        id: 3,
+        code: "SER-003",
+        name: "Atención de urgencias",
+        category: "Urgencias",
+        duration: "60 min",
+        price: 120000,
+        status: "Activo"
+    },
+
+    {
+        id: 4,
+        code: "SER-004",
+        name: "Hospitalización",
+        category: "Hospitalización",
+        duration: "24 horas",
+        price: 350000,
+        status: "Activo"
+    },
+
+    {
+        id: 5,
+        code: "SER-005",
+        name: "Odontología general",
+        category: "Odontología",
+        duration: "45 min",
+        price: 90000,
+        status: "Activo"
+    },
+
+    {
+        id: 6,
+        code: "SER-006",
+        name: "Laboratorio clínico",
+        category: "Diagnóstico",
+        duration: "20 min",
+        price: 45000,
+        status: "Activo"
+    }
+
+];
+
+
+/* =====================================
+   CARGAR SERVICIOS
+===================================== */
+
+let services = JSON.parse(
+    localStorage.getItem("saludpredict_services")
+);
+
+
+if (!services || !Array.isArray(services)) {
+
+    services = defaultServices;
+
+    saveServices();
+
+}
+
+
+/* =====================================
+   GUARDAR SERVICIOS
+===================================== */
+
+function saveServices() {
+
+    localStorage.setItem(
+        "saludpredict_services",
+        JSON.stringify(services)
+    );
+
+}
+
+
+/* =====================================
+   ELEMENTOS DEL DOM
+===================================== */
+
+const servicesTable =
+    document.getElementById("servicesTable");
+
+const serviceSearch =
+    document.getElementById("serviceSearch");
+
+const totalServices =
+    document.getElementById("totalServices");
+
+const activeServices =
+    document.getElementById("activeServices");
+
+const averageServicePrice =
+    document.getElementById("averageServicePrice");
+
+const serviceModal =
+    document.getElementById("serviceModal");
+
+const newServiceBtn =
+    document.getElementById("newServiceBtn");
+
+const closeServiceModal =
+    document.getElementById("closeServiceModal");
+
+const cancelServiceBtn =
+    document.getElementById("cancelServiceBtn");
+
+const serviceForm =
+    document.getElementById("serviceForm");
+
+const serviceModalTitle =
+    document.getElementById("serviceModalTitle");
+
+
+/* =====================================
+   CAMPOS DEL FORMULARIO
+===================================== */
+
+const serviceId =
+    document.getElementById("serviceId");
+
+const serviceCode =
+    document.getElementById("serviceCode");
+
+const serviceName =
+    document.getElementById("serviceName");
+
+const serviceCategory =
+    document.getElementById("serviceCategory");
+
+const serviceDuration =
+    document.getElementById("serviceDuration");
+
+const servicePrice =
+    document.getElementById("servicePrice");
+
+const serviceStatus =
+    document.getElementById("serviceStatus");
+
+
+/* =====================================
+   FORMATO MONEDA
+===================================== */
+
+function formatCurrency(value) {
+
+    return new Intl.NumberFormat(
+        "es-CO",
+        {
+            style: "currency",
+            currency: "COP",
+            maximumFractionDigits: 0
+        }
+    ).format(value);
+
+}
+
+
+/* =====================================
+   MOSTRAR SERVICIOS
+===================================== */
+
+function renderServices(searchTerm = "") {
+
+    if (!servicesTable) {
+        return;
+    }
+
+
+    servicesTable.innerHTML = "";
+
+
+    const term =
+        searchTerm.toLowerCase().trim();
+
+
+    const filteredServices =
+        services.filter(service => {
+
+            return (
+
+                service.code
+                    .toLowerCase()
+                    .includes(term)
+
+                ||
+
+                service.name
+                    .toLowerCase()
+                    .includes(term)
+
+                ||
+
+                service.category
+                    .toLowerCase()
+                    .includes(term)
+
+            );
+
+        });
+
+
+    if (filteredServices.length === 0) {
+
+        servicesTable.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="7"
+                    style="
+                        text-align:center;
+                        padding:30px;
+                        color:#6b7280;
+                    "
+                >
+
+                    No se encontraron servicios.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+
+    }
+
+
+    filteredServices.forEach(service => {
+
+        const row =
+            document.createElement("tr");
+
+
+        const statusClass =
+            service.status === "Activo"
+                ? "active"
+                : "inactive";
+
+
+        row.innerHTML = `
+
+            <td>
+                <strong>
+                    ${service.code}
+                </strong>
+            </td>
+
+            <td>
+                ${service.name}
+            </td>
+
+            <td>
+                ${service.category}
+            </td>
+
+            <td>
+                ${service.duration}
+            </td>
+
+            <td>
+                ${formatCurrency(service.price)}
+            </td>
+
+            <td>
+
+                <span class="status ${statusClass}">
+                    ${service.status}
+                </span>
+
+            </td>
+
+            <td>
+
+                <div class="action-buttons">
+
+                    <button
+                        class="action-btn edit-btn"
+                        onclick="editService(${service.id})"
+                    >
+                        ✏️ Editar
+                    </button>
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick="deleteService(${service.id})"
+                    >
+                        🗑️
+                    </button>
+
+                </div>
+
+            </td>
+
+        `;
+
+
+        servicesTable.appendChild(row);
+
+    });
+
+
+    updateServiceStatistics();
+
+}
+
+
+/* =====================================
+   ESTADÍSTICAS
+===================================== */
+
+function updateServiceStatistics() {
+
+    if (!totalServices) {
+        return;
+    }
+
+
+    const total =
+        services.length;
+
+
+    const active =
+        services.filter(
+            service => service.status === "Activo"
+        ).length;
+
+
+    const totalPrice =
+        services.reduce(
+            (sum, service) =>
+                sum + Number(service.price || 0),
+            0
+        );
+
+
+    const average =
+        total > 0
+            ? totalPrice / total
+            : 0;
+
+
+    totalServices.textContent =
+        total;
+
+
+    activeServices.textContent =
+        active;
+
+
+    averageServicePrice.textContent =
+        formatCurrency(average);
+
+}
+
+
+/* =====================================
+   ABRIR NUEVO SERVICIO
+===================================== */
+
+function openNewServiceModal() {
+
+    serviceForm.reset();
+
+    serviceId.value = "";
+
+    serviceModalTitle.textContent =
+        "Nuevo servicio";
+
+    serviceStatus.value =
+        "Activo";
+
+    serviceModal.classList.add("show");
+
+}
+
+
+/* =====================================
+   CERRAR MODAL
+===================================== */
+
+function closeServiceFormModal() {
+
+    serviceModal.classList.remove("show");
+
+    serviceForm.reset();
+
+    serviceId.value = "";
+
+}
+
+
+/* =====================================
+   EDITAR SERVICIO
+===================================== */
+
+function editService(id) {
+
+    const service =
+        services.find(
+            item => item.id === id
+        );
+
+
+    if (!service) {
+        return;
+    }
+
+
+    serviceId.value =
+        service.id;
+
+    serviceCode.value =
+        service.code;
+
+    serviceName.value =
+        service.name;
+
+    serviceCategory.value =
+        service.category;
+
+    serviceDuration.value =
+        service.duration;
+
+    servicePrice.value =
+        service.price;
+
+    serviceStatus.value =
+        service.status;
+
+
+    serviceModalTitle.textContent =
+        "Editar servicio";
+
+
+    serviceModal.classList.add("show");
+
+}
+
+
+/* =====================================
+   ELIMINAR SERVICIO
+===================================== */
+
+function deleteService(id) {
+
+    const service =
+        services.find(
+            item => item.id === id
+        );
+
+
+    if (!service) {
+        return;
+    }
+
+
+    const confirmation =
+        confirm(
+            `¿Está seguro de eliminar el servicio "${service.name}"?`
+        );
+
+
+    if (!confirmation) {
+        return;
+    }
+
+
+    services =
+        services.filter(
+            item => item.id !== id
+        );
+
+
+    saveServices();
+
+    renderServices();
+
+
+    alert(
+        "Servicio eliminado correctamente."
+    );
+
+}
+
+
+/* =====================================
+   GUARDAR SERVICIO
+===================================== */
+
+if (serviceForm) {
+
+    serviceForm.addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+
+            const id =
+                serviceId.value;
+
+
+            const code =
+                serviceCode.value
+                    .trim()
+                    .toUpperCase();
+
+
+            const name =
+                serviceName.value
+                    .trim();
+
+
+            const category =
+                serviceCategory.value;
+
+
+            const duration =
+                serviceDuration.value
+                    .trim();
+
+
+            const price =
+                Number(servicePrice.value);
+
+
+            const status =
+                serviceStatus.value;
+
+
+            if (
+                !code ||
+                !name ||
+                !category ||
+                !duration ||
+                price < 0
+            ) {
+
+                alert(
+                    "Por favor complete todos los campos."
+                );
+
+                return;
+
+            }
+
+
+            const duplicated =
+                services.find(
+                    service =>
+                        service.code.toUpperCase() === code
+                        &&
+                        String(service.id) !== String(id)
+                );
+
+
+            if (duplicated) {
+
+                alert(
+                    "Ya existe un servicio con ese código."
+                );
+
+                return;
+
+            }
+
+
+            if (id) {
+
+                const index =
+                    services.findIndex(
+                        service =>
+                            String(service.id) === String(id)
+                    );
+
+
+                if (index !== -1) {
+
+                    services[index] = {
+
+                        ...services[index],
+
+                        code,
+                        name,
+                        category,
+                        duration,
+                        price,
+                        status
+
+                    };
+
+                }
+
+            } else {
+
+                const newId =
+                    services.length > 0
+                        ? Math.max(
+                            ...services.map(
+                                service => Number(service.id)
+                            )
+                        ) + 1
+                        : 1;
+
+
+                services.push({
+
+                    id: newId,
+                    code,
+                    name,
+                    category,
+                    duration,
+                    price,
+                    status
+
+                });
+
+            }
+
+
+            saveServices();
+
+            renderServices();
+
+            closeServiceFormModal();
+
+
+            alert(
+                id
+                    ? "Servicio actualizado correctamente."
+                    : "Servicio creado correctamente."
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================
+   BOTÓN NUEVO SERVICIO
+===================================== */
+
+if (newServiceBtn) {
+
+    newServiceBtn.addEventListener(
+        "click",
+        openNewServiceModal
+    );
+
+}
+
+
+/* =====================================
+   BOTONES CERRAR / CANCELAR
+===================================== */
+
+if (closeServiceModal) {
+
+    closeServiceModal.addEventListener(
+        "click",
+        closeServiceFormModal
+    );
+
+}
+
+
+if (cancelServiceBtn) {
+
+    cancelServiceBtn.addEventListener(
+        "click",
+        closeServiceFormModal
+    );
+
+}
+
+
+/* =====================================
+   CERRAR AL HACER CLIC AFUERA
+===================================== */
+
+if (serviceModal) {
+
+    serviceModal.addEventListener(
+        "click",
+        function(event) {
+
+            if (event.target === serviceModal) {
+
+                closeServiceFormModal();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =====================================
+   BUSCADOR DE SERVICIOS
+===================================== */
+
+if (serviceSearch) {
+
+    serviceSearch.addEventListener(
+        "input",
+        function() {
+
+            renderServices(
+                serviceSearch.value
+            );
+
+        }
+    );
+
+}
+
+
+/* =====================================
+   INICIALIZAR SERVICIOS
+===================================== */
+
+renderServices();
+
+updateServiceStatistics();
