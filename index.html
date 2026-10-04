@@ -11,91 +11,38 @@
 
 <body>
 
-    <!-- ==============================
-         BARRA SUPERIOR
-    =============================== -->
-
-    <header class="topbar">
+    <!-- =========================
+         BARRA SUPERIOR MÓVIL
+    ========================== -->
+    <header class="mobile-topbar">
 
         <button id="menuBtn" class="menu-btn" aria-label="Abrir menú">
             ☰
         </button>
 
-        <div class="topbar-title">
-            <strong>SALUDPREDICT</strong>
-            <span>Gestión inteligente en salud</span>
-        </div>
-
-        <div class="topbar-user">
-            <span class="user-icon">👤</span>
+        <div class="mobile-brand">
+            <img src="logo-saludpredict.jpg" alt="Logo SALUDPREDICT">
             <div>
-                <strong>Administrador</strong>
-                <small>Sistema institucional</small>
+                <strong>SALUDPREDICT</strong>
+                <span>Gestión inteligente en salud</span>
             </div>
         </div>
 
     </header>
 
 
-    <!-- ==============================
-         BARRA LATERAL
-    =============================== -->
-
-    <aside id="sidebar" class="sidebar">
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+    <aside class="sidebar" id="sidebar">
 
         <div class="brand">
 
-            <!-- LOGO INTEGRADO -->
-            <div class="brand-logo">
-
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-
-                    <defs>
-                        <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#20c6d7"/>
-                            <stop offset="100%" stop-color="#159aaa"/>
-                        </linearGradient>
-                    </defs>
-
-                    <path
-                        d="M50 7
-                           C50 7 15 18 15 42
-                           C15 68 31 85 50 93
-                           C69 85 85 68 85 42
-                           C85 18 50 7 50 7Z"
-                        fill="url(#logoGradient)"
-                    />
-
-                    <rect
-                        x="43"
-                        y="25"
-                        width="14"
-                        height="48"
-                        rx="4"
-                        fill="white"
-                    />
-
-                    <rect
-                        x="27"
-                        y="42"
-                        width="46"
-                        height="14"
-                        rx="4"
-                        fill="white"
-                    />
-
-                    <polyline
-                        points="28,68 39,60 48,65 59,50 70,54"
-                        fill="none"
-                        stroke="#c9a24d"
-                        stroke-width="4"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                    />
-
-                </svg>
-
-            </div>
+            <img
+                src="logo-saludpredict.jpg"
+                alt="Logo SALUDPREDICT"
+                class="brand-logo"
+            >
 
             <div class="brand-text">
                 <strong>SALUDPREDICT</strong>
@@ -105,57 +52,55 @@
         </div>
 
 
-        <!-- NAVEGACIÓN -->
-
-        <nav class="sidebar-nav">
+        <nav class="navigation">
 
             <button class="nav-item active" data-section="dashboard">
-                <span>📊</span>
+                <span class="nav-icon">⌂</span>
                 <span>Dashboard</span>
             </button>
 
             <button class="nav-item" data-section="flujo">
-                <span>🔄</span>
+                <span class="nav-icon">↔</span>
                 <span>Flujo del sistema</span>
             </button>
 
             <button class="nav-item" data-section="pacientes">
-                <span>👥</span>
+                <span class="nav-icon">👥</span>
                 <span>Pacientes</span>
             </button>
 
             <button class="nav-item" data-section="servicios">
-                <span>🏥</span>
+                <span class="nav-icon">⚕</span>
                 <span>Servicios</span>
             </button>
 
             <button class="nav-item" data-section="inventario">
-                <span>📦</span>
+                <span class="nav-icon">▣</span>
                 <span>Inventario</span>
             </button>
 
             <button class="nav-item" data-section="presupuesto">
-                <span>💰</span>
+                <span class="nav-icon">💰</span>
                 <span>Presupuesto</span>
             </button>
 
             <button class="nav-item" data-section="analisis">
-                <span>📈</span>
+                <span class="nav-icon">▥</span>
                 <span>Análisis</span>
             </button>
 
             <button class="nav-item" data-section="predicciones">
-                <span>🔮</span>
+                <span class="nav-icon">◈</span>
                 <span>Predicciones</span>
             </button>
 
             <button class="nav-item" data-section="alertas">
-                <span>🚨</span>
+                <span class="nav-icon">⚠</span>
                 <span>Alertas</span>
             </button>
 
             <button class="nav-item" data-section="reportes">
-                <span>📄</span>
+                <span class="nav-icon">▤</span>
                 <span>Reportes</span>
             </button>
 
@@ -165,7 +110,6 @@
         <div class="sidebar-footer">
 
             <strong>SALUDPREDICT</strong>
-
             <span>Versión 1.0</span>
 
         </div>
@@ -173,17 +117,15 @@
     </aside>
 
 
-    <!-- ==============================
+    <!-- =========================
          CONTENIDO PRINCIPAL
-    =============================== -->
-
+    ========================== -->
     <main class="main-content">
 
 
-        <!-- ==========================
+        <!-- =========================
              DASHBOARD
-        =========================== -->
-
+        ========================== -->
         <section id="dashboard" class="section active">
 
             <div class="section-header">
@@ -193,224 +135,215 @@
                     <p>Resumen general de la institución</p>
                 </div>
 
-                <div class="header-actions">
-                    <button id="loadDemoDataBtn" class="btn btn-secondary">
-                        ↻ Datos demo
-                    </button>
-                </div>
+                <button class="btn btn-primary" id="loadDemoDataBtn">
+                    ↻ Actualizar datos demo
+                </button>
 
             </div>
 
 
-            <!-- TARJETAS PRINCIPALES -->
-
+            <!-- ESTADÍSTICAS -->
             <div class="stats-grid">
 
                 <div class="stat-card">
-
-                    <div class="stat-icon blue">
-                        👥
-                    </div>
-
+                    <div class="stat-icon blue">👥</div>
                     <div>
-                        <span>Pacientes</span>
+                        <span>Pacientes registrados</span>
                         <strong id="dashboardPatients">0</strong>
-                        <small>Registrados</small>
                     </div>
-
                 </div>
 
-
                 <div class="stat-card">
-
-                    <div class="stat-icon green">
-                        🏥
-                    </div>
-
+                    <div class="stat-icon cyan">⚕</div>
                     <div>
-                        <span>Servicios</span>
+                        <span>Servicios activos</span>
                         <strong id="dashboardServices">0</strong>
-                        <small>Servicios activos</small>
                     </div>
-
                 </div>
 
-
                 <div class="stat-card">
-
-                    <div class="stat-icon orange">
-                        📦
-                    </div>
-
+                    <div class="stat-icon green">▣</div>
                     <div>
-                        <span>Inventario</span>
+                        <span>Inventario disponible</span>
                         <strong id="dashboardInventory">0%</strong>
-                        <small>Nivel disponible</small>
                     </div>
-
                 </div>
 
-
                 <div class="stat-card">
-
-                    <div class="stat-icon purple">
-                        💰
-                    </div>
-
+                    <div class="stat-icon gold">💰</div>
                     <div>
-                        <span>Presupuesto</span>
+                        <span>Ejecución presupuestal</span>
                         <strong id="dashboardBudget">0%</strong>
-                        <small>Ejecución</small>
                     </div>
-
                 </div>
 
-
                 <div class="stat-card">
-
-                    <div class="stat-icon red">
-                        🚨
-                    </div>
-
+                    <div class="stat-icon red">⚠</div>
                     <div>
-                        <span>Alertas</span>
+                        <span>Alertas pendientes</span>
                         <strong id="dashboardAlertCount">0</strong>
-                        <small>Requieren revisión</small>
                     </div>
-
                 </div>
 
             </div>
 
 
+            <!-- RESUMEN -->
             <div class="dashboard-grid">
-
-                <!-- DEMANDA -->
 
                 <div class="panel large-panel">
 
                     <div class="panel-header">
-
                         <div>
                             <h2>Demanda de servicios</h2>
-                            <p>Comportamiento mensual estimado</p>
+                            <p>Comportamiento mensual</p>
                         </div>
-
                     </div>
 
-                    <div id="dashboardServiceDemand" class="chart-bars">
+                    <div class="bar-chart" id="dashboardServiceDemand">
+
+                        <div class="bar-column">
+                            <div class="bar-value">45%</div>
+                            <div class="bar" style="height:45%"></div>
+                            <span>Ene</span>
+                        </div>
+
+                        <div class="bar-column">
+                            <div class="bar-value">58%</div>
+                            <div class="bar" style="height:58%"></div>
+                            <span>Feb</span>
+                        </div>
+
+                        <div class="bar-column">
+                            <div class="bar-value">52%</div>
+                            <div class="bar" style="height:52%"></div>
+                            <span>Mar</span>
+                        </div>
+
+                        <div class="bar-column">
+                            <div class="bar-value">69%</div>
+                            <div class="bar" style="height:69%"></div>
+                            <span>Abr</span>
+                        </div>
+
+                        <div class="bar-column">
+                            <div class="bar-value">81%</div>
+                            <div class="bar" style="height:81%"></div>
+                            <span>May</span>
+                        </div>
+
+                        <div class="bar-column">
+                            <div class="bar-value">76%</div>
+                            <div class="bar" style="height:76%"></div>
+                            <span>Jun</span>
+                        </div>
+
+                        <div class="bar-column">
+                            <div class="bar-value">84%</div>
+                            <div class="bar" style="height:84%"></div>
+                            <span>Jul</span>
+                        </div>
+
+                        <div class="bar-column">
+                            <div class="bar-value">79%</div>
+                            <div class="bar" style="height:79%"></div>
+                            <span>Ago</span>
+                        </div>
 
                     </div>
 
                 </div>
 
 
-                <!-- ALERTAS -->
-
                 <div class="panel">
 
                     <div class="panel-header">
-
                         <div>
                             <h2>Alertas recientes</h2>
                             <p>Situaciones que requieren atención</p>
                         </div>
-
                     </div>
 
-                    <div id="dashboardAlerts" class="alert-list">
-
-                    </div>
+                    <div id="dashboardAlerts" class="alert-list"></div>
 
                 </div>
 
             </div>
 
 
-            <div class="dashboard-grid bottom-grid">
-
-                <!-- PRESUPUESTO -->
+            <!-- SEGUNDA FILA -->
+            <div class="dashboard-grid">
 
                 <div class="panel">
 
                     <div class="panel-header">
-
                         <div>
                             <h2>Ejecución presupuestal</h2>
-                            <p>Estado financiero general</p>
+                            <p>Seguimiento financiero</p>
                         </div>
-
-                        <strong id="dashboardBudgetPercentage">0%</strong>
-
                     </div>
 
-                    <div class="progress-container">
+                    <div class="budget-dashboard">
 
-                        <div class="progress-bar">
+                        <div class="budget-percent" id="dashboardBudgetPercentage">
+                            0%
+                        </div>
 
+                        <div class="progress">
                             <div
+                                class="progress-bar"
                                 id="dashboardBudgetBar"
-                                class="progress-fill"
-                                style="width:0%">
+                                style="width:0%"
+                            ></div>
+                        </div>
+
+                        <div class="budget-details">
+
+                            <div>
+                                <span>Ejecutado</span>
+                                <strong id="dashboardBudgetExecuted">
+                                    $0
+                                </strong>
+                            </div>
+
+                            <div>
+                                <span>Presupuesto</span>
+                                <strong id="dashboardBudgetTotal">
+                                    $0
+                                </strong>
                             </div>
 
                         </div>
 
                     </div>
 
-                    <div class="budget-values">
-
-                        <div>
-                            <span>Ejecutado</span>
-                            <strong id="dashboardBudgetExecuted">$0</strong>
-                        </div>
-
-                        <div>
-                            <span>Presupuesto</span>
-                            <strong id="dashboardBudgetTotal">$0</strong>
-                        </div>
-
-                    </div>
-
                 </div>
 
-
-                <!-- RESUMEN -->
 
                 <div class="panel">
 
                     <div class="panel-header">
-
                         <div>
-                            <h2>Estado institucional</h2>
+                            <h2>Estado del inventario</h2>
+                            <p>Disponibilidad de recursos</p>
+                        </div>
+                    </div>
+
+                    <div id="dashboardInventorySummary"></div>
+
+                </div>
+
+
+                <div class="panel">
+
+                    <div class="panel-header">
+                        <div>
+                            <h2>Resumen institucional</h2>
                             <p>Indicadores principales</p>
                         </div>
-
                     </div>
 
-                    <div id="dashboardSystemSummary" class="summary-list">
-
-                    </div>
-
-                </div>
-
-
-                <!-- INVENTARIO -->
-
-                <div class="panel">
-
-                    <div class="panel-header">
-
-                        <div>
-                            <h2>Inventario</h2>
-                            <p>Estado de existencias</p>
-                        </div>
-
-                    </div>
-
-                    <div id="dashboardInventorySummary" class="summary-list">
-
-                    </div>
+                    <div id="dashboardSystemSummary"></div>
 
                 </div>
 
@@ -419,10 +352,9 @@
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              FLUJO
-        =========================== -->
-
+        ========================== -->
         <section id="flujo" class="section">
 
             <div class="section-header">
@@ -435,131 +367,134 @@
             </div>
 
 
-            <div class="panel flow-intro">
-
-                <h2>Modelo integral de gestión en salud</h2>
-
-                <p>
-                    SALUDPREDICT integra la información institucional para
-                    transformar los datos de pacientes, servicios, inventario
-                    y presupuesto en análisis, predicciones y alertas para
-                    apoyar la toma de decisiones.
-                </p>
-
-            </div>
-
-
-            <div class="flowchart">
-
-                <button class="flow-node primary" data-go="pacientes">
-                    <span>👥</span>
-                    <strong>Pacientes</strong>
-                    <small>Registran la demanda</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node" data-go="servicios">
-                    <span>🏥</span>
-                    <strong>Servicios</strong>
-                    <small>Organizan la atención</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node" data-go="inventario">
-                    <span>📦</span>
-                    <strong>Inventario</strong>
-                    <small>Garantiza recursos</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node" data-go="presupuesto">
-                    <span>💰</span>
-                    <strong>Presupuesto</strong>
-                    <small>Controla recursos</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node" data-go="analisis">
-                    <span>📈</span>
-                    <strong>Análisis</strong>
-                    <small>Interpreta información</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node" data-go="predicciones">
-                    <span>🔮</span>
-                    <strong>Predicciones</strong>
-                    <small>Anticipa escenarios</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node" data-go="alertas">
-                    <span>🚨</span>
-                    <strong>Alertas</strong>
-                    <small>Detecta riesgos</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node" data-go="reportes">
-                    <span>📄</span>
-                    <strong>Reportes</strong>
-                    <small>Documenta resultados</small>
-                </button>
-
-                <div class="flow-arrow">→</div>
-
-                <button class="flow-node dashboard-node" data-go="dashboard">
-                    <span>📊</span>
-                    <strong>Dashboard</strong>
-                    <small>Consolida decisiones</small>
-                </button>
-
-            </div>
-
-
             <div class="panel">
 
-                <h2>Objetivo de SALUDPREDICT</h2>
+                <div class="flow-intro">
 
-                <div class="objective-grid">
+                    <h2>Gestión inteligente en salud</h2>
 
-                    <div>
-                        <strong>1. Capturar</strong>
-                        <p>Registrar información institucional.</p>
+                    <p>
+                        SALUDPREDICT integra la información institucional
+                        para transformar los datos en información útil
+                        para la toma de decisiones.
+                    </p>
+
+                </div>
+
+
+                <div class="flowchart">
+
+                    <div class="flow-node primary" data-go="pacientes">
+                        <span>👥</span>
+                        <strong>Pacientes</strong>
+                        <small>Información de usuarios</small>
                     </div>
 
-                    <div>
-                        <strong>2. Organizar</strong>
-                        <p>Centralizar pacientes, servicios y recursos.</p>
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node" data-go="servicios">
+                        <span>⚕</span>
+                        <strong>Servicios</strong>
+                        <small>Atención disponible</small>
                     </div>
 
-                    <div>
-                        <strong>3. Analizar</strong>
-                        <p>Identificar comportamientos y tendencias.</p>
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node" data-go="inventario">
+                        <span>▣</span>
+                        <strong>Inventario</strong>
+                        <small>Recursos disponibles</small>
                     </div>
 
-                    <div>
-                        <strong>4. Anticipar</strong>
-                        <p>Estimar necesidades futuras.</p>
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node" data-go="presupuesto">
+                        <span>💰</span>
+                        <strong>Presupuesto</strong>
+                        <small>Control financiero</small>
                     </div>
 
-                    <div>
-                        <strong>5. Alertar</strong>
-                        <p>Detectar situaciones que requieren atención.</p>
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node" data-go="analisis">
+                        <span>▥</span>
+                        <strong>Análisis</strong>
+                        <small>Interpretación de datos</small>
                     </div>
 
-                    <div>
-                        <strong>6. Decidir</strong>
-                        <p>Apoyar la gestión administrativa y asistencial.</p>
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node" data-go="predicciones">
+                        <span>◈</span>
+                        <strong>Predicciones</strong>
+                        <small>Proyección de demanda</small>
                     </div>
 
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node" data-go="alertas">
+                        <span>⚠</span>
+                        <strong>Alertas</strong>
+                        <small>Situaciones críticas</small>
+                    </div>
+
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node" data-go="reportes">
+                        <span>▤</span>
+                        <strong>Reportes</strong>
+                        <small>Información para decisión</small>
+                    </div>
+
+                    <div class="flow-arrow">→</div>
+
+                    <div class="flow-node primary" data-go="dashboard">
+                        <span>⌂</span>
+                        <strong>Dashboard</strong>
+                        <small>Visión institucional</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="info-grid">
+
+                <div class="info-card">
+                    <span>01</span>
+                    <h3>Recolectar</h3>
+                    <p>
+                        Se registran pacientes, servicios, recursos
+                        e información financiera.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <span>02</span>
+                    <h3>Analizar</h3>
+                    <p>
+                        Los datos son organizados para identificar
+                        comportamientos y oportunidades.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <span>03</span>
+                    <h3>Predecir</h3>
+                    <p>
+                        El sistema genera estimaciones de demanda
+                        para apoyar la planeación.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <span>04</span>
+                    <h3>Decidir</h3>
+                    <p>
+                        Alertas y reportes permiten tomar decisiones
+                        oportunas.
+                    </p>
                 </div>
 
             </div>
@@ -567,29 +502,28 @@
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              PACIENTES
-        =========================== -->
-
+        ========================== -->
         <section id="pacientes" class="section">
 
             <div class="section-header">
 
                 <div>
                     <h1>Pacientes</h1>
-                    <p>Gestión y consulta de pacientes</p>
+                    <p>Gestión de usuarios de la institución</p>
                 </div>
 
-                <button id="newPatientBtn" class="btn btn-primary">
+                <button class="btn btn-primary" id="newPatientBtn">
                     + Nuevo paciente
                 </button>
 
             </div>
 
 
-            <div class="stats-grid three">
+            <div class="stats-grid small">
 
-                <div class="stat-card compact">
+                <div class="stat-card">
                     <div class="stat-icon blue">👥</div>
                     <div>
                         <span>Total pacientes</span>
@@ -597,7 +531,7 @@
                     </div>
                 </div>
 
-                <div class="stat-card compact">
+                <div class="stat-card">
                     <div class="stat-icon green">✓</div>
                     <div>
                         <span>Pacientes activos</span>
@@ -605,10 +539,10 @@
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon orange">📅</div>
+                <div class="stat-card">
+                    <div class="stat-icon gold">+</div>
                     <div>
-                        <span>Nuevos registrados</span>
+                        <span>Nuevos este mes</span>
                         <strong id="newPatients">0</strong>
                     </div>
                 </div>
@@ -618,11 +552,12 @@
 
             <div class="panel">
 
-                <div class="search-box">
+                <div class="toolbar">
 
                     <input
                         type="text"
                         id="patientSearch"
+                        class="search-input"
                         placeholder="🔎 Buscar por documento, nombre o servicio..."
                     >
 
@@ -634,7 +569,6 @@
                     <table>
 
                         <thead>
-
                             <tr>
                                 <th>Documento</th>
                                 <th>Nombre</th>
@@ -643,12 +577,9 @@
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
-
                         </thead>
 
-                        <tbody id="patientsTable">
-
-                        </tbody>
+                        <tbody id="patientsTable"></tbody>
 
                     </table>
 
@@ -659,10 +590,9 @@
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              SERVICIOS
-        =========================== -->
-
+        ========================== -->
         <section id="servicios" class="section">
 
             <div class="section-header">
@@ -672,24 +602,24 @@
                     <p>Gestión de servicios de salud</p>
                 </div>
 
-                <button id="newServiceBtn" class="btn btn-primary">
+                <button class="btn btn-primary" id="newServiceBtn">
                     + Nuevo servicio
                 </button>
 
             </div>
 
 
-            <div class="stats-grid three">
+            <div class="stats-grid small">
 
-                <div class="stat-card compact">
-                    <div class="stat-icon blue">🏥</div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">⚕</div>
                     <div>
                         <span>Total servicios</span>
                         <strong id="totalServices">0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
+                <div class="stat-card">
                     <div class="stat-icon green">✓</div>
                     <div>
                         <span>Servicios activos</span>
@@ -697,8 +627,8 @@
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon purple">💵</div>
+                <div class="stat-card">
+                    <div class="stat-icon gold">$</div>
                     <div>
                         <span>Valor promedio</span>
                         <strong id="averageServicePrice">$0</strong>
@@ -710,11 +640,12 @@
 
             <div class="panel">
 
-                <div class="search-box">
+                <div class="toolbar">
 
                     <input
                         type="text"
                         id="serviceSearch"
+                        class="search-input"
                         placeholder="🔎 Buscar por código, nombre o categoría..."
                     >
 
@@ -726,7 +657,6 @@
                     <table>
 
                         <thead>
-
                             <tr>
                                 <th>Código</th>
                                 <th>Servicio</th>
@@ -736,12 +666,9 @@
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
-
                         </thead>
 
-                        <tbody id="servicesTable">
-
-                        </tbody>
+                        <tbody id="servicesTable"></tbody>
 
                     </table>
 
@@ -752,10 +679,9 @@
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              INVENTARIO
-        =========================== -->
-
+        ========================== -->
         <section id="inventario" class="section">
 
             <div class="section-header">
@@ -765,33 +691,33 @@
                     <p>Control de medicamentos, insumos y recursos</p>
                 </div>
 
-                <button id="newInventoryBtn" class="btn btn-primary">
+                <button class="btn btn-primary" id="newInventoryBtn">
                     + Nuevo producto
                 </button>
 
             </div>
 
 
-            <div class="stats-grid three">
+            <div class="stats-grid small">
 
-                <div class="stat-card compact">
-                    <div class="stat-icon blue">📦</div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">▣</div>
                     <div>
-                        <span>Productos</span>
+                        <span>Productos registrados</span>
                         <strong id="totalInventory">0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon red">⚠️</div>
+                <div class="stat-card">
+                    <div class="stat-icon red">!</div>
                     <div>
                         <span>Stock bajo</span>
                         <strong id="lowStockInventory">0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon orange">⏰</div>
+                <div class="stat-card">
+                    <div class="stat-icon gold">⌛</div>
                     <div>
                         <span>Próximos a vencer</span>
                         <strong id="expiringInventory">0</strong>
@@ -803,12 +729,13 @@
 
             <div class="panel">
 
-                <div class="search-box">
+                <div class="toolbar">
 
                     <input
                         type="text"
                         id="inventorySearch"
-                        placeholder="🔎 Buscar código, producto o categoría..."
+                        class="search-input"
+                        placeholder="🔎 Buscar por código, producto o categoría..."
                     >
 
                 </div>
@@ -819,7 +746,6 @@
                     <table>
 
                         <thead>
-
                             <tr>
                                 <th>Código</th>
                                 <th>Producto</th>
@@ -828,16 +754,12 @@
                                 <th>Stock</th>
                                 <th>Mínimo</th>
                                 <th>Vencimiento</th>
-                                <th>Valor</th>
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
-
                         </thead>
 
-                        <tbody id="inventoryTable">
-
-                        </tbody>
+                        <tbody id="inventoryTable"></tbody>
 
                     </table>
 
@@ -848,54 +770,53 @@
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              PRESUPUESTO
-        =========================== -->
-
+        ========================== -->
         <section id="presupuesto" class="section">
 
             <div class="section-header">
 
                 <div>
                     <h1>Presupuesto</h1>
-                    <p>Control financiero institucional</p>
+                    <p>Control financiero de la institución</p>
                 </div>
 
-                <button id="newBudgetBtn" class="btn btn-primary">
+                <button class="btn btn-primary" id="newBudgetBtn">
                     + Nuevo movimiento
                 </button>
 
             </div>
 
 
-            <div class="stats-grid four">
+            <div class="stats-grid">
 
-                <div class="stat-card compact">
-                    <div class="stat-icon blue">💰</div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">$</div>
                     <div>
-                        <span>Aprobado</span>
+                        <span>Presupuesto aprobado</span>
                         <strong id="budgetApproved">$0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon orange">📊</div>
+                <div class="stat-card">
+                    <div class="stat-icon gold">$</div>
                     <div>
                         <span>Ejecutado</span>
                         <strong id="budgetExecuted">$0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon green">💵</div>
+                <div class="stat-card">
+                    <div class="stat-icon green">$</div>
                     <div>
                         <span>Disponible</span>
                         <strong id="budgetAvailable">$0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon purple">%</div>
+                <div class="stat-card">
+                    <div class="stat-icon cyan">%</div>
                     <div>
                         <span>Ejecución</span>
                         <strong id="budgetPercentage">0%</strong>
@@ -907,11 +828,12 @@
 
             <div class="panel">
 
-                <div class="search-box">
+                <div class="toolbar">
 
                     <input
                         type="text"
                         id="budgetSearch"
+                        class="search-input"
                         placeholder="🔎 Buscar concepto o categoría..."
                     >
 
@@ -923,7 +845,6 @@
                     <table>
 
                         <thead>
-
                             <tr>
                                 <th>Concepto</th>
                                 <th>Categoría</th>
@@ -931,12 +852,9 @@
                                 <th>Estado</th>
                                 <th>Acciones</th>
                             </tr>
-
                         </thead>
 
-                        <tbody id="budgetTable">
-
-                        </tbody>
+                        <tbody id="budgetTable"></tbody>
 
                     </table>
 
@@ -947,25 +865,24 @@
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              ANÁLISIS
-        =========================== -->
-
+        ========================== -->
         <section id="analisis" class="section">
 
             <div class="section-header">
 
                 <div>
-                    <h1>Análisis</h1>
-                    <p>Indicadores de información institucional</p>
+                    <h1>Análisis institucional</h1>
+                    <p>Interpretación de información para la toma de decisiones</p>
                 </div>
 
             </div>
 
 
-            <div class="stats-grid four">
+            <div class="stats-grid">
 
-                <div class="stat-card compact">
+                <div class="stat-card">
                     <div class="stat-icon blue">👥</div>
                     <div>
                         <span>Pacientes</span>
@@ -973,26 +890,26 @@
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon green">🏥</div>
+                <div class="stat-card">
+                    <div class="stat-icon cyan">⚕</div>
                     <div>
                         <span>Servicios</span>
                         <strong id="analysisServices">0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon orange">📦</div>
+                <div class="stat-card">
+                    <div class="stat-icon green">▣</div>
                     <div>
                         <span>Productos</span>
                         <strong id="analysisInventory">0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon red">⚠️</div>
+                <div class="stat-card">
+                    <div class="stat-icon red">!</div>
                     <div>
-                        <span>Stock bajo</span>
+                        <span>Stock crítico</span>
                         <strong id="analysisLowStock">0</strong>
                     </div>
                 </div>
@@ -1000,22 +917,15 @@
             </div>
 
 
-            <div class="dashboard-grid">
+            <div class="analysis-grid">
 
                 <div class="panel">
 
                     <div class="panel-header">
-
-                        <div>
-                            <h2>Pacientes por servicio</h2>
-                            <p>Distribución de la demanda registrada</p>
-                        </div>
-
+                        <h2>Pacientes por servicio</h2>
                     </div>
 
-                    <div id="patientsAnalysisChart" class="analysis-bars">
-
-                    </div>
+                    <div id="patientsAnalysisChart" class="horizontal-chart"></div>
 
                 </div>
 
@@ -1023,35 +933,21 @@
                 <div class="panel">
 
                     <div class="panel-header">
-
-                        <div>
-                            <h2>Inventario por categoría</h2>
-                            <p>Distribución de productos</p>
-                        </div>
-
+                        <h2>Inventario por categoría</h2>
                     </div>
 
-                    <div id="inventoryAnalysisChart" class="analysis-bars">
-
-                    </div>
+                    <div id="inventoryAnalysisChart" class="horizontal-chart"></div>
 
                 </div>
 
-            </div>
 
+                <div class="panel">
 
-            <div class="panel">
-
-                <div class="panel-header">
-
-                    <div>
-                        <h2>Análisis financiero</h2>
-                        <p>Distribución del presupuesto ejecutado</p>
+                    <div class="panel-header">
+                        <h2>Distribución presupuestal</h2>
                     </div>
 
-                </div>
-
-                <div id="financialAnalysis" class="analysis-bars">
+                    <div id="financialAnalysis" class="financial-list"></div>
 
                 </div>
 
@@ -1060,17 +956,16 @@
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              PREDICCIONES
-        =========================== -->
-
+        ========================== -->
         <section id="predicciones" class="section">
 
             <div class="section-header">
 
                 <div>
                     <h1>Predicciones</h1>
-                    <p>Proyección inicial de demanda y recursos</p>
+                    <p>Proyección inicial de demanda de servicios</p>
                 </div>
 
             </div>
@@ -1086,13 +981,7 @@
                             Servicio
                         </label>
 
-                        <select id="predictionService">
-
-                            <option value="all">
-                                Todos los servicios
-                            </option>
-
-                        </select>
+                        <select id="predictionService"></select>
 
                     </div>
 
@@ -1100,7 +989,7 @@
                     <div class="form-group">
 
                         <label for="predictionPeriod">
-                            Periodo de proyección
+                            Periodo
                         </label>
 
                         <select id="predictionPeriod">
@@ -1123,60 +1012,47 @@
 
 
                     <button
+                        class="btn btn-primary"
                         id="generatePredictionBtn"
-                        class="btn btn-primary">
-                        🔮 Generar predicción
+                    >
+                        Generar predicción
                     </button>
 
                 </div>
 
-            </div>
 
+                <div id="predictionResult" class="prediction-result">
 
-            <div id="predictionResult" class="prediction-result">
-
-                <div class="prediction-card">
-
-                    <span>Promedio histórico</span>
-                    <strong id="historicalAverage">0</strong>
-                    <small>registros estimados</small>
-
-                </div>
-
-                <div class="prediction-card">
-
-                    <span>Demanda estimada</span>
-                    <strong id="estimatedDemand">0</strong>
-                    <small>atenciones proyectadas</small>
-
-                </div>
-
-                <div class="prediction-card">
-
-                    <span>Variación</span>
-                    <strong id="predictionVariation">0%</strong>
-                    <small>respecto al promedio</small>
+                    <div class="prediction-placeholder">
+                        <span>◈</span>
+                        <h3>Predicción de demanda</h3>
+                        <p>
+                            Selecciona un servicio y genera una estimación.
+                        </p>
+                    </div>
 
                 </div>
 
             </div>
 
 
-            <div id="predictionWarning" class="info-box">
+            <div class="info-note">
 
-                ℹ️ Esta es una estimación inicial basada en los datos
-                registrados. No corresponde todavía a un modelo estadístico
-                o de inteligencia artificial avanzado.
+                <strong>Nota metodológica:</strong>
+
+                Esta primera versión utiliza una estimación basada en
+                los registros disponibles en el sistema. No representa
+                todavía un modelo estadístico o de inteligencia artificial
+                entrenado con datos históricos reales.
 
             </div>
 
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              ALERTAS
-        =========================== -->
-
+        ========================== -->
         <section id="alertas" class="section">
 
             <div class="section-header">
@@ -1186,32 +1062,24 @@
                     <p>Situaciones que requieren atención</p>
                 </div>
 
-                <button id="refreshAlertsBtn" class="btn btn-secondary">
+                <button class="btn btn-secondary" id="refreshAlertsBtn">
                     ↻ Actualizar alertas
                 </button>
 
             </div>
 
 
-            <div class="stats-grid four">
+            <div class="stats-grid small">
 
-                <div class="stat-card compact">
-                    <div class="stat-icon red">🚨</div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">⚠</div>
                     <div>
                         <span>Total alertas</span>
                         <strong id="totalAlerts">0</strong>
                     </div>
                 </div>
 
-                <div class="stat-card compact">
-                    <div class="stat-icon orange">⚠️</div>
-                    <div>
-                        <span>Atención</span>
-                        <strong id="attentionAlerts">0</strong>
-                    </div>
-                </div>
-
-                <div class="stat-card compact">
+                <div class="stat-card">
                     <div class="stat-icon red">!</div>
                     <div>
                         <span>Críticas</span>
@@ -1219,7 +1087,15 @@
                     </div>
                 </div>
 
-                <div class="stat-card compact">
+                <div class="stat-card">
+                    <div class="stat-icon gold">!</div>
+                    <div>
+                        <span>Atención</span>
+                        <strong id="attentionAlerts">0</strong>
+                    </div>
+                </div>
+
+                <div class="stat-card">
                     <div class="stat-icon green">✓</div>
                     <div>
                         <span>Normales</span>
@@ -1230,24 +1106,21 @@
             </div>
 
 
-            <div id="alertsContainer" class="alerts-grid">
-
-            </div>
+            <div id="alertsContainer" class="alerts-container"></div>
 
         </section>
 
 
-        <!-- ==========================
+        <!-- =========================
              REPORTES
-        =========================== -->
-
+        ========================== -->
         <section id="reportes" class="section">
 
             <div class="section-header">
 
                 <div>
                     <h1>Reportes</h1>
-                    <p>Generación de informes administrativos</p>
+                    <p>Generación de información administrativa</p>
                 </div>
 
             </div>
@@ -1257,17 +1130,19 @@
 
                 <div class="report-card">
 
-                    <span>📊</span>
+                    <div class="report-icon">👥</div>
 
-                    <h2>Reporte de demanda</h2>
+                    <h3>Reporte de pacientes</h3>
 
                     <p>
-                        Resumen de pacientes y servicios registrados.
+                        Información general de pacientes registrados,
+                        estados y servicios.
                     </p>
 
                     <button
                         class="btn btn-primary report-btn"
-                        id="reportDemandBtn">
+                        data-report="patients"
+                    >
                         Ver reporte
                     </button>
 
@@ -1276,17 +1151,19 @@
 
                 <div class="report-card">
 
-                    <span>📦</span>
+                    <div class="report-icon">⚕</div>
 
-                    <h2>Reporte de inventario</h2>
+                    <h3>Reporte de servicios</h3>
 
                     <p>
-                        Existencias, stock mínimo y vencimientos.
+                        Servicios disponibles, categorías, valores
+                        y estado operativo.
                     </p>
 
                     <button
                         class="btn btn-primary report-btn"
-                        id="reportInventoryBtn">
+                        data-report="services"
+                    >
                         Ver reporte
                     </button>
 
@@ -1295,17 +1172,19 @@
 
                 <div class="report-card">
 
-                    <span>💰</span>
+                    <div class="report-icon">▣</div>
 
-                    <h2>Reporte financiero</h2>
+                    <h3>Reporte de inventario</h3>
 
                     <p>
-                        Ejecución y disponibilidad presupuestal.
+                        Existencias, productos con stock bajo
+                        y fechas de vencimiento.
                     </p>
 
                     <button
                         class="btn btn-primary report-btn"
-                        id="reportBudgetBtn">
+                        data-report="inventory"
+                    >
                         Ver reporte
                     </button>
 
@@ -1314,18 +1193,62 @@
 
                 <div class="report-card">
 
-                    <span>📋</span>
+                    <div class="report-icon">💰</div>
 
-                    <h2>Reporte general</h2>
+                    <h3>Reporte financiero</h3>
 
                     <p>
-                        Resumen integral de SALUDPREDICT.
+                        Presupuesto aprobado, ejecución y
+                        recursos disponibles.
                     </p>
 
                     <button
                         class="btn btn-primary report-btn"
-                        id="reportGeneralBtn">
+                        data-report="budget"
+                    >
                         Ver reporte
+                    </button>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <div class="report-icon">📊</div>
+
+                    <h3>Reporte institucional</h3>
+
+                    <p>
+                        Resumen general de los principales indicadores
+                        del sistema.
+                    </p>
+
+                    <button
+                        class="btn btn-primary report-btn"
+                        data-report="general"
+                    >
+                        Ver reporte
+                    </button>
+
+                </div>
+
+
+                <div class="report-card">
+
+                    <div class="report-icon">🖨</div>
+
+                    <h3>Imprimir reporte</h3>
+
+                    <p>
+                        Imprime el reporte actualmente visible
+                        en pantalla.
+                    </p>
+
+                    <button
+                        class="btn btn-secondary"
+                        id="printReportBtn"
+                    >
+                        Imprimir
                     </button>
 
                 </div>
@@ -1337,11 +1260,10 @@
     </main>
 
 
-    <!-- =====================================
+    <!-- ======================================================
          MODAL PACIENTE
-    ====================================== -->
-
-    <div id="patientModal" class="modal">
+    ======================================================= -->
+    <div class="modal" id="patientModal">
 
         <div class="modal-content">
 
@@ -1349,10 +1271,10 @@
 
                 <div>
                     <h2 id="modalTitle">Nuevo paciente</h2>
-                    <p>Ingrese la información del paciente</p>
+                    <p>Información básica del paciente</p>
                 </div>
 
-                <button id="closeModal" class="modal-close">
+                <button class="close-modal" id="closeModal">
                     ×
                 </button>
 
@@ -1363,47 +1285,28 @@
 
                 <input type="hidden" id="patientId">
 
-
                 <div class="form-grid">
 
                     <div class="form-group">
-
-                        <label for="document">
-                            Documento
-                        </label>
-
+                        <label for="document">Documento</label>
                         <input
                             type="text"
                             id="document"
-                            placeholder="Ej: 1023456789"
                             required
                         >
-
                     </div>
 
-
                     <div class="form-group">
-
-                        <label for="name">
-                            Nombre completo
-                        </label>
-
+                        <label for="name">Nombre completo</label>
                         <input
                             type="text"
                             id="name"
-                            placeholder="Nombre del paciente"
                             required
                         >
-
                     </div>
 
-
                     <div class="form-group">
-
-                        <label for="age">
-                            Edad
-                        </label>
-
+                        <label for="age">Edad</label>
                         <input
                             type="number"
                             id="age"
@@ -1411,41 +1314,19 @@
                             max="120"
                             required
                         >
-
                     </div>
 
-
                     <div class="form-group">
-
-                        <label for="service">
-                            Servicio
-                        </label>
-
-                        <select id="service" required>
-
-                        </select>
-
+                        <label for="service">Servicio</label>
+                        <select id="service" required></select>
                     </div>
 
-
                     <div class="form-group">
-
-                        <label for="status">
-                            Estado
-                        </label>
-
+                        <label for="status">Estado</label>
                         <select id="status">
-
-                            <option value="Activo">
-                                Activo
-                            </option>
-
-                            <option value="Inactivo">
-                                Inactivo
-                            </option>
-
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
                         </select>
-
                     </div>
 
                 </div>
@@ -1455,14 +1336,16 @@
 
                     <button
                         type="button"
+                        class="btn btn-secondary"
                         id="cancelModal"
-                        class="btn btn-secondary">
+                    >
                         Cancelar
                     </button>
 
                     <button
                         type="submit"
-                        class="btn btn-primary">
+                        class="btn btn-primary"
+                    >
                         Guardar paciente
                     </button>
 
@@ -1475,27 +1358,21 @@
     </div>
 
 
-    <!-- =====================================
+    <!-- ======================================================
          MODAL SERVICIO
-    ====================================== -->
-
-    <div id="serviceModal" class="modal">
+    ======================================================= -->
+    <div class="modal" id="serviceModal">
 
         <div class="modal-content">
 
             <div class="modal-header">
 
                 <div>
-                    <h2 id="serviceModalTitle">
-                        Nuevo servicio
-                    </h2>
-
-                    <p>
-                        Información del servicio de salud
-                    </p>
+                    <h2 id="serviceModalTitle">Nuevo servicio</h2>
+                    <p>Información del servicio de salud</p>
                 </div>
 
-                <button id="closeServiceModal" class="modal-close">
+                <button class="close-modal" id="closeServiceModal">
                     ×
                 </button>
 
@@ -1506,40 +1383,33 @@
 
                 <input type="hidden" id="serviceId">
 
-
                 <div class="form-grid">
 
                     <div class="form-group">
-
-                        <label>Código</label>
-
+                        <label for="serviceCode">Código</label>
                         <input
                             type="text"
                             id="serviceCode"
-                            placeholder="Ej: SER-001"
+                            placeholder="SER-001"
                             required
                         >
-
                     </div>
 
-
                     <div class="form-group">
-
-                        <label>Nombre</label>
-
+                        <label for="serviceName">Servicio</label>
                         <input
                             type="text"
                             id="serviceName"
-                            placeholder="Ej: Medicina general"
+                            placeholder="Medicina general"
                             required
                         >
-
                     </div>
-
 
                     <div class="form-group">
 
-                        <label>Categoría</label>
+                        <label for="serviceCategory">
+                            Categoría
+                        </label>
 
                         <select id="serviceCategory">
 
@@ -1555,45 +1425,47 @@
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Duración</label>
+                        <label for="serviceDuration">
+                            Duración
+                        </label>
 
                         <input
                             type="text"
                             id="serviceDuration"
-                            placeholder="Ej: 30 min"
+                            placeholder="30 min"
                             required
                         >
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Valor</label>
+                        <label for="servicePrice">
+                            Valor
+                        </label>
 
                         <input
                             type="number"
                             id="servicePrice"
                             min="0"
                             step="100"
-                            placeholder="85000"
                             required
                         >
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Estado</label>
+                        <label for="serviceStatus">
+                            Estado
+                        </label>
 
                         <select id="serviceStatus">
 
-                            <option>Activo</option>
-                            <option>Inactivo</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
 
                         </select>
 
@@ -1606,14 +1478,16 @@
 
                     <button
                         type="button"
+                        class="btn btn-secondary"
                         id="cancelServiceBtn"
-                        class="btn btn-secondary">
+                    >
                         Cancelar
                     </button>
 
                     <button
                         type="submit"
-                        class="btn btn-primary">
+                        class="btn btn-primary"
+                    >
                         Guardar servicio
                     </button>
 
@@ -1626,27 +1500,21 @@
     </div>
 
 
-    <!-- =====================================
+    <!-- ======================================================
          MODAL INVENTARIO
-    ====================================== -->
+    ======================================================= -->
+    <div class="modal" id="inventoryModal">
 
-    <div id="inventoryModal" class="modal">
-
-        <div class="modal-content large-modal">
+        <div class="modal-content large">
 
             <div class="modal-header">
 
                 <div>
-                    <h2 id="inventoryModalTitle">
-                        Nuevo producto
-                    </h2>
-
-                    <p>
-                        Registro de inventario
-                    </p>
+                    <h2 id="inventoryModalTitle">Nuevo producto</h2>
+                    <p>Información de inventario</p>
                 </div>
 
-                <button id="closeInventoryModal" class="modal-close">
+                <button class="close-modal" id="closeInventoryModal">
                     ×
                 </button>
 
@@ -1657,40 +1525,33 @@
 
                 <input type="hidden" id="inventoryId">
 
-
                 <div class="form-grid">
 
                     <div class="form-group">
-
-                        <label>Código</label>
-
+                        <label for="inventoryCode">Código</label>
                         <input
                             type="text"
                             id="inventoryCode"
-                            placeholder="INV-001"
+                            placeholder="MED-001"
                             required
                         >
-
                     </div>
 
-
                     <div class="form-group">
-
-                        <label>Producto</label>
-
+                        <label for="inventoryName">Producto</label>
                         <input
                             type="text"
                             id="inventoryName"
-                            placeholder="Nombre del producto"
+                            placeholder="Acetaminofén"
                             required
                         >
-
                     </div>
-
 
                     <div class="form-group">
 
-                        <label>Categoría</label>
+                        <label for="inventoryCategory">
+                            Categoría
+                        </label>
 
                         <select id="inventoryCategory">
 
@@ -1699,29 +1560,32 @@
                             <option>Laboratorio</option>
                             <option>Material quirúrgico</option>
                             <option>Equipos</option>
+                            <option>Otros</option>
 
                         </select>
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Unidad</label>
+                        <label for="inventoryUnit">
+                            Unidad
+                        </label>
 
                         <input
                             type="text"
                             id="inventoryUnit"
-                            placeholder="Caja, unidad, bolsa..."
+                            placeholder="Caja"
                             required
                         >
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Stock actual</label>
+                        <label for="inventoryStock">
+                            Stock actual
+                        </label>
 
                         <input
                             type="number"
@@ -1732,10 +1596,11 @@
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Stock mínimo</label>
+                        <label for="inventoryMinStock">
+                            Stock mínimo
+                        </label>
 
                         <input
                             type="number"
@@ -1746,10 +1611,11 @@
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Fecha vencimiento</label>
+                        <label for="inventoryExpiry">
+                            Vencimiento
+                        </label>
 
                         <input
                             type="date"
@@ -1758,29 +1624,32 @@
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Valor unitario</label>
+                        <label for="inventoryPrice">
+                            Valor unitario
+                        </label>
 
                         <input
                             type="number"
                             id="inventoryPrice"
                             min="0"
+                            step="100"
                             required
                         >
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Estado</label>
+                        <label for="inventoryStatus">
+                            Estado
+                        </label>
 
                         <select id="inventoryStatus">
 
-                            <option>Activo</option>
-                            <option>Inactivo</option>
+                            <option value="Activo">Activo</option>
+                            <option value="Inactivo">Inactivo</option>
 
                         </select>
 
@@ -1793,14 +1662,16 @@
 
                     <button
                         type="button"
+                        class="btn btn-secondary"
                         id="cancelInventoryModal"
-                        class="btn btn-secondary">
+                    >
                         Cancelar
                     </button>
 
                     <button
                         type="submit"
-                        class="btn btn-primary">
+                        class="btn btn-primary"
+                    >
                         Guardar producto
                     </button>
 
@@ -1813,11 +1684,10 @@
     </div>
 
 
-    <!-- =====================================
+    <!-- ======================================================
          MODAL PRESUPUESTO
-    ====================================== -->
-
-    <div id="budgetModal" class="modal">
+    ======================================================= -->
+    <div class="modal" id="budgetModal">
 
         <div class="modal-content">
 
@@ -1829,11 +1699,11 @@
                     </h2>
 
                     <p>
-                        Registro presupuestal
+                        Registro de ejecución presupuestal
                     </p>
                 </div>
 
-                <button id="closeBudgetModal" class="modal-close">
+                <button class="close-modal" id="closeBudgetModal">
                     ×
                 </button>
 
@@ -1844,12 +1714,13 @@
 
                 <input type="hidden" id="budgetId">
 
-
                 <div class="form-grid">
 
                     <div class="form-group">
 
-                        <label>Concepto</label>
+                        <label for="budgetConcept">
+                            Concepto
+                        </label>
 
                         <input
                             type="text"
@@ -1859,42 +1730,55 @@
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Categoría</label>
+                        <label for="budgetCategory">
+                            Categoría
+                        </label>
 
-                        <input
-                            type="text"
-                            id="budgetCategory"
-                            required
-                        >
+                        <select id="budgetCategory">
+
+                            <option>Personal</option>
+                            <option>Medicamentos</option>
+                            <option>Insumos</option>
+                            <option>Mantenimiento</option>
+                            <option>Tecnología</option>
+                            <option>Equipos biomédicos</option>
+                            <option>Infraestructura</option>
+                            <option>Capacitación</option>
+                            <option>Software y licencias</option>
+                            <option>Servicios públicos</option>
+
+                        </select>
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Valor</label>
+                        <label for="budgetAmount">
+                            Valor ejecutado
+                        </label>
 
                         <input
                             type="number"
                             id="budgetAmount"
                             min="0"
+                            step="1000"
                             required
                         >
 
                     </div>
 
-
                     <div class="form-group">
 
-                        <label>Estado</label>
+                        <label for="budgetStatus">
+                            Estado
+                        </label>
 
                         <select id="budgetStatus">
 
-                            <option>Ejecutado</option>
-                            <option>Programado</option>
+                            <option value="Ejecutado">Ejecutado</option>
+                            <option value="Pendiente">Pendiente</option>
 
                         </select>
 
@@ -1907,14 +1791,16 @@
 
                     <button
                         type="button"
+                        class="btn btn-secondary"
                         id="cancelBudgetModal"
-                        class="btn btn-secondary">
+                    >
                         Cancelar
                     </button>
 
                     <button
                         type="submit"
-                        class="btn btn-primary">
+                        class="btn btn-primary"
+                    >
                         Guardar movimiento
                     </button>
 
@@ -1927,50 +1813,51 @@
     </div>
 
 
-    <!-- =====================================
+    <!-- ======================================================
          MODAL REPORTES
-    ====================================== -->
+    ======================================================= -->
+    <div class="modal" id="reportModal">
 
-    <div id="reportModal" class="modal">
-
-        <div class="modal-content report-modal">
+        <div class="modal-content large">
 
             <div class="modal-header">
 
                 <div>
                     <h2 id="reportModalTitle">
-                        Reporte
+                        Reporte institucional
                     </h2>
 
                     <p>
-                        SALUDPREDICT
+                        Información generada por SALUDPREDICT
                     </p>
                 </div>
 
-                <button id="closeReportModal" class="modal-close">
+                <button class="close-modal" id="closeReportModal">
                     ×
                 </button>
 
             </div>
 
 
-            <div id="reportModalContent" class="report-content">
-
-            </div>
+            <div id="reportModalContent" class="report-content"></div>
 
 
             <div class="modal-actions">
 
                 <button
-                    id="printReportBtn"
-                    class="btn btn-primary">
-                    🖨️ Imprimir
+                    type="button"
+                    class="btn btn-secondary"
+                    id="closeReportBtn"
+                >
+                    Cerrar
                 </button>
 
                 <button
-                    id="cancelReportBtn"
-                    class="btn btn-secondary">
-                    Cerrar
+                    type="button"
+                    class="btn btn-primary"
+                    id="printModalReportBtn"
+                >
+                    🖨 Imprimir
                 </button>
 
             </div>
@@ -1979,10 +1866,6 @@
 
     </div>
 
-
-    <!-- ==============================
-         JAVASCRIPT
-    =============================== -->
 
     <script src="script.js"></script>
 
