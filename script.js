@@ -2480,3 +2480,982 @@ if (inventoryModal) {
 renderInventory();
 
 updateInventoryStatistics();
+/* =========================================================
+   INVENTARIO
+========================================================= */
+
+
+/* =========================================================
+   DATOS INICIALES
+========================================================= */
+
+const defaultInventory = [
+
+    {
+        id: 1,
+        code: "MED-001",
+        name: "Acetaminofén 500 mg",
+        category: "Medicamentos",
+        unit: "Caja",
+        stock: 120,
+        minStock: 30,
+        expiry: "2027-05-15",
+        price: 18500,
+        status: "Activo"
+    },
+
+    {
+        id: 2,
+        code: "MED-002",
+        name: "Ibuprofeno 400 mg",
+        category: "Medicamentos",
+        unit: "Caja",
+        stock: 85,
+        minStock: 25,
+        expiry: "2027-02-20",
+        price: 22000,
+        status: "Activo"
+    },
+
+    {
+        id: 3,
+        code: "INS-001",
+        name: "Guantes de nitrilo",
+        category: "Insumos médicos",
+        unit: "Caja",
+        stock: 18,
+        minStock: 25,
+        expiry: "",
+        price: 32000,
+        status: "Activo"
+    },
+
+    {
+        id: 4,
+        code: "INS-002",
+        name: "Jeringas 5 ml",
+        category: "Insumos médicos",
+        unit: "Caja",
+        stock: 45,
+        minStock: 20,
+        expiry: "2028-01-10",
+        price: 28000,
+        status: "Activo"
+    },
+
+    {
+        id: 5,
+        code: "LAB-001",
+        name: "Tubos de ensayo",
+        category: "Laboratorio",
+        unit: "Paquete",
+        stock: 12,
+        minStock: 15,
+        expiry: "",
+        price: 17500,
+        status: "Activo"
+    },
+
+    {
+        id: 6,
+        code: "BIO-001",
+        name: "Mascarillas quirúrgicas",
+        category: "Bioseguridad",
+        unit: "Caja",
+        stock: 60,
+        minStock: 20,
+        expiry: "2027-08-12",
+        price: 14500,
+        status: "Activo"
+    }
+
+];
+
+
+/* =========================================================
+   CARGAR INVENTARIO
+========================================================= */
+
+let inventory =
+    JSON.parse(
+        localStorage.getItem(
+            "saludpredict_inventory"
+        )
+    ) || defaultInventory;
+
+
+/* =========================================================
+   GUARDAR INVENTARIO
+========================================================= */
+
+function saveInventory() {
+
+    localStorage.setItem(
+        "saludpredict_inventory",
+        JSON.stringify(inventory)
+    );
+
+}
+
+
+/* =========================================================
+   ELEMENTOS
+========================================================= */
+
+const inventoryTable =
+    document.getElementById(
+        "inventoryTable"
+    );
+
+const inventorySearch =
+    document.getElementById(
+        "inventorySearch"
+    );
+
+const totalInventory =
+    document.getElementById(
+        "totalInventory"
+    );
+
+const lowStockInventory =
+    document.getElementById(
+        "lowStockInventory"
+    );
+
+const expiringInventory =
+    document.getElementById(
+        "expiringInventory"
+    );
+
+const newInventoryBtn =
+    document.getElementById(
+        "newInventoryBtn"
+    );
+
+const inventoryModal =
+    document.getElementById(
+        "inventoryModal"
+    );
+
+const closeInventoryModal =
+    document.getElementById(
+        "closeInventoryModal"
+    );
+
+const cancelInventoryModal =
+    document.getElementById(
+        "cancelInventoryModal"
+    );
+
+const inventoryForm =
+    document.getElementById(
+        "inventoryForm"
+    );
+
+const inventoryModalTitle =
+    document.getElementById(
+        "inventoryModalTitle"
+    );
+
+
+/* =========================================================
+   CAMPOS
+========================================================= */
+
+const inventoryId =
+    document.getElementById(
+        "inventoryId"
+    );
+
+const inventoryCode =
+    document.getElementById(
+        "inventoryCode"
+    );
+
+const inventoryName =
+    document.getElementById(
+        "inventoryName"
+    );
+
+const inventoryCategory =
+    document.getElementById(
+        "inventoryCategory"
+    );
+
+const inventoryUnit =
+    document.getElementById(
+        "inventoryUnit"
+    );
+
+const inventoryStock =
+    document.getElementById(
+        "inventoryStock"
+    );
+
+const inventoryMinStock =
+    document.getElementById(
+        "inventoryMinStock"
+    );
+
+const inventoryExpiry =
+    document.getElementById(
+        "inventoryExpiry"
+    );
+
+const inventoryPrice =
+    document.getElementById(
+        "inventoryPrice"
+    );
+
+const inventoryStatus =
+    document.getElementById(
+        "inventoryStatus"
+    );
+
+
+/* =========================================================
+   FORMATEAR MONEDA
+========================================================= */
+
+function formatInventoryCurrency(value) {
+
+    return new Intl.NumberFormat(
+        "es-CO",
+        {
+            style: "currency",
+            currency: "COP",
+            maximumFractionDigits: 0
+        }
+    ).format(value);
+
+}
+
+
+/* =========================================================
+   FORMATEAR FECHA
+========================================================= */
+
+function formatInventoryDate(date) {
+
+    if (!date) {
+        return "Sin fecha";
+    }
+
+    const parts =
+        date.split("-");
+
+    if (parts.length !== 3) {
+        return date;
+    }
+
+    return (
+        parts[2] +
+        "/" +
+        parts[1] +
+        "/" +
+        parts[0]
+    );
+
+}
+
+
+/* =========================================================
+   PRODUCTO PRÓXIMO A VENCER
+========================================================= */
+
+function isInventoryExpiring(date) {
+
+    if (!date) {
+        return false;
+    }
+
+    const today =
+        new Date();
+
+    const expiryDate =
+        new Date(date + "T00:00:00");
+
+    const difference =
+        expiryDate.getTime() -
+        today.getTime();
+
+    const days =
+        difference /
+        (1000 * 60 * 60 * 24);
+
+    return (
+        days >= 0 &&
+        days <= 90
+    );
+
+}
+
+
+/* =========================================================
+   RENDERIZAR INVENTARIO
+========================================================= */
+
+function renderInventory(
+    searchTerm = ""
+) {
+
+    if (!inventoryTable) {
+        return;
+    }
+
+    inventoryTable.innerHTML = "";
+
+    const term =
+        searchTerm
+            .toLowerCase()
+            .trim();
+
+
+    const filteredInventory =
+        inventory.filter(item => {
+
+            return (
+
+                item.code
+                    .toLowerCase()
+                    .includes(term)
+
+                ||
+
+                item.name
+                    .toLowerCase()
+                    .includes(term)
+
+                ||
+
+                item.category
+                    .toLowerCase()
+                    .includes(term)
+
+            );
+
+        });
+
+
+    if (
+        filteredInventory.length === 0
+    ) {
+
+        inventoryTable.innerHTML = `
+
+            <tr>
+
+                <td
+                    colspan="10"
+                    style="
+                        text-align:center;
+                        padding:35px;
+                        color:#6b7280;
+                    "
+                >
+
+                    No se encontraron productos.
+
+                </td>
+
+            </tr>
+
+        `;
+
+        return;
+    }
+
+
+    filteredInventory.forEach(
+        item => {
+
+            const row =
+                document.createElement("tr");
+
+
+            let stockClass =
+                "";
+
+            if (
+                Number(item.stock) <=
+                Number(item.minStock)
+            ) {
+
+                stockClass =
+                    "inactive";
+
+            } else {
+
+                stockClass =
+                    "active";
+
+            }
+
+
+            const expiring =
+                isInventoryExpiring(
+                    item.expiry
+                );
+
+
+            let expiryHTML =
+                formatInventoryDate(
+                    item.expiry
+                );
+
+
+            if (expiring) {
+
+                expiryHTML = `
+
+                    <span
+                        class="status inactive"
+                    >
+                        ⚠️
+                        ${expiryHTML}
+                    </span>
+
+                `;
+
+            }
+
+
+            const statusClass =
+                item.status === "Activo"
+                    ? "active"
+                    : "inactive";
+
+
+            row.innerHTML = `
+
+                <td>
+                    <strong>
+                        ${item.code}
+                    </strong>
+                </td>
+
+
+                <td>
+                    ${item.name}
+                </td>
+
+
+                <td>
+                    ${item.category}
+                </td>
+
+
+                <td>
+                    ${item.unit}
+                </td>
+
+
+                <td>
+
+                    <span
+                        class="status ${stockClass}"
+                    >
+                        ${item.stock}
+                    </span>
+
+                </td>
+
+
+                <td>
+                    ${item.minStock}
+                </td>
+
+
+                <td>
+                    ${expiryHTML}
+                </td>
+
+
+                <td>
+                    ${formatInventoryCurrency(
+                        item.price
+                    )}
+                </td>
+
+
+                <td>
+
+                    <span
+                        class="status ${statusClass}"
+                    >
+                        ${item.status}
+                    </span>
+
+                </td>
+
+
+                <td>
+
+                    <div class="action-buttons">
+
+                        <button
+                            class="action-btn edit-btn"
+                            onclick="
+                                editInventory(
+                                    ${item.id}
+                                )
+                            "
+                        >
+                            ✏️
+                        </button>
+
+
+                        <button
+                            class="action-btn delete-btn"
+                            onclick="
+                                deleteInventory(
+                                    ${item.id}
+                                )
+                            "
+                        >
+                            🗑️
+                        </button>
+
+                    </div>
+
+                </td>
+
+            `;
+
+
+            inventoryTable.appendChild(
+                row
+            );
+
+        }
+    );
+
+
+    updateInventoryStatistics();
+
+}
+
+
+/* =========================================================
+   ESTADÍSTICAS
+========================================================= */
+
+function updateInventoryStatistics() {
+
+    if (!totalInventory) {
+        return;
+    }
+
+
+    const total =
+        inventory.length;
+
+
+    const lowStock =
+        inventory.filter(
+            item =>
+                Number(item.stock) <=
+                Number(item.minStock)
+        ).length;
+
+
+    const expiring =
+        inventory.filter(
+            item =>
+                isInventoryExpiring(
+                    item.expiry
+                )
+        ).length;
+
+
+    totalInventory.textContent =
+        total;
+
+    lowStockInventory.textContent =
+        lowStock;
+
+    expiringInventory.textContent =
+        expiring;
+
+}
+
+
+/* =========================================================
+   ABRIR NUEVO PRODUCTO
+========================================================= */
+
+function openNewInventoryModal() {
+
+    inventoryForm.reset();
+
+    inventoryId.value = "";
+
+    inventoryModalTitle.textContent =
+        "Nuevo producto";
+
+    inventoryModal.classList.add(
+        "show"
+    );
+
+}
+
+
+/* =========================================================
+   CERRAR MODAL
+========================================================= */
+
+function closeInventoryFormModal() {
+
+    inventoryModal.classList.remove(
+        "show"
+    );
+
+    inventoryForm.reset();
+
+    inventoryId.value = "";
+
+}
+
+
+/* =========================================================
+   EDITAR PRODUCTO
+========================================================= */
+
+function editInventory(id) {
+
+    const item =
+        inventory.find(
+            product =>
+                product.id === id
+        );
+
+
+    if (!item) {
+        return;
+    }
+
+
+    inventoryId.value =
+        item.id;
+
+    inventoryCode.value =
+        item.code;
+
+    inventoryName.value =
+        item.name;
+
+    inventoryCategory.value =
+        item.category;
+
+    inventoryUnit.value =
+        item.unit;
+
+    inventoryStock.value =
+        item.stock;
+
+    inventoryMinStock.value =
+        item.minStock;
+
+    inventoryExpiry.value =
+        item.expiry;
+
+    inventoryPrice.value =
+        item.price;
+
+    inventoryStatus.value =
+        item.status;
+
+
+    inventoryModalTitle.textContent =
+        "Editar producto";
+
+
+    inventoryModal.classList.add(
+        "show"
+    );
+
+}
+
+
+/* =========================================================
+   ELIMINAR PRODUCTO
+========================================================= */
+
+function deleteInventory(id) {
+
+    const item =
+        inventory.find(
+            product =>
+                product.id === id
+        );
+
+
+    if (!item) {
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            "¿Está seguro de eliminar " +
+            item.name +
+            " del inventario?"
+        );
+
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    inventory =
+        inventory.filter(
+            product =>
+                product.id !== id
+        );
+
+
+    saveInventory();
+
+    renderInventory();
+
+    updateInventoryStatistics();
+
+
+    alert(
+        "Producto eliminado correctamente."
+    );
+
+}
+
+
+/* =========================================================
+   NUEVO PRODUCTO
+========================================================= */
+
+if (newInventoryBtn) {
+
+    newInventoryBtn.addEventListener(
+        "click",
+        openNewInventoryModal
+    );
+
+}
+
+
+/* =========================================================
+   CERRAR MODAL
+========================================================= */
+
+if (closeInventoryModal) {
+
+    closeInventoryModal.addEventListener(
+        "click",
+        closeInventoryFormModal
+    );
+
+}
+
+
+if (cancelInventoryModal) {
+
+    cancelInventoryModal.addEventListener(
+        "click",
+        closeInventoryFormModal
+    );
+
+}
+
+
+if (inventoryModal) {
+
+    inventoryModal.addEventListener(
+        "click",
+        event => {
+
+            if (
+                event.target ===
+                inventoryModal
+            ) {
+
+                closeInventoryFormModal();
+
+            }
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   BUSCADOR
+========================================================= */
+
+if (inventorySearch) {
+
+    inventorySearch.addEventListener(
+        "input",
+        event => {
+
+            renderInventory(
+                event.target.value
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   GUARDAR PRODUCTO
+========================================================= */
+
+if (inventoryForm) {
+
+    inventoryForm.addEventListener(
+        "submit",
+        event => {
+
+            event.preventDefault();
+
+
+            const id =
+                inventoryId.value;
+
+
+            const code =
+                inventoryCode.value
+                    .trim();
+
+
+            const name =
+                inventoryName.value
+                    .trim();
+
+
+            /* VALIDAR CÓDIGO */
+
+            const duplicate =
+                inventory.find(
+                    item =>
+                        item.code
+                            .toLowerCase() ===
+                        code.toLowerCase()
+                        &&
+                        item.id !==
+                            Number(id)
+                );
+
+
+            if (duplicate) {
+
+                alert(
+                    "Ya existe un producto " +
+                    "con ese código."
+                );
+
+                return;
+            }
+
+
+            const newItem = {
+
+                id: id
+                    ? Number(id)
+                    : Date.now(),
+
+                code: code,
+
+                name: name,
+
+                category:
+                    inventoryCategory.value,
+
+                unit:
+                    inventoryUnit.value,
+
+                stock:
+                    Number(
+                        inventoryStock.value
+                    ),
+
+                minStock:
+                    Number(
+                        inventoryMinStock.value
+                    ),
+
+                expiry:
+                    inventoryExpiry.value,
+
+                price:
+                    Number(
+                        inventoryPrice.value
+                    ),
+
+                status:
+                    inventoryStatus.value
+
+            };
+
+
+            /* EDITAR */
+
+            if (id) {
+
+                const index =
+                    inventory.findIndex(
+                        item =>
+                            item.id ===
+                            Number(id)
+                    );
+
+
+                if (index !== -1) {
+
+                    inventory[index] =
+                        newItem;
+
+                }
+
+            }
+
+
+            /* CREAR */
+
+            else {
+
+                inventory.push(
+                    newItem
+                );
+
+            }
+
+
+            saveInventory();
+
+            renderInventory();
+
+            updateInventoryStatistics();
+
+            closeInventoryFormModal();
+
+
+            alert(
+                "Producto guardado correctamente."
+            );
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   INICIAR INVENTARIO
+========================================================= */
+
+renderInventory();
+
+updateInventoryStatistics();
