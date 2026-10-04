@@ -2079,3 +2079,14 @@ tbody tr:hover {
     }
 
 }
+@media (max-width: 768px) {
+
+    .topbar {
+
+        height:
+            68px;
+
+        ...
+    }
+
+}
