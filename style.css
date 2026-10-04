@@ -1026,7 +1026,6 @@ tbody tr:hover {
     }
 
 }
-}
 
 /* =====================================
    SERVICIOS
@@ -1043,12 +1042,6 @@ tbody tr:hover {
 
 #averageServicePrice {
     font-size: 18px;
-}
-
-@media (max-width: 900px) {
-    #servicesTable {
-        min-width: 900px;
-    }
 }
 
 /* =========================================================
