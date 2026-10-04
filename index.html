@@ -909,7 +909,7 @@
 
 
 
-       <!-- =========================
+      <!-- =========================
      INVENTARIO
 ========================== -->
 
@@ -931,7 +931,7 @@
 
     <!-- ESTADÍSTICAS -->
 
-    <div class="cards-grid">
+    <div class="cards-grid small-cards">
 
         <div class="stat-card">
 
@@ -949,27 +949,13 @@
 
         <div class="stat-card">
 
-            <div class="stat-icon green">
-                📊
-            </div>
-
-            <div>
-                <span>Unidades disponibles</span>
-                <strong id="totalStock">0</strong>
-            </div>
-
-        </div>
-
-
-        <div class="stat-card">
-
             <div class="stat-icon orange">
                 ⚠️
             </div>
 
             <div>
                 <span>Stock bajo</span>
-                <strong id="lowStock">0</strong>
+                <strong id="lowStockInventory">0</strong>
             </div>
 
         </div>
@@ -978,12 +964,12 @@
         <div class="stat-card">
 
             <div class="stat-icon purple">
-                💰
+                📅
             </div>
 
             <div>
-                <span>Valor inventario</span>
-                <strong id="inventoryValue">$0</strong>
+                <span>Próximos a vencer</span>
+                <strong id="expiringInventory">0</strong>
             </div>
 
         </div>
@@ -998,8 +984,13 @@
         <div class="panel-header">
 
             <div>
+
                 <h3>Productos e insumos</h3>
-                <p>Consulta y administra el inventario institucional</p>
+
+                <p>
+                    Consulte y gestione las existencias del inventario
+                </p>
+
             </div>
 
         </div>
@@ -1015,6 +1006,12 @@
 
         </div>
 
+    </div>
+
+
+    <!-- TABLA -->
+
+    <div class="panel">
 
         <div class="table-container">
 
@@ -1030,13 +1027,15 @@
 
                         <th>Categoría</th>
 
+                        <th>Unidad</th>
+
                         <th>Stock</th>
 
                         <th>Mínimo</th>
 
-                        <th>Costo unitario</th>
-
                         <th>Vencimiento</th>
+
+                        <th>Precio</th>
 
                         <th>Estado</th>
 
@@ -1045,6 +1044,7 @@
                     </tr>
 
                 </thead>
+
 
                 <tbody id="inventoryTable">
 
