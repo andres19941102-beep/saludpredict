@@ -2939,3 +2939,2173 @@ document.addEventListener(
 
     }
 );
+/* ============================================================
+   SALUDPREDICT
+   MÓDULOS: PRESUPUESTO - ANÁLISIS - PREDICCIONES - ALERTAS - REPORTES
+============================================================ */
+
+
+/* ============================================================
+   CONFIGURACIÓN GENERAL
+============================================================ */
+
+const BUDGET_APPROVED_VALUE = 1000000000;
+
+const budgetCategories = [
+    "Personal",
+    "Medicamentos",
+    "Insumos",
+    "Servicios",
+    "Mantenimiento",
+    "Administración",
+    "Tecnología",
+    "Otros"
+];
+
+
+/* ============================================================
+   FUNCIONES AUXILIARES
+============================================================ */
+
+function advancedCurrency(value) {
+
+    return new Intl.NumberFormat("es-CO", {
+        style: "currency",
+        currency: "COP",
+        maximumFractionDigits: 0
+    }).format(Number(value) || 0);
+
+}
+
+
+function advancedEscape(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+function advancedDate(date) {
+
+    if (!date) return "-";
+
+    const parts = String(date).split("-");
+
+    if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    return date;
+
+}
+
+
+function getAdvancedPatients() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem("saludpredict_patients")
+        ) || [];
+
+    } catch (error) {
+
+        return [];
+
+    }
+
+}
+
+
+function getAdvancedServices() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem("saludpredict_services")
+        ) || [];
+
+    } catch (error) {
+
+        return [];
+
+    }
+
+}
+
+
+function getAdvancedInventory() {
+
+    try {
+
+        return JSON.parse(
+            localStorage.getItem("saludpredict_inventory")
+        ) || [];
+
+    } catch (error) {
+
+        return [];
+
+    }
+
+}
+
+
+/* ============================================================
+   PRESUPUESTO
+============================================================ */
+
+const defaultBudgetMovements = [
+
+    {
+        id: "pres-001",
+        date: "2026-01-10",
+        type: "Gasto",
+        category: "Personal",
+        description: "Nómina personal asistencial",
+        value: 280000000,
+        responsible: "Administración",
+        costCenter: "CC-001"
+    },
+
+    {
+        id: "pres-002",
+        date: "2026-01-18",
+        type: "Gasto",
+        category: "Medicamentos",
+        description: "Compra de medicamentos",
+        value: 95000000,
+        responsible: "Farmacia",
+        costCenter: "CC-002"
+    },
+
+    {
+        id: "pres-003",
+        date: "2026-02-05",
+        type: "Gasto",
+        category: "Insumos",
+        description: "Compra de insumos médicos",
+        value: 75000000,
+        responsible: "Almacén",
+        costCenter: "CC-003"
+    },
+
+    {
+        id: "pres-004",
+        date: "2026-02-20",
+        type: "Gasto",
+        category: "Mantenimiento",
+        description: "Mantenimiento de equipos",
+        value: 45000000,
+        responsible: "Mantenimiento",
+        costCenter: "CC-004"
+    },
+
+    {
+        id: "pres-005",
+        date: "2026-03-02",
+        type: "Gasto",
+        category: "Tecnología",
+        description: "Licencias y equipos tecnológicos",
+        value: 35000000,
+        responsible: "Sistemas",
+        costCenter: "CC-005"
+    }
+
+];
+
+
+let budgetMovements = [];
+
+
+function loadBudgetData() {
+
+    const saved = localStorage.getItem(
+        "saludpredict_budget"
+    );
+
+    if (saved) {
+
+        try {
+
+            budgetMovements = JSON.parse(saved);
+
+        } catch (error) {
+
+            budgetMovements = [...defaultBudgetMovements];
+
+        }
+
+    } else {
+
+        budgetMovements = [...defaultBudgetMovements];
+
+        localStorage.setItem(
+            "saludpredict_budget",
+            JSON.stringify(budgetMovements)
+        );
+
+    }
+
+}
+
+
+function saveBudgetData() {
+
+    localStorage.setItem(
+        "saludpredict_budget",
+        JSON.stringify(budgetMovements)
+    );
+
+}
+
+
+function updateBudgetSummary() {
+
+    const executed = budgetMovements
+        .filter(item => item.type === "Gasto")
+        .reduce(
+            (total, item) =>
+                total + Number(item.value || 0),
+            0
+        );
+
+    const income = budgetMovements
+        .filter(item => item.type === "Ingreso")
+        .reduce(
+            (total, item) =>
+                total + Number(item.value || 0),
+            0
+        );
+
+    const available =
+        BUDGET_APPROVED_VALUE -
+        executed +
+        income;
+
+    const percentage =
+        BUDGET_APPROVED_VALUE > 0
+            ? (executed / BUDGET_APPROVED_VALUE) * 100
+            : 0;
+
+
+    const approvedElement =
+        document.getElementById("budgetApproved");
+
+    const executedElement =
+        document.getElementById("budgetExecuted");
+
+    const availableElement =
+        document.getElementById("budgetAvailable");
+
+    const percentageElement =
+        document.getElementById("budgetPercentage");
+
+
+    if (approvedElement) {
+
+        approvedElement.textContent =
+            advancedCurrency(BUDGET_APPROVED_VALUE);
+
+    }
+
+    if (executedElement) {
+
+        executedElement.textContent =
+            advancedCurrency(executed);
+
+    }
+
+    if (availableElement) {
+
+        availableElement.textContent =
+            advancedCurrency(available);
+
+    }
+
+    if (percentageElement) {
+
+        percentageElement.textContent =
+            `${percentage.toFixed(1)}%`;
+
+    }
+
+
+    return {
+        executed,
+        income,
+        available,
+        percentage
+    };
+
+}
+
+
+function renderBudget(search = "") {
+
+    const table =
+        document.getElementById("budgetTable");
+
+    if (!table) return;
+
+
+    const text =
+        search.toLowerCase().trim();
+
+
+    const filtered =
+        budgetMovements.filter(item => {
+
+            return [
+
+                item.date,
+                item.type,
+                item.category,
+                item.description,
+                item.responsible,
+                item.costCenter
+
+            ]
+            .join(" ")
+            .toLowerCase()
+            .includes(text);
+
+        });
+
+
+    if (!filtered.length) {
+
+        table.innerHTML = `
+            <tr>
+                <td colspan="8">
+                    No hay movimientos presupuestales.
+                </td>
+            </tr>
+        `;
+
+        return;
+
+    }
+
+
+    table.innerHTML = filtered.map(item => `
+
+        <tr>
+
+            <td>${advancedDate(item.date)}</td>
+
+            <td>
+                <span class="status ${
+                    item.type === "Ingreso"
+                        ? "active"
+                        : "inactive"
+                }">
+                    ${advancedEscape(item.type)}
+                </span>
+            </td>
+
+            <td>${advancedEscape(item.category)}</td>
+
+            <td>${advancedEscape(item.description)}</td>
+
+            <td>
+                ${advancedCurrency(item.value)}
+            </td>
+
+            <td>${advancedEscape(item.responsible)}</td>
+
+            <td>${advancedEscape(item.costCenter)}</td>
+
+            <td>
+
+                <div class="action-buttons">
+
+                    <button
+                        class="action-btn delete-btn"
+                        onclick="deleteBudgetMovement('${item.id}')"
+                    >
+                        Eliminar
+                    </button>
+
+                </div>
+
+            </td>
+
+        </tr>
+
+    `).join("");
+
+}
+
+
+function createBudgetMovement() {
+
+    const date =
+        prompt(
+            "Fecha (AAAA-MM-DD):",
+            new Date().toISOString().slice(0, 10)
+        );
+
+    if (!date) return;
+
+
+    const type =
+        prompt(
+            "Tipo: escriba Ingreso o Gasto",
+            "Gasto"
+        );
+
+    if (!type) return;
+
+
+    const category =
+        prompt(
+            "Categoría:\n" +
+            budgetCategories.join(", "),
+            "Insumos"
+        );
+
+    if (!category) return;
+
+
+    const description =
+        prompt(
+            "Descripción del movimiento:"
+        );
+
+    if (!description) return;
+
+
+    const value =
+        Number(
+            prompt(
+                "Valor:",
+                "100000"
+            )
+        );
+
+
+    if (!value || value <= 0) {
+
+        alert("Ingrese un valor válido.");
+
+        return;
+
+    }
+
+
+    const responsible =
+        prompt(
+            "Responsable:",
+            "Administración"
+        ) || "Administración";
+
+
+    const costCenter =
+        prompt(
+            "Centro de costo:",
+            "CC-001"
+        ) || "CC-001";
+
+
+    budgetMovements.push({
+
+        id: `pres-${Date.now()}`,
+
+        date,
+
+        type:
+            type.toLowerCase().includes("ingreso")
+                ? "Ingreso"
+                : "Gasto",
+
+        category,
+
+        description,
+
+        value,
+
+        responsible,
+
+        costCenter
+
+    });
+
+
+    saveBudgetData();
+
+    renderBudget();
+
+    updateBudgetSummary();
+
+    refreshAdvancedModules();
+
+}
+
+
+function deleteBudgetMovement(id) {
+
+    const confirmed =
+        confirm(
+            "¿Desea eliminar este movimiento?"
+        );
+
+    if (!confirmed) return;
+
+
+    budgetMovements =
+        budgetMovements.filter(
+            item => item.id !== id
+        );
+
+
+    saveBudgetData();
+
+    renderBudget();
+
+    updateBudgetSummary();
+
+    refreshAdvancedModules();
+
+}
+
+
+/* ============================================================
+   ANÁLISIS
+============================================================ */
+
+function updateAnalysis() {
+
+    const patients =
+        getAdvancedPatients();
+
+    const services =
+        getAdvancedServices();
+
+    const inventory =
+        getAdvancedInventory();
+
+
+    const activeServices =
+        services.filter(
+            item =>
+                item.status === "Activo"
+        );
+
+
+    const lowStock =
+        inventory.filter(item =>
+            Number(item.stock) <=
+            Number(item.minStock)
+        );
+
+
+    const patientElement =
+        document.getElementById(
+            "analysisPatients"
+        );
+
+    const servicesElement =
+        document.getElementById(
+            "analysisServices"
+        );
+
+    const inventoryElement =
+        document.getElementById(
+            "analysisInventory"
+        );
+
+    const lowStockElement =
+        document.getElementById(
+            "analysisLowStock"
+        );
+
+
+    if (patientElement)
+        patientElement.textContent =
+            patients.length;
+
+    if (servicesElement)
+        servicesElement.textContent =
+            activeServices.length;
+
+    if (inventoryElement)
+        inventoryElement.textContent =
+            inventory.length;
+
+    if (lowStockElement)
+        lowStockElement.textContent =
+            lowStock.length;
+
+
+    renderPatientsAnalysis(patients);
+
+    renderInventoryAnalysis(inventory);
+
+    renderFinancialAnalysis();
+
+}
+
+
+function renderPatientsAnalysis(patients) {
+
+    const container =
+        document.getElementById(
+            "patientsAnalysisChart"
+        );
+
+    if (!container) return;
+
+
+    if (!patients.length) {
+
+        container.innerHTML =
+            "<p>No hay pacientes registrados.</p>";
+
+        return;
+
+    }
+
+
+    const counts = {};
+
+
+    patients.forEach(patient => {
+
+        const service =
+            patient.service ||
+            "Sin servicio";
+
+        counts[service] =
+            (counts[service] || 0) + 1;
+
+    });
+
+
+    const max =
+        Math.max(
+            ...Object.values(counts)
+        );
+
+
+    container.innerHTML =
+        Object.entries(counts)
+            .map(([name, count]) => {
+
+                const width =
+                    max > 0
+                        ? (count / max) * 100
+                        : 0;
+
+                return `
+
+                    <div style="
+                        margin:15px 0;
+                    ">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            margin-bottom:5px;
+                        ">
+
+                            <span>
+                                ${advancedEscape(name)}
+                            </span>
+
+                            <strong>
+                                ${count}
+                            </strong>
+
+                        </div>
+
+                        <div style="
+                            background:#e5e7eb;
+                            border-radius:10px;
+                            height:12px;
+                            overflow:hidden;
+                        ">
+
+                            <div style="
+                                width:${width}%;
+                                height:100%;
+                                background:#20c6d7;
+                                border-radius:10px;
+                            "></div>
+
+                        </div>
+
+                    </div>
+
+                `;
+
+            })
+            .join("");
+
+}
+
+
+function renderInventoryAnalysis(inventory) {
+
+    const container =
+        document.getElementById(
+            "inventoryAnalysisChart"
+        );
+
+    if (!container) return;
+
+
+    if (!inventory.length) {
+
+        container.innerHTML =
+            "<p>No hay productos registrados.</p>";
+
+        return;
+
+    }
+
+
+    const total =
+        inventory.reduce(
+            (sum, item) =>
+                sum + Number(item.stock || 0),
+            0
+        );
+
+
+    const low =
+        inventory.filter(item =>
+            Number(item.stock) <=
+            Number(item.minStock)
+        ).length;
+
+
+    const available =
+        inventory.length - low;
+
+
+    container.innerHTML = `
+
+        <div style="
+            margin:20px 0;
+        ">
+
+            <p>
+                Productos disponibles:
+                <strong>${available}</strong>
+            </p>
+
+            <p>
+                Productos con stock bajo:
+                <strong>${low}</strong>
+            </p>
+
+            <p>
+                Unidades totales:
+                <strong>${total}</strong>
+            </p>
+
+        </div>
+
+    `;
+
+}
+
+
+function renderFinancialAnalysis() {
+
+    const container =
+        document.getElementById(
+            "financialAnalysis"
+        );
+
+    if (!container) return;
+
+
+    const summary =
+        updateBudgetSummary();
+
+
+    container.innerHTML = `
+
+        <div style="
+            display:grid;
+            grid-template-columns:
+            repeat(auto-fit,minmax(180px,1fr));
+            gap:15px;
+        ">
+
+            <div>
+                <strong>Presupuesto</strong>
+                <p>
+                    ${advancedCurrency(
+                        BUDGET_APPROVED_VALUE
+                    )}
+                </p>
+            </div>
+
+            <div>
+                <strong>Ejecutado</strong>
+                <p>
+                    ${advancedCurrency(
+                        summary.executed
+                    )}
+                </p>
+            </div>
+
+            <div>
+                <strong>Disponible</strong>
+                <p>
+                    ${advancedCurrency(
+                        summary.available
+                    )}
+                </p>
+            </div>
+
+            <div>
+                <strong>Ejecución</strong>
+                <p>
+                    ${summary.percentage.toFixed(1)}%
+                </p>
+            </div>
+
+        </div>
+
+    `;
+
+}
+
+
+/* ============================================================
+   PREDICCIONES
+============================================================ */
+
+function populatePredictionServices() {
+
+    const select =
+        document.getElementById(
+            "predictionService"
+        );
+
+    if (!select) return;
+
+
+    const services =
+        getAdvancedServices()
+            .filter(
+                item => item.status === "Activo"
+            );
+
+
+    select.innerHTML = `
+        <option value="all">
+            Todos los servicios
+        </option>
+    `;
+
+
+    services.forEach(service => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            service.name;
+
+        option.textContent =
+            service.name;
+
+        select.appendChild(option);
+
+    });
+
+}
+
+
+function generatePrediction() {
+
+    const patients =
+        getAdvancedPatients();
+
+
+    const serviceSelect =
+        document.getElementById(
+            "predictionService"
+        );
+
+    const periodSelect =
+        document.getElementById(
+            "predictionPeriod"
+        );
+
+
+    const selectedService =
+        serviceSelect
+            ? serviceSelect.value
+            : "all";
+
+
+    const months =
+        periodSelect
+            ? Number(periodSelect.value)
+            : 1;
+
+
+    let historicalPatients =
+        patients;
+
+
+    if (
+        selectedService !== "all"
+    ) {
+
+        historicalPatients =
+            patients.filter(
+                patient =>
+                    patient.service ===
+                    selectedService
+            );
+
+    }
+
+
+    const historicalAverage =
+        historicalPatients.length;
+
+
+    /*
+       Como SALUDPREDICT todavía no tiene
+       una serie histórica real de meses,
+       utilizamos una estimación inicial
+       basada en los registros actuales.
+
+       Esto se mostrará como ESTIMACIÓN,
+       no como una predicción estadística real.
+    */
+
+    const estimatedDemand =
+        Math.round(
+            historicalAverage *
+            (1 + (0.05 * months))
+        );
+
+
+    const variation =
+        historicalAverage > 0
+            ? (
+                (
+                    estimatedDemand -
+                    historicalAverage
+                ) /
+                historicalAverage
+            ) * 100
+            : 0;
+
+
+    let warning = "Normal";
+
+
+    if (variation >= 20) {
+
+        warning = "Crítico";
+
+    } else if (variation >= 10) {
+
+        warning = "Atención";
+
+    }
+
+
+    const averageElement =
+        document.getElementById(
+            "historicalAverage"
+        );
+
+    const demandElement =
+        document.getElementById(
+            "estimatedDemand"
+        );
+
+    const variationElement =
+        document.getElementById(
+            "predictionVariation"
+        );
+
+    const warningElement =
+        document.getElementById(
+            "predictionWarning"
+        );
+
+
+    if (averageElement)
+        averageElement.textContent =
+            historicalAverage;
+
+
+    if (demandElement)
+        demandElement.textContent =
+            estimatedDemand;
+
+
+    if (variationElement)
+        variationElement.textContent =
+            `${variation.toFixed(1)}%`;
+
+
+    if (warningElement)
+        warningElement.textContent =
+            warning;
+
+
+    const result =
+        document.getElementById(
+            "predictionResult"
+        );
+
+
+    if (result) {
+
+        result.innerHTML = `
+
+            <div style="
+                padding:20px;
+                border-radius:10px;
+                background:#f4f7f9;
+            ">
+
+                <h4>
+                    Proyección generada
+                </h4>
+
+                <p>
+                    Servicio:
+                    <strong>
+                        ${
+                            selectedService === "all"
+                                ? "Todos los servicios"
+                                : advancedEscape(
+                                    selectedService
+                                )
+                        }
+                    </strong>
+                </p>
+
+                <p>
+                    Período:
+                    <strong>
+                        ${
+                            months === 1
+                                ? "Próximo mes"
+                                : `Próximos ${months} meses`
+                        }
+                    </strong>
+                </p>
+
+                <p>
+                    Registros actuales:
+                    <strong>
+                        ${historicalAverage}
+                    </strong>
+                </p>
+
+                <p>
+                    Demanda estimada:
+                    <strong>
+                        ${estimatedDemand}
+                    </strong>
+                </p>
+
+                <p>
+                    Variación estimada:
+                    <strong>
+                        ${variation.toFixed(1)}%
+                    </strong>
+                </p>
+
+                <p>
+                    Nivel:
+                    <strong>
+                        ${warning}
+                    </strong>
+                </p>
+
+                <small>
+                    Esta proyección es una estimación
+                    inicial basada en los datos disponibles
+                    en SALUDPREDICT.
+                </small>
+
+            </div>
+
+        `;
+
+    }
+
+}
+
+
+/* ============================================================
+   ALERTAS AUTOMÁTICAS
+============================================================ */
+
+function generateAlerts() {
+
+    const alerts = [];
+
+    const inventory =
+        getAdvancedInventory();
+
+    const patients =
+        getAdvancedPatients();
+
+    const services =
+        getAdvancedServices();
+
+    const budget =
+        updateBudgetSummary();
+
+
+    /* STOCK BAJO */
+
+    inventory.forEach(item => {
+
+        const stock =
+            Number(item.stock || 0);
+
+        const minimum =
+            Number(item.minStock || 0);
+
+
+        if (stock <= minimum) {
+
+            alerts.push({
+
+                type: "critical",
+
+                title: "Inventario bajo",
+
+                message:
+                    `${item.name}: ` +
+                    `stock actual ${stock}, ` +
+                    `mínimo ${minimum}.`
+
+            });
+
+        }
+
+    });
+
+
+    /* VENCIMIENTOS */
+
+    const today =
+        new Date();
+
+    const limit =
+        new Date();
+
+    limit.setDate(
+        today.getDate() + 30
+    );
+
+
+    inventory.forEach(item => {
+
+        if (!item.expiry) return;
+
+
+        const expiry =
+            new Date(
+                `${item.expiry}T00:00:00`
+            );
+
+
+        if (
+            expiry >= today &&
+            expiry <= limit
+        ) {
+
+            alerts.push({
+
+                type: "attention",
+
+                title:
+                    "Próximo vencimiento",
+
+                message:
+                    `${item.name} vence el ` +
+                    `${advancedDate(item.expiry)}.`
+
+            });
+
+        }
+
+    });
+
+
+    /* PRESUPUESTO */
+
+    if (budget.percentage >= 90) {
+
+        alerts.push({
+
+            type: "critical",
+
+            title:
+                "Ejecución presupuestal elevada",
+
+            message:
+                `La ejecución presupuestal ` +
+                `alcanzó ${budget.percentage.toFixed(1)}%.`
+
+        });
+
+    } else if (budget.percentage >= 75) {
+
+        alerts.push({
+
+            type: "attention",
+
+            title:
+                "Ejecución presupuestal",
+
+            message:
+                `La ejecución alcanzó ` +
+                `${budget.percentage.toFixed(1)}%.`
+
+        });
+
+    }
+
+
+    /* SERVICIOS */
+
+    const activeServices =
+        services.filter(
+            item =>
+                item.status === "Activo"
+        );
+
+
+    if (activeServices.length === 0) {
+
+        alerts.push({
+
+            type: "critical",
+
+            title:
+                "Sin servicios activos",
+
+            message:
+                "No existen servicios activos registrados."
+
+        });
+
+    }
+
+
+    /* PACIENTES */
+
+    if (patients.length === 0) {
+
+        alerts.push({
+
+            type: "attention",
+
+            title:
+                "Sin pacientes registrados",
+
+            message:
+                "El sistema todavía no tiene pacientes registrados."
+
+        });
+
+    }
+
+
+    return alerts;
+
+}
+
+
+function renderAlerts() {
+
+    const container =
+        document.getElementById(
+            "alertsContainer"
+        );
+
+    if (!container) return;
+
+
+    const alerts =
+        generateAlerts();
+
+
+    const total =
+        document.getElementById(
+            "totalAlerts"
+        );
+
+    const attention =
+        document.getElementById(
+            "attentionAlerts"
+        );
+
+    const critical =
+        document.getElementById(
+            "criticalAlerts"
+        );
+
+    const normal =
+        document.getElementById(
+            "normalAlerts"
+        );
+
+
+    const attentionCount =
+        alerts.filter(
+            item =>
+                item.type === "attention"
+        ).length;
+
+
+    const criticalCount =
+        alerts.filter(
+            item =>
+                item.type === "critical"
+        ).length;
+
+
+    if (total)
+        total.textContent =
+            alerts.length;
+
+    if (attention)
+        attention.textContent =
+            attentionCount;
+
+    if (critical)
+        critical.textContent =
+            criticalCount;
+
+    if (normal)
+        normal.textContent =
+            Math.max(
+                0,
+                5 - alerts.length
+            );
+
+
+    if (!alerts.length) {
+
+        container.innerHTML = `
+
+            <div style="
+                padding:25px;
+                text-align:center;
+            ">
+
+                <h3>
+                    ✓ Todo está en orden
+                </h3>
+
+                <p>
+                    No se detectaron alertas
+                    en este momento.
+                </p>
+
+            </div>
+
+        `;
+
+        return;
+
+    }
+
+
+    container.innerHTML =
+        alerts.map(alert => {
+
+            const icon =
+                alert.type === "critical"
+                    ? "🔴"
+                    : "🟡";
+
+
+            return `
+
+                <div style="
+                    padding:18px;
+                    margin-bottom:12px;
+                    border-left:5px solid ${
+                        alert.type === "critical"
+                            ? "#dc3545"
+                            : "#f0ad4e"
+                    };
+                    background:#f8fafb;
+                    border-radius:8px;
+                ">
+
+                    <h4>
+                        ${icon}
+                        ${advancedEscape(
+                            alert.title
+                        )}
+                    </h4>
+
+                    <p>
+                        ${advancedEscape(
+                            alert.message
+                        )}
+                    </p>
+
+                </div>
+
+            `;
+
+        }).join("");
+
+}
+
+
+/* ============================================================
+   REPORTES
+============================================================ */
+
+function openReport(title, content) {
+
+    const reportWindow =
+        window.open(
+            "",
+            "_blank"
+        );
+
+
+    if (!reportWindow) {
+
+        alert(
+            "El navegador bloqueó la ventana del reporte."
+        );
+
+        return;
+
+    }
+
+
+    reportWindow.document.write(`
+
+        <!DOCTYPE html>
+
+        <html lang="es">
+
+        <head>
+
+            <meta charset="UTF-8">
+
+            <title>
+                ${advancedEscape(title)}
+            </title>
+
+            <style>
+
+                body {
+                    font-family: Arial, sans-serif;
+                    margin: 40px;
+                    color: #17212b;
+                }
+
+                h1 {
+                    color: #0b1724;
+                }
+
+                h2 {
+                    margin-top: 30px;
+                    color: #183246;
+                }
+
+                table {
+                    width:100%;
+                    border-collapse:collapse;
+                    margin-top:20px;
+                }
+
+                th,
+                td {
+                    border:1px solid #dce3e8;
+                    padding:10px;
+                    text-align:left;
+                }
+
+                th {
+                    background:#eef2f5;
+                }
+
+                .header {
+                    border-bottom:3px solid #c9a24d;
+                    padding-bottom:15px;
+                    margin-bottom:25px;
+                }
+
+                .print {
+                    padding:10px 18px;
+                    border:0;
+                    border-radius:6px;
+                    cursor:pointer;
+                    background:#0b1724;
+                    color:white;
+                    margin-bottom:20px;
+                }
+
+                @media print {
+
+                    .print {
+                        display:none;
+                    }
+
+                    body {
+                        margin:20px;
+                    }
+
+                }
+
+            </style>
+
+        </head>
+
+        <body>
+
+            <button
+                class="print"
+                onclick="window.print()"
+            >
+                Imprimir / Guardar PDF
+            </button>
+
+            <div class="header">
+
+                <h1>
+                    SALUDPREDICT
+                </h1>
+
+                <p>
+                    Gestión inteligente en salud
+                </p>
+
+                <h2>
+                    ${advancedEscape(title)}
+                </h2>
+
+                <p>
+                    Fecha:
+                    ${new Date().toLocaleDateString("es-CO")}
+                </p>
+
+            </div>
+
+            ${content}
+
+        </body>
+
+        </html>
+
+    `);
+
+
+    reportWindow.document.close();
+
+}
+
+
+function generateDemandReport() {
+
+    const patients =
+        getAdvancedPatients();
+
+    const services =
+        getAdvancedServices();
+
+
+    const rows =
+        patients.map(patient => `
+
+            <tr>
+
+                <td>
+                    ${advancedEscape(
+                        patient.document
+                    )}
+                </td>
+
+                <td>
+                    ${advancedEscape(
+                        patient.name
+                    )}
+                </td>
+
+                <td>
+                    ${advancedEscape(
+                        patient.service
+                    )}
+                </td>
+
+                <td>
+                    ${advancedEscape(
+                        patient.status
+                    )}
+                </td>
+
+            </tr>
+
+        `).join("");
+
+
+    openReport(
+
+        "Reporte de demanda y atención",
+
+        `
+
+        <p>
+            Total de pacientes:
+            <strong>${patients.length}</strong>
+        </p>
+
+        <p>
+            Servicios registrados:
+            <strong>${services.length}</strong>
+        </p>
+
+        <h2>
+            Pacientes
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+                    <th>Documento</th>
+                    <th>Nombre</th>
+                    <th>Servicio</th>
+                    <th>Estado</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+                ${rows}
+            </tbody>
+
+        </table>
+
+        `
+
+    );
+
+}
+
+
+function generateInventoryReport() {
+
+    const inventory =
+        getAdvancedInventory();
+
+
+    const rows =
+        inventory.map(item => `
+
+            <tr>
+
+                <td>
+                    ${advancedEscape(item.code)}
+                </td>
+
+                <td>
+                    ${advancedEscape(item.name)}
+                </td>
+
+                <td>
+                    ${advancedEscape(item.category)}
+                </td>
+
+                <td>
+                    ${advancedEscape(item.unit)}
+                </td>
+
+                <td>
+                    ${item.stock}
+                </td>
+
+                <td>
+                    ${item.minStock}
+                </td>
+
+                <td>
+                    ${advancedDate(item.expiry)}
+                </td>
+
+                <td>
+                    ${advancedCurrency(item.price)}
+                </td>
+
+            </tr>
+
+        `).join("");
+
+
+    openReport(
+
+        "Reporte de inventario",
+
+        `
+
+        <p>
+            Productos registrados:
+            <strong>${inventory.length}</strong>
+        </p>
+
+        <h2>
+            Existencias
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Código</th>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th>Unidad</th>
+                    <th>Stock</th>
+                    <th>Mínimo</th>
+                    <th>Vencimiento</th>
+                    <th>Precio</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+                ${rows}
+            </tbody>
+
+        </table>
+
+        `
+
+    );
+
+}
+
+
+function generateBudgetReport() {
+
+    const summary =
+        updateBudgetSummary();
+
+
+    const rows =
+        budgetMovements.map(item => `
+
+            <tr>
+
+                <td>
+                    ${advancedDate(item.date)}
+                </td>
+
+                <td>
+                    ${advancedEscape(item.type)}
+                </td>
+
+                <td>
+                    ${advancedEscape(item.category)}
+                </td>
+
+                <td>
+                    ${advancedEscape(item.description)}
+                </td>
+
+                <td>
+                    ${advancedCurrency(item.value)}
+                </td>
+
+            </tr>
+
+        `).join("");
+
+
+    openReport(
+
+        "Reporte presupuestal",
+
+        `
+
+        <h2>
+            Resumen
+        </h2>
+
+        <p>
+            Presupuesto aprobado:
+            <strong>
+                ${advancedCurrency(
+                    BUDGET_APPROVED_VALUE
+                )}
+            </strong>
+        </p>
+
+        <p>
+            Ejecutado:
+            <strong>
+                ${advancedCurrency(
+                    summary.executed
+                )}
+            </strong>
+        </p>
+
+        <p>
+            Disponible:
+            <strong>
+                ${advancedCurrency(
+                    summary.available
+                )}
+            </strong>
+        </p>
+
+        <p>
+            Ejecución:
+            <strong>
+                ${summary.percentage.toFixed(1)}%
+            </strong>
+        </p>
+
+        <h2>
+            Movimientos
+        </h2>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Categoría</th>
+                    <th>Descripción</th>
+                    <th>Valor</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+                ${rows}
+            </tbody>
+
+        </table>
+
+        `
+
+    );
+
+}
+
+
+function generateGeneralReport() {
+
+    const patients =
+        getAdvancedPatients();
+
+    const services =
+        getAdvancedServices();
+
+    const inventory =
+        getAdvancedInventory();
+
+    const alerts =
+        generateAlerts();
+
+    const summary =
+        updateBudgetSummary();
+
+
+    openReport(
+
+        "Reporte institucional general",
+
+        `
+
+        <h2>
+            Resumen institucional
+        </h2>
+
+        <table>
+
+            <tr>
+                <th>Indicador</th>
+                <th>Resultado</th>
+            </tr>
+
+            <tr>
+                <td>Pacientes</td>
+                <td>${patients.length}</td>
+            </tr>
+
+            <tr>
+                <td>Servicios</td>
+                <td>${services.length}</td>
+            </tr>
+
+            <tr>
+                <td>Productos de inventario</td>
+                <td>${inventory.length}</td>
+            </tr>
+
+            <tr>
+                <td>Alertas</td>
+                <td>${alerts.length}</td>
+            </tr>
+
+            <tr>
+                <td>Presupuesto aprobado</td>
+                <td>
+                    ${advancedCurrency(
+                        BUDGET_APPROVED_VALUE
+                    )}
+                </td>
+            </tr>
+
+            <tr>
+                <td>Presupuesto ejecutado</td>
+                <td>
+                    ${advancedCurrency(
+                        summary.executed
+                    )}
+                </td>
+            </tr>
+
+            <tr>
+                <td>Ejecución presupuestal</td>
+                <td>
+                    ${summary.percentage.toFixed(1)}%
+                </td>
+            </tr>
+
+        </table>
+
+        <h2>
+            Alertas actuales
+        </h2>
+
+        ${
+            alerts.length
+                ? alerts.map(alert => `
+                    <p>
+                        <strong>
+                            ${advancedEscape(
+                                alert.title
+                            )}
+                        </strong>:
+                        ${advancedEscape(
+                            alert.message
+                        )}
+                    </p>
+                `).join("")
+                : "<p>No existen alertas.</p>"
+        }
+
+        `
+
+    );
+
+}
+
+
+/* ============================================================
+   ACTUALIZAR TODO
+============================================================ */
+
+function refreshAdvancedModules() {
+
+    updateBudgetSummary();
+
+    updateAnalysis();
+
+    populatePredictionServices();
+
+    renderAlerts();
+
+}
+
+
+/* ============================================================
+   EVENTOS
+============================================================ */
+
+function initAdvancedModules() {
+
+    loadBudgetData();
+
+    renderBudget();
+
+    updateBudgetSummary();
+
+    updateAnalysis();
+
+    populatePredictionServices();
+
+    renderAlerts();
+
+
+    const newBudgetBtn =
+        document.getElementById(
+            "newBudgetBtn"
+        );
+
+    if (newBudgetBtn) {
+
+        newBudgetBtn.addEventListener(
+            "click",
+            createBudgetMovement
+        );
+
+    }
+
+
+    const budgetSearch =
+        document.getElementById(
+            "budgetSearch"
+        );
+
+    if (budgetSearch) {
+
+        budgetSearch.addEventListener(
+            "input",
+            event => {
+
+                renderBudget(
+                    event.target.value
+                );
+
+            }
+        );
+
+    }
+
+
+    const predictionBtn =
+        document.getElementById(
+            "generatePredictionBtn"
+        );
+
+    if (predictionBtn) {
+
+        predictionBtn.addEventListener(
+            "click",
+            generatePrediction
+        );
+
+    }
+
+
+    const refreshAlertsBtn =
+        document.getElementById(
+            "refreshAlertsBtn"
+        );
+
+    if (refreshAlertsBtn) {
+
+        refreshAlertsBtn.addEventListener(
+            "click",
+            renderAlerts
+        );
+
+    }
+
+
+    const reportDemandBtn =
+        document.getElementById(
+            "reportDemandBtn"
+        );
+
+    if (reportDemandBtn) {
+
+        reportDemandBtn.addEventListener(
+            "click",
+            generateDemandReport
+        );
+
+    }
+
+
+    const reportInventoryBtn =
+        document.getElementById(
+            "reportInventoryBtn"
+        );
+
+    if (reportInventoryBtn) {
+
+        reportInventoryBtn.addEventListener(
+            "click",
+            generateInventoryReport
+        );
+
+    }
+
+
+    const reportBudgetBtn =
+        document.getElementById(
+            "reportBudgetBtn"
+        );
+
+    if (reportBudgetBtn) {
+
+        reportBudgetBtn.addEventListener(
+            "click",
+            generateBudgetReport
+        );
+
+    }
+
+
+    const reportGeneralBtn =
+        document.getElementById(
+            "reportGeneralBtn"
+        );
+
+    if (reportGeneralBtn) {
+
+        reportGeneralBtn.addEventListener(
+            "click",
+            generateGeneralReport
+        );
+
+    }
+
+}
+
+
+/* ============================================================
+   INICIAR MÓDULOS
+============================================================ */
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        initAdvancedModules
+    );
+
+} else {
+
+    initAdvancedModules();
+
+}
