@@ -2480,3 +2480,31 @@ tbody tr:hover {
     .excel-import-actions .btn { width: 100%; }
     .excel-preview-heading { align-items: flex-start; flex-direction: column; }
 }
+
+
+/* Ampliación de presupuesto: cinco indicadores con diseño adaptable */
+.budget-stats-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.budget-values {
+    flex-wrap: wrap;
+    gap: 14px;
+}
+
+.budget-values > div {
+    flex: 1 1 145px;
+    min-width: 0;
+}
+
+@media (max-width: 1250px) {
+    .budget-stats-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 700px) {
+    .budget-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
