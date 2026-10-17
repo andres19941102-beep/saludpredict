@@ -159,6 +159,11 @@
                 <span>Reportes</span>
             </button>
 
+            <button class="nav-item" data-section="importar-excel">
+                <span>📥</span>
+                <span>Importar Excel</span>
+            </button>
+
         </nav>
 
 
@@ -183,6 +188,82 @@
         <!-- ==========================
              DASHBOARD
         =========================== -->
+
+        <!-- ==========================
+             IMPORTAR EXCEL
+        =========================== -->
+
+        <section id="importar-excel" class="section">
+
+            <div class="section-header">
+                <div>
+                    <h1>Importar Excel</h1>
+                    <p>Incorpora información a los módulos existentes sin borrar los datos actuales.</p>
+                </div>
+            </div>
+
+            <div class="panel excel-import-panel">
+                <div class="excel-import-intro">
+                    <div class="excel-import-icon">📊</div>
+                    <div>
+                        <h2>Cargar archivo de Excel</h2>
+                        <p>Selecciona el módulo de destino y carga un archivo .xlsx, .xls o .csv. La importación agrega registros nuevos y omite posibles duplicados; no reemplaza los datos actuales.</p>
+                    </div>
+                </div>
+
+                <div class="excel-import-controls">
+                    <div class="form-group">
+                        <label for="excelTarget">Módulo de destino</label>
+                        <select id="excelTarget">
+                            <option value="patients">Pacientes</option>
+                            <option value="services">Servicios</option>
+                            <option value="inventory">Inventario</option>
+                            <option value="budget">Presupuesto</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="excelFile">Archivo de Excel</label>
+                        <input id="excelFile" type="file" accept=".xlsx,.xls,.csv" />
+                        <small>Usa la primera hoja del archivo y coloca los encabezados en la primera fila.</small>
+                    </div>
+                </div>
+
+                <div id="excelColumnHelp" class="excel-column-help">
+                    <strong>Columnas recomendadas para Pacientes:</strong> Documento, Nombre, Edad, Servicio, Estado, Fecha de registro.
+                </div>
+
+                <div id="excelFileStatus" class="excel-status" role="status" aria-live="polite">Selecciona un archivo para revisar sus datos antes de importarlos.</div>
+
+                <div id="excelPreviewWrap" class="excel-preview-wrap" hidden>
+                    <div class="excel-preview-heading">
+                        <h3>Vista previa</h3>
+                        <span id="excelPreviewCount">0 registros</span>
+                    </div>
+                    <div class="table-container">
+                        <table class="excel-preview-table">
+                            <thead id="excelPreviewHead"></thead>
+                            <tbody id="excelPreviewBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="excel-import-actions">
+                        <button type="button" id="cancelExcelImportBtn" class="btn btn-secondary">Cancelar</button>
+                        <button type="button" id="confirmExcelImportBtn" class="btn btn-primary" disabled>Importar registros</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel excel-guidance-panel">
+                <h3>Antes de importar</h3>
+                <ul>
+                    <li>Los nombres de las columnas pueden estar escritos con o sin tildes.</li>
+                    <li>Los registros deben tener los campos principales: documento y nombre para pacientes; código y nombre para servicios e inventario; concepto para presupuesto.</li>
+                    <li>Los registros se guardan en el almacenamiento local de este navegador, igual que el resto de la aplicación.</li>
+                    <li>Para proteger la información, prueba primero con una copia del archivo y no incluyas datos personales reales de pacientes si no es necesario.</li>
+                </ul>
+            </div>
+
+        </section>
+
 
         <section id="dashboard" class="section active">
 
@@ -1984,6 +2065,7 @@
          JAVASCRIPT
     =============================== -->
 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="script.js"></script>
 
 </body>
