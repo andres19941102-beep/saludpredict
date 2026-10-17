@@ -4702,6 +4702,284 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =================================================
+       IMPORTACIÓN DE EXCEL
+       Agrega datos nuevos y conserva los registros actuales.
+    ================================================= */
+
+    const excelTarget = document.getElementById("excelTarget");
+    const excelFile = document.getElementById("excelFile");
+    const excelColumnHelp = document.getElementById("excelColumnHelp");
+    const excelFileStatus = document.getElementById("excelFileStatus");
+    const excelPreviewWrap = document.getElementById("excelPreviewWrap");
+    const excelPreviewHead = document.getElementById("excelPreviewHead");
+    const excelPreviewBody = document.getElementById("excelPreviewBody");
+    const excelPreviewCount = document.getElementById("excelPreviewCount");
+    const confirmExcelImportBtn = document.getElementById("confirmExcelImportBtn");
+    const cancelExcelImportBtn = document.getElementById("cancelExcelImportBtn");
+
+    let pendingExcelRows = [];
+    let pendingExcelHeaders = [];
+    let pendingExcelFileName = "";
+
+    const excelColumnGuidance = {
+        patients: "<strong>Columnas recomendadas para Pacientes:</strong> Documento, Nombre, Edad, Servicio, Estado, Fecha de registro.",
+        services: "<strong>Columnas recomendadas para Servicios:</strong> Código, Nombre o Servicio, Categoría, Duración, Precio o Valor, Estado.",
+        inventory: "<strong>Columnas recomendadas para Inventario:</strong> Código, Nombre o Producto, Categoría, Unidad, Stock, Stock mínimo, Vencimiento, Precio o Valor, Estado.",
+        budget: "<strong>Columnas recomendadas para Presupuesto:</strong> Concepto, Categoría, Valor o Monto, Estado. Los estados reconocidos son Ejecutado y Programado."
+    };
+
+    function setExcelStatus(message, type = "") {
+        if (!excelFileStatus) return;
+        excelFileStatus.className = "excel-status" + (type ? " " + type : "");
+        excelFileStatus.textContent = message;
+    }
+
+    function normalizeExcelHeader(value) {
+        return String(value ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "");
+    }
+
+    function excelValue(row, aliases) {
+        const keys = Object.keys(row || {});
+        for (const alias of aliases) {
+            const expected = normalizeExcelHeader(alias);
+            const found = keys.find(key => normalizeExcelHeader(key) === expected);
+            if (found !== undefined && String(row[found] ?? "").trim() !== "") {
+                return row[found];
+            }
+        }
+        return "";
+    }
+
+    function excelNumber(value, fallback = 0) {
+        if (typeof value === "number" && Number.isFinite(value)) return value;
+        let text = String(value ?? "").trim().replace(/\s/g, "").replace(/\$/g, "");
+        if (!text) return fallback;
+        // Soporta formatos frecuentes: 85000, 85.000 y 85.000,50.
+        if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(text)) {
+            text = text.replace(/\./g, "").replace(",", ".");
+        } else if (/^-?\d+(,\d+)$/.test(text)) {
+            text = text.replace(",", ".");
+        } else {
+            text = text.replace(/,/g, "");
+        }
+        const number = Number(text);
+        return Number.isFinite(number) ? number : fallback;
+    }
+
+    function normalizeExcelStatus(value, fallback = "Activo") {
+        const status = String(value ?? "").trim().toLowerCase();
+        if (["inactivo", "inactiva", "inactive", "no", "0"].includes(status)) return "Inactivo";
+        if (["programado", "programada", "pendiente", "programmed"].includes(status)) return "Programado";
+        if (["ejecutado", "ejecutada", "realizado", "realizada", "pagado"].includes(status)) return "Ejecutado";
+        if (["activo", "activa", "active", "si", "sí", "1"].includes(status)) return "Activo";
+        return fallback;
+    }
+
+    function normalizeExcelDate(value) {
+        if (!value) return "";
+        if (value instanceof Date && !Number.isNaN(value.getTime())) return value.toISOString().slice(0, 10);
+        const text = String(value).trim();
+        if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10);
+        const match = text.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+        if (match) return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
+        return text;
+    }
+
+    function mapExcelRow(row, target) {
+        if (target === "patients") {
+            const document = String(excelValue(row, ["documento", "document", "identificacion", "identificación", "numero de documento", "cedula", "cédula"])).trim();
+            const name = String(excelValue(row, ["nombre", "name", "nombre completo", "paciente"])).trim();
+            if (!document || !name) return null;
+            return {
+                id: generateId("P"), document, name,
+                age: Math.max(0, excelNumber(excelValue(row, ["edad", "age"]), 0)),
+                service: String(excelValue(row, ["servicio", "service", "especialidad"])).trim() || "Sin especificar",
+                status: normalizeExcelStatus(excelValue(row, ["estado", "status"]), "Activo"),
+                createdAt: normalizeExcelDate(excelValue(row, ["fecha de registro", "fecha registro", "fecha", "createdat"])) || new Date().toISOString().slice(0, 10)
+            };
+        }
+        if (target === "services") {
+            const code = String(excelValue(row, ["codigo", "código", "code", "codigo servicio", "codigoservicio"])).trim();
+            const name = String(excelValue(row, ["nombre", "name", "servicio", "nombre servicio"])).trim();
+            if (!code || !name) return null;
+            return {
+                id: generateId("S"), code, name,
+                category: String(excelValue(row, ["categoria", "category", "tipo"])).trim() || "Consulta",
+                duration: String(excelValue(row, ["duracion", "duración", "duration", "tiempo"])).trim() || "30 min",
+                price: Math.max(0, excelNumber(excelValue(row, ["valor", "precio", "price", "tarifa", "costo"]), 0)),
+                status: normalizeExcelStatus(excelValue(row, ["estado", "status"]), "Activo")
+            };
+        }
+        if (target === "inventory") {
+            const code = String(excelValue(row, ["codigo", "código", "code", "codigo producto", "referencia"])).trim();
+            const name = String(excelValue(row, ["nombre", "name", "producto", "medicamento", "insumo"])).trim();
+            if (!code || !name) return null;
+            return {
+                id: generateId("I"), code, name,
+                category: String(excelValue(row, ["categoria", "category", "tipo"])).trim() || "General",
+                unit: String(excelValue(row, ["unidad", "unit", "unidad de medida"])).trim() || "Unidad",
+                stock: Math.max(0, excelNumber(excelValue(row, ["stock", "existencias", "cantidad"]), 0)),
+                minStock: Math.max(0, excelNumber(excelValue(row, ["stock minimo", "minimo", "minstock", "stock minimo requerido"]), 0)),
+                expiry: normalizeExcelDate(excelValue(row, ["vencimiento", "fecha de vencimiento", "expiry", "fecha vencimiento"])),
+                price: Math.max(0, excelNumber(excelValue(row, ["precio", "valor", "costo", "costo unitario", "price"]), 0)),
+                status: normalizeExcelStatus(excelValue(row, ["estado", "status"]), "Activo")
+            };
+        }
+        if (target === "budget") {
+            const concept = String(excelValue(row, ["concepto", "concept", "descripcion", "descripción", "movimiento", "rubro"])).trim();
+            if (!concept) return null;
+            return {
+                id: generateId("B"), concept,
+                category: String(excelValue(row, ["categoria", "category", "rubro presupuestal"])).trim() || "General",
+                amount: Math.max(0, excelNumber(excelValue(row, ["valor", "monto", "importe", "amount", "presupuesto"]), 0)),
+                status: normalizeExcelStatus(excelValue(row, ["estado", "status"]), "Programado")
+            };
+        }
+        return null;
+    }
+
+    function getExcelExistingRecords(target) {
+        if (target === "patients") return getPatients();
+        if (target === "services") return getServices();
+        if (target === "inventory") return getInventory();
+        return getBudget();
+    }
+
+    function saveExcelRecords(target, records) {
+        const key = STORAGE[target];
+        saveData(key, records);
+    }
+
+    function excelDuplicateKey(record, target) {
+        if (target === "patients") return String(record.document || "").trim().toLowerCase();
+        if (target === "services" || target === "inventory") return String(record.code || "").trim().toLowerCase();
+        return `${String(record.concept || "").trim().toLowerCase()}|${String(record.category || "").trim().toLowerCase()}|${Number(record.amount || 0)}`;
+    }
+
+    function renderExcelPreview(rows, headers) {
+        excelPreviewHead.innerHTML = `<tr>${headers.map(header => `<th>${escapeHtml(header)}</th>`).join("")}</tr>`;
+        excelPreviewBody.innerHTML = rows.slice(0, 8).map(row => `<tr>${headers.map(header => `<td>${escapeHtml(row[header] ?? "")}</td>`).join("")}</tr>`).join("");
+        excelPreviewCount.textContent = `${rows.length} fila(s) detectada(s); vista previa de ${Math.min(rows.length, 8)}`;
+        excelPreviewWrap.hidden = false;
+    }
+
+    if (excelTarget) {
+        excelTarget.addEventListener("change", () => {
+            excelColumnHelp.innerHTML = excelColumnGuidance[excelTarget.value];
+            if (pendingExcelRows.length) {
+                const valid = pendingExcelRows.filter(row => mapExcelRow(row, excelTarget.value));
+                confirmExcelImportBtn.disabled = valid.length === 0;
+                setExcelStatus(`${valid.length} fila(s) parecen válidas para ${excelTarget.options[excelTarget.selectedIndex].text}. Revisa la vista previa antes de importar.`, valid.length ? "success" : "warning");
+            }
+        });
+    }
+
+    if (excelFile) {
+        excelFile.addEventListener("change", async event => {
+            const file = event.target.files && event.target.files[0];
+            pendingExcelRows = [];
+            pendingExcelHeaders = [];
+            pendingExcelFileName = file ? file.name : "";
+            confirmExcelImportBtn.disabled = true;
+            excelPreviewWrap.hidden = true;
+            excelPreviewHead.innerHTML = "";
+            excelPreviewBody.innerHTML = "";
+            if (!file) {
+                setExcelStatus("Selecciona un archivo para revisar sus datos antes de importarlos.");
+                return;
+            }
+            if (!window.XLSX) {
+                setExcelStatus("No se pudo cargar el lector de Excel. Comprueba tu conexión a internet y vuelve a cargar la página.", "error");
+                return;
+            }
+            try {
+                const buffer = await file.arrayBuffer();
+                const workbook = XLSX.read(buffer, { type: "array", cellDates: true });
+                const firstSheetName = workbook.SheetNames[0];
+                if (!firstSheetName) throw new Error("El archivo no contiene hojas de cálculo.");
+                const worksheet = workbook.Sheets[firstSheetName];
+                const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "", raw: false });
+                if (!rows.length) throw new Error("La primera hoja está vacía o solo contiene encabezados.");
+                pendingExcelRows = rows;
+                pendingExcelHeaders = Object.keys(rows[0]);
+                renderExcelPreview(rows, pendingExcelHeaders);
+                const valid = rows.filter(row => mapExcelRow(row, excelTarget.value));
+                confirmExcelImportBtn.disabled = valid.length === 0;
+                setExcelStatus(`${file.name}: ${rows.length} fila(s) leída(s) en la hoja “${firstSheetName}”. ${valid.length} fila(s) cumplen los campos principales para ${excelTarget.options[excelTarget.selectedIndex].text}.`, valid.length ? "success" : "warning");
+            } catch (error) {
+                setExcelStatus(error.message || "No fue posible leer el archivo. Revisa el formato y los encabezados.", "error");
+                pendingExcelRows = [];
+                excelPreviewWrap.hidden = true;
+            }
+        });
+    }
+
+    if (confirmExcelImportBtn) {
+        confirmExcelImportBtn.addEventListener("click", () => {
+            if (!pendingExcelRows.length) {
+                setExcelStatus("Primero selecciona y revisa un archivo.", "warning");
+                return;
+            }
+            const target = excelTarget.value;
+            const mapped = pendingExcelRows.map(row => mapExcelRow(row, target)).filter(Boolean);
+            if (!mapped.length) {
+                setExcelStatus("No hay filas válidas. Revisa los nombres de las columnas y los campos obligatorios.", "error");
+                return;
+            }
+            const current = getExcelExistingRecords(target);
+            const known = new Set(current.map(record => excelDuplicateKey(record, target)));
+            const toAdd = [];
+            let duplicates = 0;
+            mapped.forEach(record => {
+                const key = excelDuplicateKey(record, target);
+                if (known.has(key)) {
+                    duplicates++;
+                    return;
+                }
+                known.add(key);
+                toAdd.push(record);
+            });
+            if (!toAdd.length) {
+                setExcelStatus(`No se agregaron registros: las ${duplicates} fila(s) válidas ya existen o son duplicadas. No se modificaron los datos actuales.`, "warning");
+                return;
+            }
+            try {
+                saveExcelRecords(target, current.concat(toAdd));
+                renderAll();
+                const moduleName = excelTarget.options[excelTarget.selectedIndex].text;
+                setExcelStatus(`Importación completada en ${moduleName}. Se agregaron ${toAdd.length} registro(s), se omitieron ${duplicates} duplicado(s) y se descartaron ${pendingExcelRows.length - mapped.length} fila(s) incompletas. Los datos actuales se conservaron.`, "success");
+                confirmExcelImportBtn.disabled = true;
+                excelFile.value = "";
+                pendingExcelRows = [];
+                pendingExcelHeaders = [];
+                pendingExcelFileName = "";
+                excelPreviewCount.textContent = "Importación finalizada";
+            } catch (error) {
+                setExcelStatus("No fue posible guardar la importación. El almacenamiento del navegador puede estar lleno.", "error");
+            }
+        });
+    }
+
+    if (cancelExcelImportBtn) {
+        cancelExcelImportBtn.addEventListener("click", () => {
+            excelFile.value = "";
+            pendingExcelRows = [];
+            pendingExcelHeaders = [];
+            pendingExcelFileName = "";
+            confirmExcelImportBtn.disabled = true;
+            excelPreviewWrap.hidden = true;
+            excelPreviewHead.innerHTML = "";
+            excelPreviewBody.innerHTML = "";
+            setExcelStatus("Importación cancelada. No se modificaron los datos actuales.");
+        });
+    }
+
+
+    /* =================================================
        RENDER GENERAL
     ================================================= */
 
