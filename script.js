@@ -850,6 +850,218 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
     /* =================================================
+       AMPLIACIÓN DE DATOS ACADÉMICOS DE DEMOSTRACIÓN
+       Conserva los registros existentes y agrega únicamente
+       los registros faltantes. Todos los datos generados son ficticios.
+    ================================================= */
+
+    const expandedServiceCatalog = [
+        { code: "SER-014", name: "Pediatría", category: "Consulta", duration: "40 min", price: 125000 },
+        { code: "SER-015", name: "Medicina interna", category: "Consulta", duration: "40 min", price: 135000 },
+        { code: "SER-016", name: "Neurología", category: "Consulta", duration: "45 min", price: 165000 },
+        { code: "SER-017", name: "Dermatología", category: "Consulta", duration: "30 min", price: 140000 },
+        { code: "SER-018", name: "Ortopedia", category: "Consulta", duration: "40 min", price: 150000 },
+        { code: "SER-019", name: "Urología", category: "Consulta", duration: "40 min", price: 145000 },
+        { code: "SER-020", name: "Oftalmología", category: "Consulta", duration: "35 min", price: 130000 },
+        { code: "SER-021", name: "Psiquiatría", category: "Consulta", duration: "50 min", price: 160000 },
+        { code: "SER-022", name: "Psicología", category: "Consulta", duration: "45 min", price: 95000 },
+        { code: "SER-023", name: "Nutrición", category: "Consulta", duration: "30 min", price: 80000 },
+        { code: "SER-024", name: "Vacunación", category: "Procedimiento", duration: "20 min", price: 35000 },
+        { code: "SER-025", name: "Toma de muestras", category: "Diagnóstico", duration: "15 min", price: 25000 },
+        { code: "SER-026", name: "Radiografía", category: "Diagnóstico", duration: "25 min", price: 70000 },
+        { code: "SER-027", name: "Ecografía", category: "Diagnóstico", duration: "35 min", price: 110000 },
+        { code: "SER-028", name: "Electrocardiograma", category: "Diagnóstico", duration: "20 min", price: 55000 },
+        { code: "SER-029", name: "Curaciones", category: "Procedimiento", duration: "25 min", price: 45000 },
+        { code: "SER-030", name: "Terapia respiratoria", category: "Procedimiento", duration: "30 min", price: 65000 },
+        { code: "SER-031", name: "Planificación familiar", category: "Promoción y prevención", duration: "30 min", price: 60000 },
+        { code: "SER-032", name: "Control prenatal", category: "Promoción y prevención", duration: "35 min", price: 90000 },
+        { code: "SER-033", name: "Vacunación infantil", category: "Promoción y prevención", duration: "20 min", price: 40000 }
+    ];
+
+    const expandedInventoryCatalog = [
+        ["MED-006", "Loratadina 10 mg", "Medicamentos", "Caja", 2200],
+        ["MED-007", "Cetirizina 10 mg", "Medicamentos", "Caja", 2600],
+        ["MED-008", "Sales de rehidratación oral", "Medicamentos", "Sobre", 1800],
+        ["MED-009", "Metformina 850 mg", "Medicamentos", "Caja", 4200],
+        ["MED-010", "Losartán 50 mg", "Medicamentos", "Caja", 3900],
+        ["MED-011", "Enalapril 10 mg", "Medicamentos", "Caja", 3100],
+        ["MED-012", "Amlodipino 5 mg", "Medicamentos", "Caja", 3600],
+        ["MED-013", "Atorvastatina 20 mg", "Medicamentos", "Caja", 5800],
+        ["MED-014", "Furosemida 40 mg", "Medicamentos", "Caja", 2800],
+        ["MED-015", "Hidroclorotiazida 25 mg", "Medicamentos", "Caja", 2500],
+        ["MED-016", "Dexametasona 4 mg", "Medicamentos", "Ampolla", 1700],
+        ["MED-017", "Diclofenaco 75 mg", "Medicamentos", "Ampolla", 2300],
+        ["MED-018", "Lidocaína 2%", "Medicamentos", "Frasco", 6200],
+        ["MED-019", "Metoclopramida 10 mg", "Medicamentos", "Ampolla", 1500],
+        ["MED-020", "Ondansetrón 4 mg", "Medicamentos", "Ampolla", 4800],
+        ["MED-021", "Cefalexina 500 mg", "Medicamentos", "Caja", 5200],
+        ["MED-022", "Azitromicina 500 mg", "Medicamentos", "Caja", 7500],
+        ["MED-023", "Ciprofloxacino 500 mg", "Medicamentos", "Caja", 4800],
+        ["MED-024", "Salbutamol inhalador", "Medicamentos", "Unidad", 12500],
+        ["MED-025", "Budesonida inhalador", "Medicamentos", "Unidad", 18500],
+        ["MED-026", "Insulina humana", "Medicamentos", "Frasco", 22000],
+        ["MED-027", "Levotiroxina 50 mcg", "Medicamentos", "Caja", 3400],
+        ["MED-028", "Prednisolona 5 mg", "Medicamentos", "Caja", 3900],
+        ["MED-029", "Clotrimazol crema", "Medicamentos", "Tubo", 4100],
+        ["MED-030", "Miconazol crema", "Medicamentos", "Tubo", 4600],
+        ["MED-031", "Suero fisiológico 500 ml", "Medicamentos", "Bolsa", 3200],
+        ["MED-032", "Dextrosa al 5% 500 ml", "Medicamentos", "Bolsa", 3700],
+        ["MED-033", "Ringer lactato 500 ml", "Medicamentos", "Bolsa", 3900],
+        ["MED-034", "Vitamina K", "Medicamentos", "Ampolla", 5400],
+        ["MED-035", "Complejo B", "Medicamentos", "Ampolla", 2900],
+        ["INS-004", "Jeringas 3 ml", "Insumos médicos", "Unidad", 450],
+        ["INS-005", "Jeringas 10 ml", "Insumos médicos", "Unidad", 850],
+        ["INS-006", "Agujas hipodérmicas", "Insumos médicos", "Caja", 6800],
+        ["INS-007", "Catéter intravenoso 20G", "Insumos médicos", "Unidad", 1800],
+        ["INS-008", "Equipo de venoclisis", "Insumos médicos", "Unidad", 2600],
+        ["INS-009", "Llaves de tres vías", "Insumos médicos", "Unidad", 2100],
+        ["INS-010", "Batas desechables", "Insumos médicos", "Paquete", 9500],
+        ["INS-011", "Gorros desechables", "Insumos médicos", "Paquete", 6200],
+        ["INS-012", "Tapabocas N95", "Insumos médicos", "Unidad", 2800],
+        ["INS-013", "Bajalenguas", "Insumos médicos", "Caja", 3900],
+        ["INS-014", "Termómetros digitales", "Equipos e instrumentos", "Unidad", 12500],
+        ["INS-015", "Tensiómetros", "Equipos e instrumentos", "Unidad", 68000],
+        ["INS-016", "Oxímetros de pulso", "Equipos e instrumentos", "Unidad", 42000],
+        ["MAT-003", "Apósitos estériles", "Material de curación", "Paquete", 1900],
+        ["MAT-004", "Vendas elásticas", "Material de curación", "Unidad", 2400],
+        ["MAT-005", "Esparadrapo hipoalergénico", "Material de curación", "Rollo", 3200],
+        ["MAT-006", "Algodón hospitalario", "Material de curación", "Paquete", 2800],
+        ["MAT-007", "Alcohol antiséptico", "Material de curación", "Frasco", 4300],
+        ["MAT-008", "Clorhexidina", "Material de curación", "Frasco", 7800],
+        ["LAB-003", "Tubos tapa lila", "Laboratorio", "Caja", 14500],
+        ["LAB-004", "Tubos tapa roja", "Laboratorio", "Caja", 13800],
+        ["LAB-005", "Tubos tapa azul", "Laboratorio", "Caja", 15900],
+        ["LAB-006", "Puntas para micropipeta", "Laboratorio", "Rack", 18500],
+        ["LAB-007", "Pruebas rápidas de glucosa", "Laboratorio", "Caja", 22500],
+        ["LAB-008", "Tiras reactivas de orina", "Laboratorio", "Frasco", 16800],
+        ["LAB-009", "Reactivo química sanguínea", "Laboratorio", "Kit", 52000],
+        ["LAB-010", "Contenedores de muestras", "Laboratorio", "Paquete", 8900],
+        ["ODN-001", "Guantes para odontología", "Odontología", "Caja", 16500],
+        ["ODN-002", "Resina dental", "Odontología", "Jeringa", 28500],
+        ["ODN-003", "Anestésico dental", "Odontología", "Caja", 32000],
+        ["ODN-004", "Eyectores de saliva", "Odontología", "Paquete", 7400],
+        ["QUI-001", "Suturas absorbibles", "Material quirúrgico", "Caja", 38500],
+        ["QUI-002", "Bisturí desechable", "Material quirúrgico", "Unidad", 1800],
+        ["QUI-003", "Campos quirúrgicos", "Material quirúrgico", "Paquete", 12500],
+        ["ASE-001", "Detergente enzimático", "Aseo y desinfección", "Galón", 38500],
+        ["ASE-002", "Desinfectante hospitalario", "Aseo y desinfección", "Galón", 29800],
+        ["ASE-003", "Bolsas rojas para residuos", "Aseo y desinfección", "Paquete", 9200],
+        ["ASE-004", "Guardianes para cortopunzantes", "Aseo y desinfección", "Unidad", 6800],
+        ["EPP-001", "Gafas de protección", "Elementos de protección", "Unidad", 7200],
+        ["EPP-002", "Careta facial", "Elementos de protección", "Unidad", 8500],
+        ["EPP-003", "Delantales impermeables", "Elementos de protección", "Paquete", 14500],
+        ["NUT-001", "Fórmula nutricional de apoyo", "Nutrición", "Lata", 28500],
+        ["NUT-002", "Vasos graduados", "Nutrición", "Paquete", 4800]
+    ];
+
+    function expandAcademicDemoData() {
+        const currentPatients = getPatients();
+        if (currentPatients.length < 520) {
+            const firstNames = ["Ana", "Andrés", "Beatriz", "Camilo", "Carolina", "Carlos", "Catalina", "Daniel", "Diana", "Diego", "Elena", "Felipe", "Gabriela", "Héctor", "Isabel", "Javier", "Juliana", "Laura", "Luis", "Marcela", "María", "Mateo", "Natalia", "Nicolás", "Paola", "Pedro", "Ricardo", "Sandra", "Santiago", "Sofía", "Valentina", "Wilson"];
+            const surnames = ["García", "Rodríguez", "Martínez", "López", "Gómez", "Pérez", "Sánchez", "Ramírez", "Torres", "Díaz", "Vargas", "Castro", "Rojas", "Moreno", "Muñoz", "Ortiz", "Jiménez", "Álvarez", "Ruiz", "Herrera", "Medina", "Silva", "Reyes", "Cárdenas", "Navarro", "Mendoza"];
+            const serviceNames = [...demoServices, ...expandedServiceCatalog].map(service => service.name);
+            const existingDocuments = new Set(currentPatients.map(patient => String(patient.document || "")));
+            let candidate = 1;
+            while (currentPatients.length < 520) {
+                const n = candidate++;
+                const document = String(900000000 + n);
+                if (existingDocuments.has(document)) continue;
+                existingDocuments.add(document);
+                const first = firstNames[(n * 7) % firstNames.length];
+                const surname1 = surnames[(n * 3) % surnames.length];
+                const surname2 = surnames[(n * 11 + 5) % surnames.length];
+                const month = String(((n - 1) % 9) + 1).padStart(2, "0");
+                const day = String(((n * 7) % 28) + 1).padStart(2, "0");
+                currentPatients.push({
+                    id: `PD${String(n).padStart(4, "0")}`,
+                    document,
+                    name: `${first} ${surname1} ${surname2}`,
+                    age: 1 + ((n * 13) % 88),
+                    service: serviceNames[(n * 5) % serviceNames.length],
+                    status: n % 13 === 0 ? "Inactivo" : "Activo",
+                    createdAt: `2026-${month}-${day}`,
+                    demoRecord: true
+                });
+            }
+            saveData(STORAGE.patients, currentPatients);
+        }
+
+        const currentServices = getServices();
+        const serviceCodes = new Set(currentServices.map(service => String(service.code || "").toUpperCase()));
+        expandedServiceCatalog.forEach((service, index) => {
+            if (!serviceCodes.has(service.code)) {
+                currentServices.push({ id: `SD${String(index + 1).padStart(3, "0")}`, ...service, status: "Activo" });
+                serviceCodes.add(service.code);
+            }
+        });
+        saveData(STORAGE.services, currentServices);
+
+        const currentInventory = getInventory();
+        const inventoryCodes = new Set(currentInventory.map(item => String(item.code || "").toUpperCase()));
+        expandedInventoryCatalog.forEach((item, index) => {
+            const [code, name, category, unit, price] = item;
+            if (!inventoryCodes.has(code)) {
+                const stock = 35 + ((index * 17) % 240);
+                const minStock = 15 + ((index * 7) % 45);
+                const month = String((index % 12) + 1).padStart(2, "0");
+                const day = String((index * 3 % 27) + 1).padStart(2, "0");
+                currentInventory.push({
+                    id: `ID${String(index + 1).padStart(3, "0")}`,
+                    code, name, category, unit, stock, minStock,
+                    expiry: category === "Equipos e instrumentos" ? "" : `2027-${month}-${day}`,
+                    price,
+                    status: "Activo",
+                    demoRecord: true
+                });
+                inventoryCodes.add(code);
+            }
+        });
+        saveData(STORAGE.inventory, currentInventory);
+    }
+
+    function calculateOperationalProjection() {
+        const patients = getPatients();
+        const services = getServices();
+        const inventory = getInventory();
+        const activeServices = services.filter(service => service.status === "Activo");
+        const inventoryValue = inventory.reduce((sum, item) => sum + (Math.max(0, Number(item.stock) || 0) * Math.max(0, Number(item.price) || 0)), 0);
+        const patientDemandCost = patients.length * 35000;
+        const serviceReadinessCost = activeServices.length * 500000;
+        return {
+            patients: patients.length,
+            activeServices: activeServices.length,
+            inventoryUnits: inventory.reduce((sum, item) => sum + (Number(item.stock) || 0), 0),
+            inventoryValue,
+            patientDemandCost,
+            serviceReadinessCost,
+            total: Math.round(patientDemandCost + serviceReadinessCost + inventoryValue)
+        };
+    }
+
+    function syncOperationalBudgetProjection() {
+        const metrics = calculateOperationalProjection();
+        const budget = getBudget();
+        const concept = "Proyección operativa según pacientes, servicios e inventario";
+        const projection = {
+            id: "SALUDPREDICT-OPERATIONAL-PROJECTION",
+            concept,
+            category: "Proyección operativa",
+            amount: metrics.total,
+            status: "Programado",
+            isSystemProjection: true
+        };
+        const index = budget.findIndex(item => item.id === projection.id || item.concept === concept);
+        if (index >= 0) budget[index] = projection;
+        else budget.push(projection);
+        saveData(STORAGE.budget, budget);
+        return metrics;
+    }
+
+    expandAcademicDemoData();
+    syncOperationalBudgetProjection();
+
+
+    /* =================================================
        NAVEGACIÓN
     ================================================= */
 
@@ -1101,6 +1313,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 BUDGET_APPROVED_VALUE
             );
 
+        const dashboardProjection = document.getElementById("dashboardOperationalProjection");
+        if (dashboardProjection) {
+            const operationalProjection = budget.find(item => item.isSystemProjection || item.id === "SALUDPREDICT-OPERATIONAL-PROJECTION");
+            dashboardProjection.textContent = formatCurrency(operationalProjection ? operationalProjection.amount : calculateOperationalProjection().total);
+        }
 
         renderDashboardDemand();
 
@@ -2876,6 +3093,12 @@ document.addEventListener("DOMContentLoaded", () => {
             "budgetPercentage"
         ).textContent =
             percentage + "%";
+
+        const projectionCard = document.getElementById("budgetProjection");
+        if (projectionCard) {
+            const projection = budget.find(item => item.isSystemProjection || item.id === "SALUDPREDICT-OPERATIONAL-PROJECTION");
+            projectionCard.textContent = formatCurrency(projection ? projection.amount : 0);
+        }
 
     }
 
@@ -4689,6 +4912,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 demoBudget
             );
 
+            expandAcademicDemoData();
+            syncOperationalBudgetProjection();
 
             renderAll();
 
@@ -4984,6 +5209,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ================================================= */
 
     function renderAll() {
+
+        syncOperationalBudgetProjection();
 
         renderDashboard();
 
